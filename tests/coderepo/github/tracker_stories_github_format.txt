@@ -1,0 +1,10 @@
+:beetle:<a href="https://www.pivotaltracker.com/story/show/134185571">bug **134185571**</a> 
+ &nbsp;&nbsp;&nbsp;&nbsp; **CCS$ value in Sales Chart metrics is empty for the District Manager view when the value is 0** 
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;CCS$ value in Sales Chart metrics is empty for the District Manager view when the value is 0
+
+
+:beetle:<a href="https://www.pivotaltracker.com/story/show/134185571">bug **134185571**</a> 
+ &nbsp;&nbsp;&nbsp;&nbsp; **CCS$ value in Sales Chart metrics is empty for the District Manager view when the value is 0** 
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;CCS$ value in Sales Chart metrics is empty for the District Manager view when the value is 0
+
+

@@ -1,0 +1,74 @@
+&&&838f192&&&@@@Fix sync time queries [Finishes] (#53)[Finishes #145753803]@@@
+&&&01ee887&&&@@@set MasterDataCommon to use latest version to fix sync time issue [Finishes] (#52)[Finishes #145560051]@@@
+&&&4e17d72&&&@@@final fix [ci skip]@@@
+&&&f4044b8&&&@@@another fix [ci skip]@@@
+&&&381b760&&&@@@[ci skip] fixed readme@@@
+&&&ba38106&&&@@@Merge pull request #51 from fake/chore/spring-boot-1.5.3-145272703Welcome to Spring Boot 1.5.3@@@
+&&&c2da381&&&@@@Welcome to Spring Boot 1.5.3
+  further cleanup of pipeline given removal of latest-dev branch
+  removing latest-dev branch
+  catch latest-dev up with master (#86)
+  updating fly_commands shell script [#123555544]
+  github custom version make executable :disappointed:
+@@@
+&&&83e4098&&&@@@Merge pull request #50 from fake/build-config-#144197567added buildConfig.json@@@
+&&&6379fc8&&&@@@added buildConfig.json[#144197567]
+@@@
+&&&230b7d2&&&@@@add q3 to DB2 support@@@
+&&&c8abe35&&&@@@version set for spring security web@@@
+&&&8382fc7&&&@@@Merge pull request #49 from fake/chore/prepare-for-spring-boot-1.5-145029157Move depricated function overrides into appropriate classes@@@
+&&&597238c&&&@@@delete commented out dependencies[#145029157]
+@@@
+&&&441062a&&&@@@Move depricated function overrides into appropriate classes[#145029157]
+@@@
+&&&1a2cdde&&&@@@Merge pull request #48 from fake/chore/upgrade-spring-boot-1.4-140439405Chore/upgrade spring boot 1.4 140439405@@@
+&&&be31433&&&@@@Welcome to Spring Boot 1.4.6![#140439405]
+@@@
+&&&5060238&&&@@@Welcome to Spring Boot 1.4.6![#140439405]
+@@@
+&&&7ef6950&&&@@@delete unused interface@@@
+&&&a06218c&&&@@@Merge pull request #47 from fake/bug/enterprise-store-timezone-144706665Convert Enterprise store service to use QueryDSL@@@
+&&&563207b&&&@@@add check the other tables[#144706665]
+@@@
+&&&124f875&&&@@@Set the same padding logic for Business unit merchandising Heirarchy as added to Enterprise Store Catalog[#144706665]
+@@@
+&&&bac30fb&&&@@@Convert Enterprise store service to use QueryDSL Add padding of store numbers to make them have leading zeros until 4 digits ar reached Add test of padding of store numbers [Fixes][Fixes #144706665]
+@@@
+&&&85c24e6&&&@@@rename health endpoint location@@@
+&&&2dcc739&&&@@@production upgrade buildpack [ci skip]@@@
+&&&d1972b8&&&@@@Merge pull request #46 from fake/chore/upgrade-buildpackupgrade buildpack@@@
+&&&841bbc7&&&@@@disable spring boot actuator endpoints except health and info@@@
+&&&9298ca3&&&@@@upgrade buildpack@@@
+&&&69b98b3&&&@@@Merge pull request #45 from fake/feature/fake-fake-of-sale-service @@@
+&&&79d2017&&&@@@removing .idea@@@
+&&&fc09c58&&&@@@Cleaning up MasterDataLocationSimulation@@@
+&&&fef9880&&&@@@Update application-fake.properties@@@
+&&&881f404&&&@@@Creating CSV file for performance testing.@@@
+&&&5b874fc&&&@@@Store Point of Sale Profile ready for performance test@@@
+&&&c564a1a&&&@@@Updating ASCII doc with path parameters for each test.@@@
+&&&3e84016&&&@@@Updated asciidoc for store point of sale profile@@@
+&&&7400998&&&@@@Update README.mdKicking Concourse@@@
+&&&076d4c2&&&@@@Added more for store point of profile service.@@@
+&&&9afcf22&&&@@@Update README.mdKicking Concourse@@@
+&&&f0be0c5&&&@@@Initial implementation for Store Point of Sale Profile service@@@
+&&&5f257c1&&&@@@Merge pull request #44 from fake/feature/location_bugfixfixed location Bug@@@
+&&&074075b&&&@@@location bug fix changes committed@@@
+&&&b0c0573&&&@@@Update pom.xml@@@
+&&&56016ea&&&@@@YOLO Common Bump.@@@
+&&&a3ab3de&&&@@@Merge pull request #43 from fake/feature/add-id-for-fake-centersAdd new field to api documentation [Fix broken test]@@@
+&&&9ea512a&&&@@@Add new field to api documentation@@@
+&&&0d9dc59&&&@@@Merge pull request #42 from fake/feature/add-id-for-fake-centersAdd DistributionCenters to expose ID list@@@
+&&&a69e908&&&@@@Add DistributionCenters to expose ID@@@
+&&&e43403d&&&@@@Merge pull request #41 from fake/feature/added-store-fake Store domain from Common Repository@@@
+&&&5194296&&&@@@Replaced Store domain from Common Repository@@@
+&&&31b9498&&&@@@Merge pull request #40 from fake/update-documentationadded instructions for fetching all stores with pagination@@@
+&&&8235dea&&&@@@added instructions for fetching all stores with pagination@@@
+&&&14517b6&&&@@@Merge pull request #39 from fake/pagination-documentationPagination documentation@@@
+&&&1b1126c&&&@@@added documentation for /location/stores/offsetpaged endpoint@@@
+&&&50d8f43&&&@@@YOLO bump common@@@
+&&&86018c5&&&@@@removed shah's email from the doc's@@@
+&&&ea4aa06&&&@@@production endpoint client logging@@@
+&&&098aef6&&&@@@Update README.md@@@
+&&&30c8c60&&&@@@YOLO killing off Rethink completely.@@@
+&&&e1fd602&&&@@@YOLO Bump Common and enable Rethink-like logging.@@@
+&&&4a3ddfb&&&@@@Merge pull request #38 from fake/bugfix/UnusedNot used pageables.@@@

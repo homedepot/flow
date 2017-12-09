@@ -1,0 +1,38 @@
+{
+	"projectInfo": {
+		"name": "CI-Python",
+		"language": "python",
+		"versionStrategy": "tracker"
+	},
+	
+	"artifact": {
+		"artifactType": "tar"
+	},
+
+	"github": {
+		"org": "homedepot",
+		"repo": "flow",
+		"URL": "https://github.com/api/v3/repos"
+	},
+
+	"tracker": {
+		"projectId": ""
+	},
+
+	"slack": {
+		"botName": "Flow",
+		"emoji": ":robot_face:",
+		"channel": "#spigot-ci"
+	},
+
+	"environments": {
+		"development": {
+			"artifactCategory": "snapshot",
+			"associatedBranchName": "develop"
+		},
+		"production": {
+			"artifactCategory": "release",
+			"associatedBranchName": "master"
+		}
+	}
+}

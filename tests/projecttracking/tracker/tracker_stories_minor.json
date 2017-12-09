@@ -1,0 +1,47 @@
+{
+    "stories":[
+        {
+            "current_state":"started",
+            "project_id":123456,
+            "owner_ids":[
+                123456,
+                7890
+            ],
+            "created_at":"2016-11-11T19:15:03Z",
+            "kind":"story",
+            "updated_at":"2016-11-14T14:16:33Z",
+            "estimate":0,
+            "story_type":"chore",
+            "id":123456,
+            "owned_by_id":123456,
+            "name":"Test Chore",
+            "requested_by_id":123456,
+            "description":"This is a test chore",
+            "labels":[
+
+            ],
+            "url":"https://www.pivotaltracker.com/story/show/fake"
+        },
+        {
+            "kind":"story",
+            "id":12345678,
+            "created_at":"2016-11-11T19:15:03Z",
+            "updated_at":"2016-11-14T14:16:33Z",
+            "estimate":0,
+            "story_type":"bug",
+            "name":"Test bug",
+            "description":"This is a test bug",
+            "current_state":"started",
+            "requested_by_id":123456,
+            "url":"https://www.pivotaltracker.com/story/show/fake",
+            "project_id":1234567,
+            "owner_ids":[
+                1123456
+            ],
+            "labels":[
+
+            ],
+            "owned_by_id":123456
+        }
+    ]
+}

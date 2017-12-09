@@ -1,0 +1,7 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.5.2, pytest-2.9.2, py-1.4.31, pluggy-0.3.1 -- /Users/nnp0333/.virtualenvs/flow/bin/python3.5
+cachedir: ../.cache
+rootdir: /Users/nnp0333/silverlining/flow/flow-2, inifile: 
+plugins: mock-1.2
+collecting ... 
+========================= no tests ran in 0.00 seconds =========================

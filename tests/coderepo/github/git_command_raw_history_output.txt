@@ -1,0 +1,60 @@
+&&&98db8af&&&@@@Update README for setup and testing instructions@@@
+&&&da1bc5e&&&@@@refactor all the mdm tests@@@
+&&&20d837b&&&@@@restructure artifactory tests@@@
+&&&97b4e72&&&@@@first working pass with minimal changes@@@
+&&&adb2746&&&@@@Merge pull request #35 from fake/snapshot-manual-versioning@@@
+&&&482263d&&&@@@Adding double % signs to fix syntax@@@
+&&&12eb7ee&&&@@@Merge pull request #34 from fake/snapshot-manual-versioning@@@
+&&&808b0d0&&&@@@Find snapshot releases that match version_number@@@
+&&&3fb35b2&&&@@@Allow snapshot builds to set version_number@@@
+&&&2453021&&&@@@Merge pull request #30 from fake/patch-2@@@
+&&&f7d9258&&&@@@Adding MDM to tasks_requiring_github@@@
+&&&cfa4aeb&&&@@@Merge pull request #29 from fake/patch-1@@@
+&&&950893f&&&@@@Added cut to git for-each-ref calls to avoid pulling back the timezone offset.@@@
+&&&c67b3e0&&&@@@fixed bug with snapshot version not being pulled as latests when there was a recent release version.  [#134114167]@@@
+&&&0763f7a&&&@@@Merge pull request #27 from ci-cd/artifactory-bug-fix-134082057@@@
+&&&00431a9&&&@@@correcting priority of checking environment variables@@@
+&&&223342f&&&@@@Adding ability to specify artifactory user [#134082057]@@@
+&&&4326d00&&&@@@Adding slack channel option for errors [#130798449]@@@
+&&&09c1983&&&@@@Merge pull request #25 from ci-cd/revert-18-github-version-fix@@@
+&&&445fd02&&&@@@Revert "GitHub version fix"@@@
+&&&65c05e9&&&@@@Update buildConfig.json@@@
+&&&623d518&&&@@@Merge pull request #18 from ci-cd/github-version-fix@@@
+&&&3ca339f&&&@@@removing virutalenv that snuck in@@@
+&&&9803e38&&&@@@fixed parsing issue of github tag@@@
+&&&8a3f3e7&&&@@@cleaning up how we find the latest tag@@@
+&&&7b19416&&&@@@reorganized code to make diff prettier@@@
+&&&2e1e149&&&@@@refactored github to deal with +'s in the timezone offset@@@
+&&&0ae49fa&&&@@@fixed bug requring snowfield user [#133455353]@@@
+&&&7fc6615&&&@@@moved artifactory key to environment variable@@@
+&&&e6cc51a&&&@@@Moved github api to env variable@@@
+&&&fadad65&&&@@@removed print in favor of commons.printMSG [#133448693]@@@
+&&&e6bcbdf&&&@@@moved all snowfield url's to settings.ini and added catch for token [#133446639]@@@
+&&&4c9b4d2&&&@@@Now you should use ARTIFACTORY_TOKEN env variable instead of settings.ini or buildConfig.json [#133445393]@@@
+&&&55b2373&&&@@@No longer using fake by default for github api token.  Use GITHUB_TOKEN pwd parameter or secrets file to inject [#133436887]@@@
+&&&eabab9b&&&@@@No longer using fake by default for github api token.  Use GITHUB_TOKEN pwd parameter or secrets file to inject [#133436887]@@@
+&&&894a65c&&&@@@Merge pull request #15 from mc331w/patch-1@@@
+&&&8fb551c&&&@@@Changing fortify email address [#132965521]@@@
+&&&f57349f&&&@@@adding sqp link to cr [#133064795]@@@
+&&&a247b37&&&@@@Fixing bug with SQP and cr task@@@
+&&&30c3ac0&&&@@@Merge branch 'develop' of https://github.fake.com/ci-cd/flow into develop@@@
+&&&99d6a7e&&&@@@fixing issue calling cr creation/close@@@
+&&&b30dd71&&&@@@Updated the descriptions of the values needed to run MDM.@@@
+&&&44c9c07&&&@@@fixing bug where a task requiring github also requires a version arg@@@
+&&&58ef4f2&&&@@@testing with random buid number to see if that's why sqp is appending results@@@
+&&&bc0cc67&&&@@@fixed bug wth completed tasks without reports [#132967929]@@@
+&&&7239b99&&&@@@SQP doesn't allow plus sign in version.  Results weren't posting but no error was thrown.  [#132967211]@@@
+&&&90543d6&&&@@@Adding support for uploading to software quality portal from flow [#132964471]@@@
+&&&029a13e&&&@@@Adding support for uploading to software quality portal from flow [#132964471]@@@
+&&&a94ce59&&&@@@Adding support for uploading to software quality portal from flow [#132964471]@@@
+&&&17f0b3e&&&@@@Merge pull request #14 from ci-cd/subcommand-fix@@@
+&&&6e5b5c4&&&@@@fixing slack task bug@@@
+&&&44e3f73&&&@@@Merge pull request #13 from ci-cd/subcommand-fix@@@
+&&&ed10e85&&&@@@Merge branch 'develop' of github.fake.com:ci-cd/flow into develop@@@
+&&&303bce4&&&@@@triggering build to validate https://github.fake.com/ci-cd/concourse-common/commit/32c801e9ad4c1ba2e74157f0a8838c573fe885ab@@@
+&&&38333d2&&&@@@updating tasks names@@@
+&&&b31caf4&&&@@@adding back change that vanished@@@
+&&&811b151&&&@@@adding back change that vanished@@@
+&&&6574d69&&&@@@Merge pull request #11 from ci-cd/subcommand-fix@@@
+&&&405186b&&&@@@fixing merge conflict@@@
+&&&c968da6&&&@@@putting proper branch name back@@@

@@ -1,0 +1,48 @@
+{
+    "stories":[
+        {
+            "current_state":"started",
+            "project_id":1899551,
+            "owner_ids":[
+                1783060,
+                1797262
+            ],
+            "created_at":"2016-11-11T19:15:03Z",
+            "kind":"story",
+            "updated_at":"2016-11-14T14:16:33Z",
+            "estimate":0,
+            "story_type":"bug",
+            "id":134185571,
+            "owned_by_id":1783060,
+            "name":"CCS$ value in Sales Chart metrics is empty for the District Manager view when the value is 0",
+            "requested_by_id":1783064,
+            "description":"CCS$ value in Sales Chart metrics is empty for the District Manager view when the value is 0",
+            "labels":[
+
+            ],
+            "url":"https://www.pivotaltracker.com/story/show/134185571"
+        },
+        {
+            "kind":"story",
+            "id":134185571,
+            "created_at":"2016-11-11T19:15:03Z",
+            "updated_at":"2016-11-14T14:16:33Z",
+            "estimate":0,
+            "story_type":"bug",
+            "name":"CCS$ value in Sales Chart metrics is empty for the District Manager view when the value is 0",
+            "description":"CCS$ value in Sales Chart metrics is empty for the District Manager view when the value is 0",
+            "current_state":"started",
+            "requested_by_id":1783064,
+            "url":"https://www.pivotaltracker.com/story/show/134185571",
+            "project_id":1899551,
+            "owner_ids":[
+                1783060,
+                1797262
+            ],
+            "labels":[
+
+            ],
+            "owned_by_id":1783060
+        }
+    ]
+}
