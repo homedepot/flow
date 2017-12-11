@@ -11,6 +11,10 @@ A CLI tool for common Continuous Integration/Continuous Delivery Tasks
 * Slack
 * Grafana
 
+## Join Us
+* Backlog: [Pivotal Tracker](https://www.pivotaltracker.com/n/projects/2135573#)
+* Docker: 
+
 ## Development
 
 For instructions on contributing, please see [CONTRIBUTING.md](CONTRIBUTING.md).
