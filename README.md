@@ -1,6 +1,8 @@
 # Flow
 A CLI tool for common Continuous Integration/Continuous Delivery Tasks
 
+[![Coverage Status](https://coveralls.io/repos/github/homedepot/flow/badge.svg?branch=master)](https://coveralls.io/github/homedepot/flow?branch=master)
+
 **Current Integrations:**
 * GitHub
 * Pivotal Tracker
@@ -14,6 +16,7 @@ A CLI tool for common Continuous Integration/Continuous Delivery Tasks
 ## Join Us
 * Backlog: [Pivotal Tracker](https://www.pivotaltracker.com/n/projects/2135573#)
 * Docker: 
+* Chat: [gitter.im](https://gitter.im/thd-flow)
 
 ## Development
 
@@ -293,8 +296,37 @@ Cade Thacker
 
 Jeff Billimek
 
-Adam Edelman
+Corbett Waddingham
+
+Jimmy Joy
 
 Jermaine Davis
 
+Nick Bunn
+
 Preston Turner
+
+Chris Leatherwood
+
+Notable Mentions: 
+Jeff Anderson,
+Patrick Baggett,
+Micahel Celeste,
+Mark Dedula,
+Adam Edelman,
+Chris Gruel,
+Joey Guerra,
+Nolan Hedstrom,
+Muhammad Ikram,
+John Jimenez,
+Shane Keels,
+David Kowis,
+John Mckenna,
+Winston Milling,
+Dhakshna Munusamy,
+Sanjay Nair,
+Nikeshbhai Patel,
+Priyesh Patel,
+Cody Stamps,
+Ian Stansbury,
+Alvaro Ramirez-del Villar   
