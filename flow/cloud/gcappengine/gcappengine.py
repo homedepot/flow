@@ -3,6 +3,8 @@ import platform
 import subprocess
 import tarfile
 import urllib
+import ssl
+
 from subprocess import TimeoutExpired
 
 from flow.buildconfig import BuildConfig
@@ -34,19 +36,26 @@ class GCAppEngine(Cloud):
         method = '_download_google_sdk'
         commons.printMSG(GCAppEngine.clazz, method, 'begin')
 
+        ctx = ssl.create_default_context()
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
+
         cmd = "where" if platform.system() == "Windows" else "which"
         rtn = subprocess.call([cmd, 'gcloud'])
+
+        gcloud_location = self.config.settings.get('googlecloud', 'cloud_sdk_path') + self.config.settings.get('googlecloud', 'gcloud_version')
 
         if rtn == 0:
             commons.printMSG(GCAppEngine.clazz, method, 'gcloud already installed')
         else:
             commons.printMSG(GCAppEngine.clazz, method, "gcloud CLI was not installed on this image. "
                                                         "Downloading Google Cloud SDK from {}".format(
-                self.config.settings.get('googlecloud', 'cloud_sdk_path')))
+                gcloud_location))
 
-            urllib.request.urlretrieve(self.config.settings.get('googlecloud', 'cloud_sdk_path'),
-                                       './google-cloud-sdk-144.0.0-linux-x86_64.tar.gz')
-            tar = tarfile.open('./google-cloud-sdk-144.0.0-linux-x86_64.tar.gz')
+            with urllib.request.urlopen(gcloud_location, context=ctx) as u, open(self.config.settings.get('googlecloud', 'gcloud_version'), 'wb') as f:
+                f.write(u.read())
+
+            tar = tarfile.open('./' + self.config.settings.get('googlecloud', 'gcloud_version'))
             GCAppEngine.path_to_google_sdk = 'google-cloud-sdk/bin/'
             tar.extractall()
             tar.close()
