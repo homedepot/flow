@@ -18,11 +18,11 @@ install:
   - pip install twine
 
 script:
-  - flow github version development
+  - flow github version production
   - coverage run --source flow -m py.test
 #  - bandit -r -ll -ii -x tests .
-  - flow tracker label-release development
-  - flow github -o VERSION getversion development
+  - flow tracker label-release production
+  - flow github -o VERSION getversion production
 #  - python3 setup.py bdist_wheel
 #  - twine upload --config-file scripts/.pypirc -r pypi -u $PYPI_USER -p $PYPI_PWD dist/*
 
