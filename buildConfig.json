@@ -24,7 +24,7 @@
 	"environments": {
 		"development": {
 			"artifactCategory": "snapshot",
-			"associatedBranchName": "develop"
+			"associatedBranchName": "master"
 		},
 		"production": {
 			"artifactCategory": "release",
