@@ -19,7 +19,7 @@ install:
 script:
   - flow github version development
   - coverage run --source flow -m py.test
-  - bandit -r -ll -ii -x tests .
+  #- bandit -r -ll -ii -x tests .
 
 after_success:
   - coverage report
