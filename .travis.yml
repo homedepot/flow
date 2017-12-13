@@ -2,6 +2,9 @@ language: python
 dist: trusty
 sudo: false
 
+services:
+  - docker
+
 matrix:
   include:
     - python: "3.5"
@@ -35,3 +38,5 @@ deploy:
 after_success:
   - coverage report
   - coveralls
+  - docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD";
+  - docker push aturner/flow;
