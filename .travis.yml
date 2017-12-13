@@ -23,13 +23,14 @@ script:
 #  - bandit -r -ll -ii -x tests .
   - flow tracker label-release development
   - flow github -o VERSION getversion development
-  - python3 setup.py bdist_wheel
+#  - python3 setup.py bdist_wheel
 #  - twine upload --config-file scripts/.pypirc -r pypi -u $PYPI_USER -p $PYPI_PWD dist/*
 
 deploy:
   provider: pypi
   user: $PYPI_USER
   password: $PYPI_PWD
+  skip_cleanup: true
 
 after_success:
   - coverage report
