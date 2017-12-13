@@ -26,6 +26,7 @@ script:
 #  - bandit -r -ll -ii -x tests .
   - flow tracker label-release production
   - flow github -o VERSION getversion production
+  - docker build -t aturner/flow .
 #  - python3 setup.py bdist_wheel
 #  - twine upload --config-file scripts/.pypirc -r pypi -u $PYPI_USER -p $PYPI_PWD dist/*
 
