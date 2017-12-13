@@ -20,6 +20,10 @@ script:
   - flow github version development
   - coverage run --source flow -m py.test
   #- bandit -r -ll -ii -x tests .
+  - flow tracker label-release development
+  - flow github -o VERSION getversion development
+  - python3 setup.py bdist_wheel
+  - twine upload --config-file scripts/.pypirc -r pypi -u $PYPI_USER -p $PYPI_PWD dist/*
 
 after_success:
   - coverage report
