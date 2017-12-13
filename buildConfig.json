@@ -1,22 +1,18 @@
 {
 	"projectInfo": {
-		"name": "CI-Python",
+		"name": "flow",
 		"language": "python",
 		"versionStrategy": "tracker"
 	},
 	
-	"artifact": {
-		"artifactType": "tar"
-	},
-
 	"github": {
-		"org": "homedepot",
+		"org": "aturnerbulldawg",
 		"repo": "flow",
-		"URL": "https://github.com/api/v3/repos"
+		"URL": "https://api.github.com/repos"
 	},
 
 	"tracker": {
-		"projectId": 153562353
+		"projectId": 2135573
 	},
 
 	"slack": {
