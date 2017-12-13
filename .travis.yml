@@ -1,0 +1,25 @@
+language: python
+dist: trusty
+
+matrix:
+  include:
+    - python: "3.5"
+
+if: tag IS blank
+
+before_script:
+  - pip install --upgrade setuptools
+
+install:
+  - pip install coveralls
+  - pip install bandit
+  - pip install THD_Flow
+
+script:
+  - flow github version development || exit 1
+  - coverage run --source flow -m py.test || exit 1
+  - bandit -r -ll -ii -x tests . || exit 1
+
+after_success:
+  - coverage report
+  - coveralls
