@@ -16,9 +16,9 @@ install:
   - pip install THD_Flow
 
 script:
-  - flow github version development || exit 1
-  - coverage run --source flow -m py.test || exit 1
-  - bandit -r -ll -ii -x tests . || exit 1
+  - flow github version development
+  - coverage run --source flow -m py.test
+  - bandit -r -ll -ii -x tests .
 
 after_success:
   - coverage report
