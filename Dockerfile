@@ -16,9 +16,10 @@ RUN apk add --no-cache --virtual .build-deps \
   zip \
   openjdk8-jre
 
+COPY . /source
+
 RUN wget https://bootstrap.pypa.io/get-pip.py --no-check-certificate \
   && python3 get-pip.py \
-  && pip3 install lxml \
-  && pip3 install -e ./
+  && pip3 install -e /source
 
 RUN apk del .build-deps
