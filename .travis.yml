@@ -23,7 +23,7 @@ install:
 script:
   - flow github version production
   - coverage run --source flow -m py.test
-#  - bandit -r -ll -ii -x tests .
+  - bandit -r -ll -ii -x tests .
   - flow tracker label-release production
   - flow github -o VERSION getversion production
   - docker build -t aturner/flow .
