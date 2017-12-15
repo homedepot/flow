@@ -112,7 +112,7 @@ def get_files_of_type_from_directory(type, directory):
 
 # TODO convert all popens that need decoding to call this
 def execute_command(cmd):
-    process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    process = subprocess.Popen(cmd, shell=False, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     # output from subprocess is always a unicode bytearray and not ascii
     # need to read it and go ahead and convert it to a string
     output = process.stdout.read().decode("UTF8")

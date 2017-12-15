@@ -247,9 +247,9 @@ def test_get_started_apps_already_started_failed_cmd():
 
                     with patch.object(_cf, '_cf_logout'):
                         _cf._get_started_apps('true')
-        mock_printmsg_fn.assert_any_call('CloudFoundry', '_get_started_apps', "Failed calling cf apps | grep "
-                                                                              "CI-HelloWorld*-v\\d*\\.\\d*\\.\\d* | grep started | awk '{"
-                                                                              "print $1}'. Return code of 1", 'ERROR')
+        mock_printmsg_fn.assert_any_call('CloudFoundry', '_get_started_apps', 'Failed calling cf appsgrep CI-HelloWorld*-v\\d*\\.\\d*\\.\\d*grep started. Return code of 1', 'ERROR')
+
+
 
 
 def test_find_deployable_multiple_files():

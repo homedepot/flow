@@ -67,9 +67,8 @@ class GitHub(Code_Repo):
         method = '_refresh_tags'
         commons.printMSG(GitHub.clazz, method, 'getting latest tags')
 
-        # TODO this didn't seem to work on Jenkins 
-        pull_tags_cmd = 'git pull --tags'
-        pull_tags = subprocess.Popen(pull_tags_cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        pull_tags_cmd = "git pull --tags"
+        pull_tags = subprocess.Popen(pull_tags_cmd.split(), shell=False, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
         pull_tags_outputs, pull_tags_errs = pull_tags.communicate(timeout=300)
 

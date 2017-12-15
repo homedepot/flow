@@ -107,7 +107,7 @@ class Cloud(metaclass=ABCMeta):
 
         cmd = "./" + custom_deploy_script
 
-        execute_custom_script = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        execute_custom_script = subprocess.Popen(cmd.split(), shell=False, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
         while execute_custom_script.poll() is None:
             line = execute_custom_script.stdout.readline().decode('utf-8').strip(' \r\n')

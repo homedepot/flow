@@ -90,10 +90,11 @@ class GCAppEngine(Cloud):
         method = '_gcloud_login'
         commons.printMSG(GCAppEngine.clazz, method, 'begin')
 
-        cmd = GCAppEngine.path_to_google_sdk + "gcloud auth activate-service-account --key-file {} --quiet" \
-                .format('gcloud.json')
+        cmd = "{path}gcloud auth activate-service-account --key-file {keyfile} --quiet".format(
+            path=GCAppEngine.path_to_google_sdk,
+            keyfile='gcloud.json')
 
-        gcloud_login = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        gcloud_login = subprocess.Popen(cmd.split(), shell=False, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
         login_failed = False
 
@@ -158,7 +159,8 @@ class GCAppEngine(Cloud):
         commons.printMSG(GCAppEngine.clazz, method, 'begin')
 
         promote_flag = "--no-promote" if promote is False else ""
-        cmd = GCAppEngine.path_to_google_sdk + "gcloud app deploy {dir}/{env} --quiet --version {ver} {promote}".format(
+        cmd = "{path}gcloud app deploy {dir}/{env} --quiet --version {ver} {promote}".format(
+            path=GCAppEngine.path_to_google_sdk,
             dir=self.config.push_location,
             env=app_yaml,
             ver=((self.config.version_number).replace('+','--')).replace('.','-'),
@@ -167,7 +169,7 @@ class GCAppEngine(Cloud):
 
         commons.printMSG(GCAppEngine.clazz, method, cmd)
 
-        gcloud_app_deploy = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        gcloud_app_deploy = subprocess.Popen(cmd.split(), shell=False, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
         deploy_failed = False
 

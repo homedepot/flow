@@ -107,8 +107,8 @@ class CloudFoundry(Cloud):
         method = '_check_cf_version'
         commons.printMSG(CloudFoundry.clazz, method, 'begin')
 
-        cmd = CloudFoundry.path_to_cf + 'cf --version'
-        cf_version = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        cmd = "{}cf --version".format(CloudFoundry.path_to_cf)
+        cf_version = subprocess.Popen(cmd.split(), shell=False, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
         try:
             cf_version_output, errs = cf_version.communicate(timeout=30)
@@ -137,26 +137,33 @@ class CloudFoundry(Cloud):
         method = '_get_stopped_apps'
         commons.printMSG(CloudFoundry.clazz, method, 'begin')
 
-        cmd = "{path}cf apps | grep {proj}*-v\d*\.\d*\.\d* | grep stopped | awk '{{print $1}}'".format(path=CloudFoundry.path_to_cf,
-                                                                                       proj=self.config.project_name)
+        cmd1 = "{}cf apps".format(CloudFoundry.path_to_cf)
+        cmd2 = "grep {}*-v\d*\.\d*\.\d*".format(self.config.project_name)
+        cmd3 = "grep stopped"
+        cmd4 = ["awk", "{{print $1}}"]
 
-        stopped_apps = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-
+        run1 = subprocess.Popen(cmd1.split(), stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        run2 = subprocess.Popen(cmd2.split(), stdin=run1.stdout, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        run3 = subprocess.Popen(cmd3.split(), stdin=run2.stdout, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        stopped_apps = subprocess.Popen(cmd4, stdin=run3.stdout, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         get_stopped_apps_failed = False
 
         try:
-            CloudFoundry.stopped_apps, errs = stopped_apps.communicate(timeout=60)
+            run1.stdout.close()
+            run2.stdout.close()
+            run3.stdout.close()
+            CloudFoundry.stopped_apps, err = stopped_apps.communicate(timeout=60)
 
             for line in CloudFoundry.stopped_apps.splitlines():
                 commons.printMSG(CloudFoundry.clazz, method, "App Already Stopped: {}".format(line.decode('utf-8')))
 
             if stopped_apps.returncode != 0:
                 commons.printMSG(CloudFoundry.clazz, method, "Failed calling {command}. Return code of {rtn}".format(
-                                 command=cmd, rtn=stopped_apps.returncode), 'ERROR')
+                                 command=cmd1+cmd2+cmd3+cmd4, rtn=stopped_apps.returncode), 'ERROR')
                 get_stopped_apps_failed = True
 
         except TimeoutExpired:
-            commons.printMSG(CloudFoundry.clazz, method, "Timed out calling {}".format(cmd), 'ERROR')
+            commons.printMSG(CloudFoundry.clazz, method, "Timed out calling {}".format(cmd1+cmd2+cmd3), 'ERROR')
             get_stopped_apps_failed = True
 
         if get_stopped_apps_failed:
@@ -171,15 +178,23 @@ class CloudFoundry(Cloud):
         method = '_get_started_apps'
         commons.printMSG(CloudFoundry.clazz, method, 'begin')
 
-        cmd = "{path}cf apps | grep {proj}*-v\d*\.\d*\.\d* | grep started | awk '{{print $1}}'".format(path=CloudFoundry.path_to_cf,
-                                                                                       proj=self.config.project_name)
+        cmd1 = "{}cf apps".format(CloudFoundry.path_to_cf)
+        cmd2 = "grep {}*-v\d*\.\d*\.\d*".format(self.config.project_name)
+        cmd3 = "grep started"
+        cmd4 = ["awk", "{{print $1}}"]
 
-        started_apps = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        run1 = subprocess.Popen(cmd1.split(), stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        run2 = subprocess.Popen(cmd2.split(), stdin=run1.stdout, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        run3 = subprocess.Popen(cmd3.split(), stdin=run2.stdout, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        started_apps = subprocess.Popen(cmd4, stdin=run3.stdout, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
         get_started_apps_failed = False
 
         try:
-            CloudFoundry.started_apps, errs = started_apps.communicate(timeout=60)
+            run1.stdout.close()
+            run2.stdout.close()
+            run3.stdout.close()
+            CloudFoundry.started_apps, err = started_apps.communicate(timeout=60)
 
             for line in CloudFoundry.started_apps.splitlines():
                 commons.printMSG(CloudFoundry.clazz, method, "Started App: {}".format(line.decode('utf-8')))
@@ -199,12 +214,12 @@ class CloudFoundry(Cloud):
                                                                  "during deployment.".format(version_to_look_for))
             if started_apps.returncode != 0:
                 commons.printMSG(CloudFoundry.clazz, method, "Failed calling {command}. Return code of {rtn}".format(
-                                 command=cmd, rtn=started_apps.returncode), 'ERROR')
+                                 command=cmd1+cmd2+cmd3, rtn=started_apps.returncode), 'ERROR')
 
                 get_started_apps_failed = True
 
         except TimeoutExpired:
-            commons.printMSG(CloudFoundry.clazz, method, "Timed out calling {}".format(cmd), 'ERROR')
+            commons.printMSG(CloudFoundry.clazz, method, "Timed out calling {}".format(cmd1+cmd2+cmd3), 'ERROR')
             get_started_apps_failed = True
 
         if get_started_apps_failed:
@@ -250,39 +265,19 @@ class CloudFoundry(Cloud):
             file_to_push = "{dir}/{file}".format(dir=self.config.push_location, file=self.find_deployable(
                 self.config.artifact_extension, self.config.push_location))
 
-        if CloudFoundry.cf_domain is None:
-            if os.getenv('CF_BUILDPACK'):
-                cmd = CloudFoundry.path_to_cf + "cf push {project_name}-{version} -p {pushlocation} -f " \
-                                        "{manifest} -b {buildpack}".format(project_name=self.config.project_name,
-                                                                           version=self.config.version_number,
-                                                                           pushlocation=file_to_push,
-                                                                           manifest=manifest,
-                                                                           buildpack=os.getenv('CF_BUILDPACK'))
-            else:
-                cmd = CloudFoundry.path_to_cf + "cf push {project_name}-{version} -p {pushlocation} -f " \
-                                        "{manifest}".format(project_name=self.config.project_name,
-                                                            version=self.config.version_number,
-                                                            pushlocation=file_to_push,
-                                                            manifest=manifest)
-        else:
-            if os.getenv('CF_BUILDPACK'):
-                cmd = CloudFoundry.path_to_cf + "cf push {project_name}-{version} -d {cf_domain} -p {pushlocation} -f " \
-                                        "{manifest} -b {buildpack}".format(project_name=self.config.project_name,
-                                                                           version=self.config.version_number,
-                                                                           cf_domain=CloudFoundry.cf_domain,
-                                                                           pushlocation=file_to_push,
-                                                                           manifest=manifest,
-                                                                           buildpack=os.getenv('CF_BUILDPACK'))
-            else:
-                cmd = CloudFoundry.path_to_cf + "cf push {project_name}-{version} -d {cf_domain} -p {pushlocation} -f " \
-                                        "{manifest}".format(project_name=self.config.project_name,
-                                                            version=self.config.version_number,
-                                                            cf_domain=CloudFoundry.cf_domain,
-                                                            pushlocation=file_to_push,
-                                                            manifest=manifest)
+        domain = "-d {}".format(CloudFoundry.cf_domain) if CloudFoundry.cf_domain is not None else ""
+        buildpack = "-b {}".format(os.getenv('CF_BUILDPACK')) if os.getenv('CF_BUILDPACK') else ""
 
-        commons.printMSG(CloudFoundry.clazz, method, cmd)
-        cf_push = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        cmd = CloudFoundry.path_to_cf + "cf push {project_name}-{version} -p {pushlocation} -f {manifest} {buildpack} " \
+                                        "{cf_domain}".format(project_name=self.config.project_name,
+                                                               version=self.config.version_number,
+                                                               pushlocation=file_to_push,
+                                                               manifest=manifest,
+                                                               buildpack=buildpack,
+                                                               cf_domain=domain)
+
+        commons.printMSG(CloudFoundry.clazz, method, cmd.split())
+        cf_push = subprocess.Popen(cmd.split(), shell=False, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
         push_failed = False
 
@@ -322,9 +317,10 @@ class CloudFoundry(Cloud):
             if line.decode("utf-8") != version_to_look_for:
                 commons.printMSG(CloudFoundry.clazz, method, "Scaling down {}".format(line.decode("utf-8")))
 
-                cmd = CloudFoundry.path_to_cf + "cf scale {} -i 1".format(line.decode("utf-8"))
+                cmd = "{path}cf scale {app} -i 1".format(path=CloudFoundry.path_to_cf,
+                                                         app=line.decode("utf-8"))
 
-                cf_scale = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                cf_scale = subprocess.Popen(cmd.split(), shell=False, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
                 try:
                     cf_scale_output, errs = cf_scale.communicate(timeout=60)
@@ -342,9 +338,11 @@ class CloudFoundry(Cloud):
                     commons.printMSG(CloudFoundry.clazz, method, "Timed out calling {}".format(cmd), 'WARN')
                     stop_old_apps_failed = True
 
-                stop_cmd = CloudFoundry.path_to_cf + "cf stop %(project)s" % {'project': line.decode("utf-8")}
+                stop_cmd = "{path}cf stop {project}".format(path=CloudFoundry.path_to_cf,
+                                                            project=line.decode("utf-8"))
+
                 commons.printMSG(CloudFoundry.clazz, method, stop_cmd)
-                cf_stop = subprocess.Popen(stop_cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                cf_stop = subprocess.Popen(stop_cmd.split(), shell=False, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
                 try:
                     cf_stop_output, errs = cf_stop.communicate(timeout=60)
@@ -384,18 +382,24 @@ class CloudFoundry(Cloud):
                 commons.printMSG(CloudFoundry.clazz, method, "{} exists. Not removing routes for it.".format(
                     line.decode("utf-8").lower()))
             else:
-                cmd = "{path}cf routes | grep {old_app} | awk '{{print $2}}'".format(path=CloudFoundry.path_to_cf,
-                                                                                     old_app=line.decode("utf-8"))
-                commons.printMSG(CloudFoundry.clazz, method, cmd)
-                existing_routes = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                cmd1 = "{}cf routes".format(CloudFoundry.path_to_cf)
+                cmd2 = "grep {}".format(line.decode("utf-8"))
+                cmd3 = ["awk", "{{print $2}}"]
+
+                commons.printMSG(CloudFoundry.clazz, method, cmd1+cmd2+cmd3)
+                run1 = subprocess.Popen(cmd1.split(), stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                run2 = subprocess.Popen(cmd2.split(), stdin=run1.stdout, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                existing_routes = subprocess.Popen(cmd3.split(), stdin=run2.stdout, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
                 if CloudFoundry.cf_domain is not None:
                     try:
-                        existing_routes_output, errs = existing_routes.communicate(timeout=120)
+                        run1.stdout.close()
+                        run2.stdout.close()
+                        existing_routes_output, err = existing_routes.communicate(timeout=120)
 
                         if existing_routes.returncode != 0:
                             commons.printMSG(CloudFoundry.clazz, method, "Failed calling {command}. Return code of {"
-                                                                         "rtn}".format(command=cmd,
+                                                                         "rtn}".format(command=cmd1+cmd2+cmd3,
                                                                                        rtn=existing_routes.returncode),
                                              'ERROR')
 
@@ -403,11 +407,15 @@ class CloudFoundry(Cloud):
                             commons.printMSG(CloudFoundry.clazz, method, "Removing route {route} from {line}".format(
                                 route=route_line.decode("utf-8"), line=line.decode("utf-8")))
 
-                            cmd = CloudFoundry.path_to_cf + "cf unmap-route %(old_app)s %(cf_domain)s -n %(route_line)s" % {'old_app': line.decode("utf-8"), 'cf_domain': CloudFoundry.cf_domain, 'route_line': route_line.decode("utf-8")}
+                            cmd = "{path}cf unmap-route {old_app} {cf_domain} -n {route_line}".format(
+                                path=CloudFoundry.path_to_cf,
+                                old_app=line.decode("utf-8"),
+                                cf_domain=CloudFoundry.cf_domain,
+                                route_line=route_line.decode("utf-8"))
 
                             commons.printMSG(CloudFoundry.clazz, method, cmd)
 
-                            unmap_route = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE,
+                            unmap_route = subprocess.Popen(cmd.split(), shell=False, stdout=subprocess.PIPE,
                                                            stderr=subprocess.STDOUT)
 
                             try:
@@ -433,11 +441,12 @@ class CloudFoundry(Cloud):
                         unmap_delete_previous_versions_failed = True
 
                 if unmap_delete_previous_versions_failed is False:
-                    delete_cmd = CloudFoundry.path_to_cf + "cf delete %(project)s -f" % {'project': line.decode("utf-8")}
+                    delete_cmd = "{path}cf delete {project} -f".format(project=line.decode("utf-8"),
+                                                                       path=CloudFoundry.path_to_cf)
 
                     commons.printMSG(CloudFoundry.clazz, method, delete_cmd)
 
-                    delete_app = subprocess.Popen(delete_cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                    delete_app = subprocess.Popen(delete_cmd.split(), shell=False, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
                     try:
                         delete_app_output, errs = delete_app.communicate(timeout=120)
@@ -472,7 +481,7 @@ class CloudFoundry(Cloud):
 
         cmd = "{}cf logout".format(CloudFoundry.path_to_cf)
 
-        cf_logout = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        cf_logout = subprocess.Popen(cmd.split(), shell=False, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
         logout_failed = False
 
@@ -503,8 +512,16 @@ class CloudFoundry(Cloud):
         method = 'cf_login'
         commons.printMSG(CloudFoundry.clazz, method, 'begin')
 
-        cmd = CloudFoundry.path_to_cf + "cf login -a %(cf_api_endpoint)s -u %(cf_user)s -p %(cf_pwd)s -o \"%(cf_org)s\" -s \"%(cf_space)s\" --skip-ssl-validation" % { 'cf_api_endpoint': CloudFoundry.cf_api_endpoint, 'cf_user':CloudFoundry.cf_user, 'cf_pwd':CloudFoundry.cf_pwd, 'cf_org':CloudFoundry.cf_org, 'cf_space':CloudFoundry.cf_space}
-        cf_login = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        cmd = "{path}cf login -a {cf_api_endpoint} -u {cf_user} -p {cf_pwd} -o {cf_org} -s {cf_space} --skip-ssl-validation".format(
+            path=CloudFoundry.path_to_cf,
+            cf_api_endpoint=CloudFoundry.cf_api_endpoint,
+            cf_user=CloudFoundry.cf_user,
+            cf_pwd=CloudFoundry.cf_pwd,
+            cf_org=CloudFoundry.cf_org,
+            cf_space=CloudFoundry.cf_space
+        )
+
+        cf_login = subprocess.Popen(cmd.split(), shell=False, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
         login_failed = False
 
@@ -547,9 +564,10 @@ class CloudFoundry(Cloud):
         method = 'cf_login_check'
         commons.printMSG(CloudFoundry.clazz, method, 'begin')
 
-        # Test API targeting
-        cmd = CloudFoundry.path_to_cf + "cf api %(cf_api_endpoint)s" % {'cf_api_endpoint': CloudFoundry.cf_api_endpoint}
-        cf_api = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        cmd = "{path}cf api {api}".format(path=CloudFoundry.path_to_cf,
+                                          api=CloudFoundry.cf_api_endpoint)
+
+        cf_api = subprocess.Popen(cmd.split(), shell=False, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
         try:
             cf_api_output, cf_api_err = cf_api.communicate(timeout=30)
@@ -566,9 +584,11 @@ class CloudFoundry(Cloud):
             commons.printMSG(CloudFoundry.clazz, method, "Timed out calling {}".format(cmd), 'ERROR')
 
         # Test user/pwd login
-        cmd = CloudFoundry.path_to_cf + "cf auth %(cf_user)s %(cf_pwd)s" \
-                                        % {'cf_user': CloudFoundry.cf_user, 'cf_pwd': CloudFoundry.cf_pwd}
-        cf_login = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        cmd = "{path}cf auth {cf_user} {cf_pwd}".format(path=CloudFoundry.path_to_cf,
+                                                         cf_user=CloudFoundry.cf_user,
+                                                         cf_pwd=CloudFoundry.cf_pwd)
+
+        cf_login = subprocess.Popen(cmd.split(), shell=False, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
         try:
             cf_login_output, cf_login_err = cf_login.communicate(timeout=30)
@@ -588,8 +608,11 @@ class CloudFoundry(Cloud):
                 CloudFoundry.cf_user), 'ERROR')
 
         # Test targeting of org and space
-        cmd = CloudFoundry.path_to_cf + "cf target -o \"%(cf_org)s\" -s \"%(cf_space)s\"" % {'cf_org':CloudFoundry.cf_org, 'cf_space':CloudFoundry.cf_space }
-        cf_target = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        cmd = "{path}cf target -o {org} -s {space}".format(path=CloudFoundry.path_to_cf,
+                                                           org=CloudFoundry.cf_org,
+                                                           space=CloudFoundry.cf_space)
+
+        cf_target = subprocess.Popen(cmd.split(), shell=False, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
         try:
             cf_target_output, cf_target_err = cf_target.communicate(timeout=30)
