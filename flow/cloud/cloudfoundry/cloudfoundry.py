@@ -55,7 +55,7 @@ class CloudFoundry(Cloud):
                                                         "Downloading CF CLI from {}".format(
                 self.config.settings.get('cloudfoundry', 'cli_download_path')))
 
-            urllib.request.urlretrieve(self.config.settings.get('cloudfoundry', 'cli_download_path'),
+            urllib.request.urlretrieve(self.config.settings.get('cloudfoundry', 'cli_download_path'), # nosec
                                            './cf-linux-amd64.tgz')
             tar = tarfile.open('./cf-linux-amd64.tgz')
             CloudFoundry.path_to_cf = "./"

@@ -106,7 +106,7 @@ class GitHub(Code_Repo):
         commons.printMSG(GitHub.clazz, method, repo_url)
 
         try:
-            resp = requests.get(repo_url, headers=headers, verify=False, timeout=self.http_timeout)
+            resp = requests.get(repo_url, headers=headers, timeout=self.http_timeout)
         except requests.ConnectionError:
             commons.printMSG(GitHub.clazz, method, "Request to GitHub timed out.", "ERROR")
             exit(1)
@@ -166,7 +166,7 @@ class GitHub(Code_Repo):
             headers = {'Content-type': cicommons.content_json, 'Accept': cicommons.content_json}
 
         try:
-            resp = requests.post(release_url, tag_and_release_note_payload, headers=headers, params=url_params, verify=False, timeout=self.http_timeout)
+            resp = requests.post(release_url, tag_and_release_note_payload, headers=headers, params=url_params, timeout=self.http_timeout)
         except requests.ConnectionError:
             commons.printMSG(GitHub.clazz, method, 'Request to GitHub timed out.', 'ERROR')
             exit(1)
@@ -225,7 +225,7 @@ class GitHub(Code_Repo):
         headers = {'Content-type': cicommons.content_json, 'Accept': cicommons.content_json, 'Authorization': ('token ' + self.token)}
 
         try:
-            resp = requests.get(release_url_api, headers=headers, verify=False, timeout=self.http_timeout)
+            resp = requests.get(release_url_api, headers=headers, timeout=self.http_timeout)
         except requests.ConnectionError:
             commons.printMSG(GitHub.clazz, method, 'Request to GitHub timed out.', 'ERROR')
             exit(1)
@@ -244,7 +244,7 @@ class GitHub(Code_Repo):
         }
         release_url_api = self.url + '/' + self.org + '/' + self.repo + '/releases/' + str(git_release_id)
         try:
-            resp = requests.patch(release_url_api, json=jsonMessage, headers=headers, verify=False, timeout=self.http_timeout)
+            resp = requests.patch(release_url_api, json=jsonMessage, headers=headers, timeout=self.http_timeout)
         except requests.ConnectionError:
             commons.printMSG(GitHub.clazz, method, 'Request to GitHub timed out.', 'ERROR')
             exit(1)
@@ -423,7 +423,7 @@ class GitHub(Code_Repo):
             commons.printMSG(GitHub.clazz, method, repo_url)
 
             try:
-                resp = requests.get(repo_url, headers=headers, verify=False, timeout=self.http_timeout)
+                resp = requests.get(repo_url, headers=headers, timeout=self.http_timeout)
             except Exception as e:
                 commons.printMSG(GitHub.clazz, method, "Failed to access github location {}".format(e))
                 if retries < 2:
@@ -517,7 +517,7 @@ class GitHub(Code_Repo):
             commons.printMSG(GitHub.clazz, method, repo_url)
 
             try:
-                resp = requests.get(repo_url, headers=headers, verify=False, timeout=self.http_timeout)
+                resp = requests.get(repo_url, headers=headers, timeout=self.http_timeout)
             except Exception as e:
                 commons.printMSG(GitHub.clazz, method, "Failed to access github location {}".format(e))
                 if retries < 2:
@@ -809,7 +809,7 @@ class GitHub(Code_Repo):
             headers = {'Content-type': cicommons.content_json, 'Accept': cicommons.content_json}
 
         try:
-            download_resp = requests.get(artifact_to_download, headers=headers, verify=False)
+            download_resp = requests.get(artifact_to_download, headers=headers)
 
             with open(download_path, 'wb') as f:
                 for chunk in download_resp.iter_content(chunk_size=1024):
@@ -844,7 +844,7 @@ class GitHub(Code_Repo):
 
         commons.printMSG(GitHub.clazz, method, ("Retrieving Github information from " + tag_information_url))
 
-        resp = requests.get(tag_information_url, headers=headers, verify=False)
+        resp = requests.get(tag_information_url, headers=headers)
 
         if resp.status_code != 200:
             commons.printMSG(GitHub.clazz, method, ("Failed to access github tag information at " + tag_information_url + "\r\n Response: " + resp.text), "ERROR")
