@@ -52,7 +52,7 @@ class GCAppEngine(Cloud):
                                                         "Downloading Google Cloud SDK from {}".format(
                 gcloud_location))
 
-            with urllib.request.urlopen(gcloud_location, context=ctx) as u, open(self.config.settings.get('googlecloud', 'gcloud_version'), 'wb') as f:
+            with urllib.request.urlopen(gcloud_location, context=ctx) as u, open(self.config.settings.get('googlecloud', 'gcloud_version'), 'wb') as f: # nosec
                 f.write(u.read())
 
             tar = tarfile.open('./' + self.config.settings.get('googlecloud', 'gcloud_version'))

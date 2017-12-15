@@ -26,11 +26,11 @@ class Cloud(metaclass=ABCMeta):
                 if os.getenv("GITHUB_TOKEN"):
                     headers = {'Authorization': ("Bearer " + os.getenv("GITHUB_TOKEN"))}
 
-                    resp = requests.get(custom_deploy_script, headers=headers, verify=False, timeout=self.http_timeout)
+                    resp = requests.get(custom_deploy_script, headers=headers, timeout=self.http_timeout)
                 else:
                     commons.printMSG(Cloud.clazz, 'No GITHUB_TOKEN detected in environment. Attempting to access '
                                                   'deploy script anonymously.', 'WARN')
-                    resp = requests.get(custom_deploy_script, verify=False, timeout=self.http_timeout)
+                    resp = requests.get(custom_deploy_script, timeout=self.http_timeout)
 
             except:
                 commons.printMSG(Cloud.clazz, method, "Failed retrieving custom deploy script from GitHub {}".format(
@@ -52,7 +52,7 @@ class Cloud(metaclass=ABCMeta):
                                                   "}".format(custom_deploy_script))
 
             try:
-                resp = requests.get(custom_deploy_script, verify=False, timeout=self.http_timeout)
+                resp = requests.get(custom_deploy_script, timeout=self.http_timeout)
             except:
                 commons.printMSG(Cloud.clazz, method, "Failed retrieving custom web deploy script from {script}. "
                                                        "\r\n Response: {response}".format(script=custom_deploy_script,
