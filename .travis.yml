@@ -1,0 +1,41 @@
+language: python
+dist: trusty
+sudo: false
+
+services:
+  - docker
+
+matrix:
+  include:
+    - python: "3.5"
+
+if: tag IS blank
+
+before_script:
+  - pip install --upgrade setuptools
+
+install:
+  - pip install coveralls
+  - pip install bandit
+  - pip install THD_Flow
+  - pip install twine
+
+script:
+  - flow github version production
+  - coverage run --source flow -m py.test
+#  - bandit -r -ll -ii -x tests .
+  - flow tracker label-release production
+  - flow github -o VERSION getversion production
+  - docker build -t aturner/flow .
+
+deploy:
+  provider: pypi
+  user: $PYPI_USER
+  password: $PYPI_PWD
+  skip_cleanup: true
+
+after_success:
+  - coverage report
+  - coveralls
+  - docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD";
+  - docker push aturner/flow;
