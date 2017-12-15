@@ -103,7 +103,7 @@ class SonarQube(Static_Quality_Analysis):
                 sonar_cmd = 'java -Dsonar.projectKey="' + self.config.project_name + '" -Dsonar.projectName="' + self.config.project_name + '" -Dsonar.projectVersion="' + self.config.version_number + '" -Dproject.home="$PWD" -jar $SONAR_HOME/' + sonar_runner_executable + ' -e -X'
             commons.printMSG(SonarQube.clazz, method, sonar_cmd)
 
-        p = subprocess.Popen(sonar_cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        p = subprocess.Popen(sonar_cmd.split(), shell=False, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
         while p.poll() is None:
             line = p.stdout.readline().decode('utf-8').strip(' \r\n')
