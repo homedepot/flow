@@ -102,8 +102,8 @@ def test_verify_required_attributes_missing_user(monkeypatch):
     if os.getenv('DEPLOYMENT_USER'):
         monkeypatch.delenv('DEPLOYMENT_USER')
 
-    with patch('flow.utils.commons.printMSG') as mock_printmsg_fn:
-        with pytest.raises(SystemExit) as cm:
+    with patch('flow.utils.commons.print_msg') as mock_printmsg_fn:
+        with pytest.raises(SystemExit):
             _cf = CloudFoundry()
             _cf._verify_required_attributes()
 
@@ -116,8 +116,8 @@ def test_verify_required_attributes_missing_pwd(monkeypatch):
     if os.getenv('DEPLOYMENT_PWD'):
         monkeypatch.delenv('DEPLOYMENT_PWD')
 
-    with patch('flow.utils.commons.printMSG') as mock_printmsg_fn:
-        with pytest.raises(SystemExit) as cm:
+    with patch('flow.utils.commons.print_msg') as mock_printmsg_fn:
+        with pytest.raises(SystemExit):
             _cf = CloudFoundry()
             _cf._verify_required_attributes()
 
@@ -128,7 +128,7 @@ def test_verify_required_attributes_missing_project_name(monkeypatch):
     monkeypatch.setenv('DEPLOYMENT_USER', 'DUMMY')
     monkeypatch.setenv('DEPLOYMENT_PWD', 'DUMMY')
 
-    with patch('flow.utils.commons.printMSG') as mock_printmsg_fn:
+    with patch('flow.utils.commons.print_msg') as mock_printmsg_fn:
         with pytest.raises(SystemExit):
             _b = MagicMock(BuildConfig)
             _b.build_env_info = mock_build_config_dict_missing_project_name['environments']['unittest']
@@ -146,7 +146,7 @@ def test_verify_required_attributes_missing_endpoint(monkeypatch):
     monkeypatch.setenv('DEPLOYMENT_USER', 'DUMMY')
     monkeypatch.setenv('DEPLOYMENT_PWD', 'DUMMY')
 
-    with patch('flow.utils.commons.printMSG') as mock_printmsg_fn:
+    with patch('flow.utils.commons.print_msg') as mock_printmsg_fn:
         with pytest.raises(SystemExit):
             _b = MagicMock(BuildConfig)
             _b.build_env_info = mock_build_config_missing_apiEndpoint_dict['environments']['unittest']
@@ -163,7 +163,7 @@ def test_verify_required_attributes_missing_space(monkeypatch):
     monkeypatch.setenv('DEPLOYMENT_USER', 'DUMMY')
     monkeypatch.setenv('DEPLOYMENT_PWD', 'DUMMY')
 
-    with patch('flow.utils.commons.printMSG') as mock_printmsg_fn:
+    with patch('flow.utils.commons.print_msg') as mock_printmsg_fn:
         with pytest.raises(SystemExit):
             _b = MagicMock(BuildConfig)
             _b.build_env_info = mock_build_config_missing_space_dict['environments']['unittest']
@@ -180,7 +180,7 @@ def test_verify_required_attributes_missing_org(monkeypatch):
     monkeypatch.setenv('DEPLOYMENT_USER', 'DUMMY')
     monkeypatch.setenv('DEPLOYMENT_PWD', 'DUMMY')
 
-    with patch('flow.utils.commons.printMSG') as mock_printmsg_fn:
+    with patch('flow.utils.commons.print_msg') as mock_printmsg_fn:
         with pytest.raises(SystemExit):
             _b = MagicMock(BuildConfig)
             _b.build_env_info = mock_build_config_missing_org_dict['environments']['unittest']
@@ -195,7 +195,7 @@ def test_verify_required_attributes_missing_org(monkeypatch):
 
 def test_get_started_apps_already_started():
 
-        with patch('flow.utils.commons.printMSG') as mock_printmsg_fn:
+        with patch('flow.utils.commons.print_msg') as mock_printmsg_fn:
 
             with patch.object(subprocess, 'Popen') as mocked_popen:
                 with pytest.raises(SystemExit):
@@ -219,7 +219,7 @@ def test_get_started_apps_already_started():
 
 def test_get_started_apps_already_started_force_deploy():
 
-        with patch('flow.utils.commons.printMSG') as mock_printmsg_fn:
+        with patch('flow.utils.commons.print_msg') as mock_printmsg_fn:
             with patch.object(subprocess, 'Popen') as mocked_popen:
                 mocked_popen.return_value.returncode = 0
                 mocked_popen.return_value.communicate.return_value = (mock_started_apps_already_started.encode(), 'FAKE_ERR_OUTPUT')
@@ -235,7 +235,7 @@ def test_get_started_apps_already_started_force_deploy():
 
 def test_get_started_apps_already_started_failed_cmd():
 
-        with patch('flow.utils.commons.printMSG') as mock_printmsg_fn:
+        with patch('flow.utils.commons.print_msg') as mock_printmsg_fn:
             with pytest.raises(SystemExit):
                 with patch.object(subprocess, 'Popen') as mocked_popen:
                     mocked_popen.return_value.returncode = 1
@@ -253,7 +253,7 @@ def test_get_started_apps_already_started_failed_cmd():
 
 
 def test_find_deployable_multiple_files():
-    with patch('flow.utils.commons.printMSG') as mock_printmsg_fn:
+    with patch('flow.utils.commons.print_msg') as mock_printmsg_fn:
         with pytest.raises(SystemExit):
             with patch('os.listdir', return_value=['file1.txt', 'file2.txt', 'file3.txt']):
                 with patch('os.path.isfile', return_value=True):
@@ -269,7 +269,7 @@ def test_find_deployable_multiple_files():
                                         'ERROR')
 
 # def test_find_deployable_no_files_only_directories():
-#     with patch('flow.utils.commons.printMSG') as mock_printmsg_fn:
+#     with patch('flow.utils.commons.print_msg') as mock_printmsg_fn:
 #         with pytest.raises(SystemExit):
 #             with patch('os.listdir', return_value=['file1.txt', 'file2.txt', 'file3.txt']):
 #                 with patch('os.path.isfile', return_value=False):
@@ -285,7 +285,7 @@ def test_find_deployable_multiple_files():
 
 
 def test_find_deployable_no_files_only_directories():
-    with patch('flow.utils.commons.printMSG') as mock_printmsg_fn:
+    with patch('flow.utils.commons.print_msg') as mock_printmsg_fn:
         with pytest.raises(SystemExit):
             with patch('os.listdir', return_value=['file1.txt', 'file2.txt', 'file3.txt']):
                 with patch('os.path.isfile', return_value=False):
@@ -300,7 +300,7 @@ def test_find_deployable_no_files_only_directories():
                                         'ERROR')
 
 def test_find_deployable_one_file():
-    with patch('flow.utils.commons.printMSG') as mock_printmsg_fn:
+    with patch('flow.utils.commons.print_msg') as mock_printmsg_fn:
         with patch('zipfile.ZipFile') as mocked_ZipFile:
             mocked_ZipFile.return_value.returncode = 0
             with patch('os.listdir', return_value=['file1.jar', 'file2.abc', 'file3.abc']):

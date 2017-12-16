@@ -7,15 +7,15 @@
 * Pull requests with excessive numbers of commits will typically be squashed if there are an excess number of commit messages.
 * Include the story number in at least one of your commit messages like so `git commit -m "blah [#123456]"`
 * **After** your changes have been propagated to develop and you have tested, you are ready to promote to master.  This is done via another pull request by you.
-* Many changes will require unit tests.  If you submit significant changes with unit tests you may be asked to add them before the changes are accepted. This is a perfect opportunity to practice [TDD](https://en.wikipedia.org/wiki/Test-driven_development) if you aren't already!
+* Many changes will require unit tests.  If you submit significant changes with unit tests you may be asked to add them before the changes are accepted. This is a perfect opportunity to practice [TDD](https://en.wikipedia.org/wiki/Test-driven_development) if you are not already!
 
 ## Adding New Modules
 ### Reusable Modules
-Most modules should be written in a manner that allows for reuse by the general public and other organizations.  These modules should be added to the src folder i.e. coderepo->github
+Most modules should be written in a manner that allows for reuse by the general public and other organizations.  These modules should be added to the flow folder.
 ### Proprietary Modules
 At times, teams may wish to add functionality to Flow that includes proprietary logic and not meant for use outside of their company.  This can easily be achieved by following the Flow plugin architecture.  These changes should *not* be contributed back to this project.
 
-First, ensure that your modules are created under the "plugins" directory.  An example, [foo](src/main/python/plugins/foo/foo.py) is included in the project.
+First, ensure that your modules are created under the "plugins" directory.  An example, [foo](flow/plugins/foo/foo.py) is included in the project.
 
 Second, when you create your module, ensure that you have also created a \__init__.py file. This file should implement:
 * `parser` variable defining the parser name you plan to use when your module is called via flow 
@@ -43,11 +43,11 @@ def run_action(args):
 #### Hooking into other module events
 There may be times when you need to trigger code in your module based on other system events.  i.e. after deployment, attach the flow.log.txt to a change request
 
-The preferred approach is to utilize [PyDispatch](http://pydispatcher.sourceforge.net/) to emit events that require a dependency.
+The preferred approach is to utilize [PyDispatch](http://pydispatcher.sourceforge.net) to emit events that require a dependency.
 
 
 ## Coding standards
-The biggest rule is that you attempt to follow existing patterns and conventions in the code.  The authors of Flow attempted to follow [common patterns and best practices](https://www.python.org/dev/peps/pep-0008/).  With that said, there are a few opinions that had to be decided on in order to be consistent.
+The biggest rule is that you attempt to follow existing patterns and conventions in the code.  The authors of Flow attempted to follow [common patterns and best practices](https://www.python.org/dev/peps/pep-0008).  With that said, there are a few opinions that had to be decided on in order to be consistent.
 
 #### Single vs Double Quote
 In general, single quotes are used throughout this code unless the string is used for interpolation.  This is an opinion that we recommend following to maintain consistency.
@@ -66,21 +66,21 @@ Our preferred method for string concatenation is to use the format method of the
 A common logging method has been established and should utilized in new code.  This logs code in a standard fashion:
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`[ERROR] BuildConfig  checkFileExists  Cannot find buildConfig.json`
 
-The equivent code to log the message above would be:
+The equivalent code to log the message above would be:
 ```
-commons.printMSG(BuildConfig.clazz, method, 'Cannot find buildConfig.json', 'ERROR')
+commons.print_msg(BuildConfig.clazz, method, 'Cannot find buildConfig.json', 'ERROR')
 ```
 
 Logging should done when there is information of significance that could help in troubleshooting.  Use your best judgement. The following will log a debug statement:
 ```
-commons.printMSG(BuildConfig.clazz, method, 'Cannot find buildConfig.json') # DEBUG is default
+commons.print_msg(BuildConfig.clazz, method, 'Cannot find buildConfig.json') # DEBUG is default
 
-commons.printMSG(BuildConfig.clazz, method, 'Cannot find buildConfig.json', 'DEBUG') # or you can explicitly define DEBUG
+commons.print_msg(BuildConfig.clazz, method, 'Cannot find buildConfig.json', 'DEBUG') # or you can explicitly define DEBUG
 ```
 
 Warnings should be used when there is a likelihood that something seems abnormal but you do not want to fail.
 ```
-commons.printMSG(BuildConfig.clazz, method, 'No token was defined.  Attempting to use anonymous authentication.', 'WARN')
+commons.print_msg(BuildConfig.clazz, method, 'No token was defined.  Attempting to use anonymous authentication.', 'WARN')
 ```
 
 #### Exiting on Error

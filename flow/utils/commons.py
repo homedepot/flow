@@ -25,20 +25,20 @@ clazz = 'commons'
 
 def flush_out(string):
     method = 'flush_out'
-    printMSG(clazz, method, string)
+    print_msg(clazz, method, string)
     sys.stdout.flush()
 
 
-def byteify(input):
-    if isinstance(input, dict):
+def byteify(input_str):
+    if isinstance(input_str, dict):
         return {byteify(key): byteify(value)
-                for key, value in input.items()}
-    elif isinstance(input, list):
-        return [byteify(element) for element in input]
-    elif isinstance(input, str):
-        return input.encode('utf-8')
+                for key, value in input_str.items()}
+    elif isinstance(input_str, list):
+        return [byteify(element) for element in input_str]
+    elif isinstance(input_str, str):
+        return input_str.encode('utf-8')
     else:
-        return input
+        return input_str
 
 
 # TODO this could probably be moved to the abc for code repo
@@ -51,7 +51,7 @@ def extract_story_id_from_commit_messages(commit_messages):
         #try:
         #    commit_string = commit_string.decode('utf8')
         #except:
-        #    printMSG(clazz, method, 'commit message is already string')
+        #    print_msg(clazz, method, 'commit message is already string')
         
         # check if there is a starting bracket and if there are balanced brackets
         if commit_string.count('[') > 0 and commit_string.count('[') == commit_string.count(']'):
@@ -63,8 +63,8 @@ def extract_story_id_from_commit_messages(commit_messages):
                 stories = commit_string[m.start()+1:ending_bracket]
 
                 # verify there isn't a embedded bracket, if so just skip this one and keep marching.
-                if stories.find('[') == -1:  # there is a znested starting bracket
-                    # now dig out the number in single number format or multiple seperated by commas.
+                if stories.find('[') == -1:  # there is a nested starting bracket
+                    # now dig out the number in single number format or multiple separated by commas.
                     r = re.compile('[0-9,]+(,[0-8]+)*,?')
                     stories = ''.join(filter(r.match, stories))
 
@@ -73,11 +73,11 @@ def extract_story_id_from_commit_messages(commit_messages):
                         if story not in story_list:
                             story_list.append(story)
 
-    printMSG(clazz, method, "Story list: {}".format(story_list))
+    print_msg(clazz, method, "Story list: {}".format(story_list))
     return story_list
 
 
-def printMSG(class_name, method, message, level='DEBUG'):
+def print_msg(class_name, method, message, level='DEBUG'):
     if level.lower() != 'error' and Commons.quiet:
         return
 
@@ -101,10 +101,10 @@ def write_to_file(path, text, open_func=open, mode="a"):
         f.write(text)
 
 
-def get_files_of_type_from_directory(type, directory):
+def get_files_of_type_from_directory(file_type, directory):
     out = os.listdir(directory)
     out = [os.path.join(directory, element) for element in out]
-    out = [file for file in filter(os.path.isfile, out) if file.lower().endswith(type)]
+    out = [file for file in filter(os.path.isfile, out) if file.lower().endswith(file_type)]
 
     out = [os.path.basename(file) for file in filter(os.path.isfile, out)]
     return out
@@ -123,7 +123,7 @@ def verify_version(config):
     method = 'verify_version'
 
     if config.version_number is None:
-        printMSG(clazz, method, 'Version not defined.  Is your repo tagged with a version number?', 'ERROR')
+        print_msg(clazz, method, 'Version not defined.  Is your repo tagged with a version number?', 'ERROR')
         exit(1)
 
 

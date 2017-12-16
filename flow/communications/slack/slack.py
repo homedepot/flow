@@ -20,21 +20,21 @@ class Slack(communications):
 
     def __init__(self, config_override=None):
         method = '__init__'
-        commons.printMSG(Slack.clazz, method, 'begin')
+        commons.print_msg(Slack.clazz, method, 'begin')
 
         Slack.slack_url = os.getenv('SLACK_WEBHOOK_URL')
 
         if config_override is not None:
             self.config = config_override
 
-        commons.printMSG(Slack.clazz, method, 'end')
+        commons.print_msg(Slack.clazz, method, 'end')
 
     def publish_deployment(self, story_details):
         method = 'publish_deployment'
-        commons.printMSG(Slack.clazz, method, 'begin')
+        commons.print_msg(Slack.clazz, method, 'begin')
 
         if Slack.slack_url is None:
-            commons.printMSG(Slack.clazz, method, 'No Slack URL was found in the environment.  Did you set  '
+            commons.print_msg(Slack.clazz, method, 'No Slack URL was found in the environment.  Did you set  '
                                                   'SLACK_WEBHOOK_URL in your pipeline?', 'ERROR')
             exit(1)
 
@@ -161,44 +161,46 @@ class Slack(communications):
 
         headers = {'Content-type': 'application/json', 'Accept': 'application/json'}
 
-        commons.printMSG(Slack.clazz, method, Slack.slack_url)
-        commons.printMSG(Slack.clazz, method, slack_message.to_JSON())
+        commons.print_msg(Slack.clazz, method, Slack.slack_url)
+        commons.print_msg(Slack.clazz, method, slack_message.to_JSON())
 
         resp = None  # instantiated so it can be logged outside of the try below the except
 
         try:
             resp = requests.post(Slack.slack_url, slack_message.to_JSON(), headers=headers, timeout=self.http_timeout)
         except requests.ConnectionError:
-            commons.printMSG(Slack.clazz, method, "Request to Slack timed out.", "ERROR")
+            commons.print_msg(Slack.clazz, method, "Request to Slack timed out.", "ERROR")
             exit(1)
         except Exception as e:
-            commons.printMSG(Slack.clazz, method, "Failed sending slack message to {url}. {exception}".format(
+            commons.print_msg(Slack.clazz, method, "Failed sending slack message to {url}. {exception}".format(
                 url=Slack.slack_url, exception=e))
 
             # has to be defined here too in order to exit properly during the exception but still log appropriate
             # messages when there is a status code available
             if hasattr('resp', 'status_code') and resp.status_code != 200:
-                commons.printMSG(Slack.clazz, method, "Failed sending slack message to {url}.  \r\n Response: {"
-                                                      "resp}".format(url=Slack.slack_url, resp=resp.text))
+                commons.print_msg(Slack.clazz, method, "Failed sending slack message to {url}.  \r\n Response: {resp}"
+                                  .format(url=Slack.slack_url,
+                                         resp=resp.text))
 
             exit(1)
 
         if hasattr('resp', 'status_code') and resp.status_code != 200:
-            commons.printMSG(Slack.clazz, method, "Failed sending slack message to {url}.  \r\n Response: {"
-                                                      "resp}".format(url=Slack.slack_url, resp=resp.text))
+            commons.print_msg(Slack.clazz, method, "Failed sending slack message to {url}.  \r\n Response: {resp}"
+                              .format(url=Slack.slack_url,
+                                     resp=resp.text))
             exit(1)
 
-        commons.printMSG(Slack.clazz, method, 'end')
+        commons.print_msg(Slack.clazz, method, 'end')
 
     def _get_manual_deploy_links(self):
         method = '_get_manual_deploy_links'
         manual_deploy_environment_links = {}
 
-        # Look for manual deploy links in the curreent envrionment stanza
+        # Look for manual deploy links in the current environment stanza
         if 'manualDeployEnvs' in self.config.build_env_info:
             manual_deploy_links = self.config.build_env_info['manualDeployEnvs']
 
-            commons.printMSG(Slack.clazz, method, "Publishing build links: {}".format(manual_deploy_links))
+            commons.print_msg(Slack.clazz, method, "Publishing build links: {}".format(manual_deploy_links))
 
             # For each manual deploy environment, lookup the corresponding link for that environment stanza
             for manually_deploy_to_env in manual_deploy_links:
@@ -211,20 +213,20 @@ class Slack(communications):
 
                     manual_deploy_environment_links[manually_deploy_to_env] = manual_deploy_environment_links[manually_deploy_to_env] + "VERSION=" + urllib.parse.quote_plus(self.config.version_number)
                 except KeyError as e:
-                    commons.printMSG(Slack.clazz, method, "Could not find manual deploy link: {}".format(e.message), \
+                    commons.print_msg(Slack.clazz, method, "Could not find manual deploy link: {}".format(e),
                                      'ERROR')
 
         else:
-            commons.printMSG(Slack.clazz, method, 'No manual build links specified')
+            commons.print_msg(Slack.clazz, method, 'No manual build links specified')
 
         return manual_deploy_environment_links
 
     def publish_error(sender, message, class_name, method_name):
         method = 'publish_error'
-        commons.printMSG(Slack.clazz, method, 'begin')
+        commons.print_msg(Slack.clazz, method, 'begin')
 
         if Slack.slack_url is None:
-            commons.printMSG(Slack.clazz, method, 'No Slack URL was found in the environment.  Did you set SLACK_WEBHOOK_URL in your pipeline?', 'WARN')
+            commons.print_msg(Slack.clazz, method, 'No Slack URL was found in the environment.  Did you set SLACK_WEBHOOK_URL in your pipeline?', 'WARN')
         else:
             icon = None
             emoji = None
@@ -296,35 +298,41 @@ class Slack(communications):
 
             slack_message.attachments.append(attachment)
 
-            commons.printMSG(Slack.clazz, method, slack_message.to_JSON())
+            commons.print_msg(Slack.clazz, method, slack_message.to_JSON())
 
             headers = {'Content-type': 'application/json', 'Accept': 'application/json'}
 
-            commons.printMSG(Slack.clazz, method, Slack.slack_url)
+            commons.print_msg(Slack.clazz, method, Slack.slack_url)
 
             try:
                 resp = requests.post(Slack.slack_url, slack_message.to_JSON(), headers=headers,
                                      timeout=Slack.http_timeout)
+
+                if resp.status_code == 200:
+                    commons.print_msg(Slack.clazz, method,
+                                      "Successfully sent to slack. \r\n resp: {}".format(resp.text),
+                                      "DEBUG")
+                else:
+                    commons.print_msg(Slack.clazz, method,
+                                      "Failed sending slack message to {url} \r\n Resp: {resp} \r\n "
+                                      "Status: {stat}".format(url=Slack.slack_url, resp=resp.text,
+                                                              stat=resp.status_code), "WARN")
+
             except requests.ConnectionError:
-                commons.printMSG(Slack.clazz, method, "Request to Slack timed out.", "ERROR")
+                commons.print_msg(Slack.clazz, method, "Request to Slack timed out.", "ERROR")
             except Exception as e:
-                commons.printMSG(Slack.clazz, method, "Failed sending slack message to {url} with exception {"
-                                                      "ex}".format(url=Slack.slack_url, ex=e))
+                commons.print_msg(Slack.clazz, method, "Failed sending slack message to {url} with exception {ex}"
+                                  .format(url=Slack.slack_url,
+                                          ex=e))
 
-            if resp.status_code == 200:
-                commons.printMSG(Slack.clazz, method, "Successfully sent to slack. \r\n resp: {}".format(resp.text),
-                                 "DEBUG")
-            else:
-                commons.printMSG(Slack.clazz, method, "Failed sending slack message to {url} \r\n Resp: {resp} \r\n "
-                                                      "Status: {stat}".format(url=Slack.slack_url, resp=resp.text,
-                                                                              stat=resp.status_code), "WARN")
-
-        commons.printMSG(Slack.clazz, method, 'end')
+        commons.print_msg(Slack.clazz, method, 'end')
 
     def publish_custom_message(self, message, channel=None, user='Flow', icon=None, emoji=None,
                                attachment_color=None, slack_url=None):
         method = 'publish_custom_message'
-        commons.printMSG(Slack.clazz, method, 'begin')
+        commons.print_msg(Slack.clazz, method, 'begin')
+
+        slack_message = Object()
 
         if slack_url is not None:
             Slack.slack_url = slack_url
@@ -333,23 +341,29 @@ class Slack(communications):
                 BuildConfig.settings.has_option('slack', 'generic_message_slack_url'):
             Slack.slack_url = BuildConfig.settings.get('slack', 'generic_message_slack_url')
         elif slack_url is None and Slack.slack_url is None:
-            commons.printMSG(Slack.clazz, method, 'No Slack URL was found in the environment or settings.ini.  Failed to send message', 'ERROR')
+            commons.print_msg(Slack.clazz, method, 'No Slack URL was found in the environment or settings.ini.  Failed to send message', 'ERROR')
             exit(1)
 
         if emoji is None and 'slack' in BuildConfig.json_config and 'emoji' in BuildConfig.json_config['slack']:
             emoji = BuildConfig.json_config['slack']['emoji']
+            slack_message.icon_emoji = emoji
         elif emoji is None and BuildConfig.settings.has_section('slack') and BuildConfig.settings.has_option('slack', 'emoji'):
             emoji = BuildConfig.settings.get('slack', 'emoji')
+            slack_message.icon_emoji = emoji
 
         if icon is None and 'slack' in BuildConfig.json_config and 'icon' in BuildConfig.json_config['slack']:
             icon = BuildConfig.json_config['slack']['icon']
+            slack_message.icon_url = icon
         elif icon is None and BuildConfig.settings.has_section('slack') and BuildConfig.settings.has_option('slack', 'icon'):
             icon = BuildConfig.settings.get('slack', 'icon')
+            slack_message.icon_url = icon
 
         if channel is None and 'slack' in BuildConfig.json_config and 'channel' in BuildConfig.json_config['slack']:
             slack_channel = BuildConfig.json_config['slack']['channel']
+            slack_message.channel = slack_channel
         elif channel is None and BuildConfig.settings.has_section('slack') and BuildConfig.settings.has_option('slack', 'channel'):
             slack_channel = BuildConfig.settings.get('slack', 'channel')
+            slack_message.channel = slack_channel
 
         if user is None and 'slack' in BuildConfig.json_config and 'botName' in BuildConfig.json_config['slack']:
             user = BuildConfig.json_config['slack']['botName']
@@ -359,14 +373,6 @@ class Slack(communications):
         app_version = BuildConfig.version_number
         environment = BuildConfig.build_env
         app_name = BuildConfig.json_config['projectInfo']['name']
-
-        slack_message = Object()
-        if icon:
-            slack_message.icon_url = icon
-        else:
-            slack_message.icon_emoji = emoji
-        if slack_channel:
-            slack_message.channel = slack_channel
 
         slack_message.username = user
         slack_message.attachments = []
@@ -396,27 +402,28 @@ class Slack(communications):
 
         slack_message.attachments.append(attachment)
 
-        commons.printMSG(Slack.clazz, method, slack_message.to_JSON())
+        commons.print_msg(Slack.clazz, method, slack_message.to_JSON())
 
         headers = {'Content-type': 'application/json', 'Accept': 'application/json'}
 
-        commons.printMSG(Slack.clazz, method, Slack.slack_url)
+        commons.print_msg(Slack.clazz, method, Slack.slack_url)
 
         try:
             resp = requests.post(Slack.slack_url, slack_message.to_JSON(), headers=headers,
                                  timeout=Slack.http_timeout)
             if resp.status_code == 200:
-                commons.printMSG(Slack.clazz, method, "Successfully sent to slack. \r\n resp: {}".format(resp.text),
+                commons.print_msg(Slack.clazz, method, "Successfully sent to slack. \r\n resp: {}".format(resp.text),
                                  "DEBUG")
             else:
-                commons.printMSG(Slack.clazz, method, "Failed sending slack message to {url} \r\n Resp: {resp} \r\n "
+                commons.print_msg(Slack.clazz, method, "Failed sending slack message to {url} \r\n Resp: {resp} \r\n "
                                                       "Status: {stat}".format(url=Slack.slack_url, resp=resp.text,
                                                                               stat=resp.status_code), "WARN")
 
         except requests.ConnectionError:
-            commons.printMSG(Slack.clazz, method, "Request to Slack timed out.", "ERROR")
+            commons.print_msg(Slack.clazz, method, "Request to Slack timed out.", "ERROR")
         except Exception as e:
-            commons.printMSG(Slack.clazz, method, "Failed sending slack message to {url} with exception {"
-                                                  "ex}".format(url=Slack.slack_url, ex=e))
+            commons.print_msg(Slack.clazz, method, "Failed sending slack message to {url} with exception {ex}"
+                              .format(url=Slack.slack_url,
+                                     ex=e))
 
-        commons.printMSG(Slack.clazz, method, 'end')
+        commons.print_msg(Slack.clazz, method, 'end')

@@ -16,10 +16,10 @@
 @@@
 &&&230b7d2&&&@@@add q3 to DB2 support@@@
 &&&c8abe35&&&@@@version set for spring security web@@@
-&&&8382fc7&&&@@@Merge pull request #49 from fake/chore/prepare-for-spring-boot-1.5-145029157Move depricated function overrides into appropriate classes@@@
+&&&8382fc7&&&@@@Merge pull request #49 from fake/chore/prepare-for-spring-boot-1.5-145029157Move deprecated function overrides into appropriate classes@@@
 &&&597238c&&&@@@delete commented out dependencies[#145029157]
 @@@
-&&&441062a&&&@@@Move depricated function overrides into appropriate classes[#145029157]
+&&&441062a&&&@@@Move deprecated function overrides into appropriate classes[#145029157]
 @@@
 &&&1a2cdde&&&@@@Merge pull request #48 from fake/chore/upgrade-spring-boot-1.4-140439405Chore/upgrade spring boot 1.4 140439405@@@
 &&&be31433&&&@@@Welcome to Spring Boot 1.4.6![#140439405]

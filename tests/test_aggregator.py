@@ -5,14 +5,13 @@ from unittest.mock import mock_open
 from unittest.mock import patch
 
 import flow.aggregator
-import pytest
 from argparse import ArgumentParser
 from argparse import Namespace
 from flow.coderepo.github.github import GitHub
 from flow.projecttracking.tracker.tracker import Tracker
 from flow.staticqualityanalysis.sonar.sonarmodule import SonarQube
-from flow.artifactstorage.artifactory.artifactory import ArtiFactory
-
+from flow.artifactstorage.artifactory.artifactory import Artifactory
+import flow.utils.commons
 
 from flow.buildconfig import BuildConfig
 
@@ -589,10 +588,10 @@ def test_aggregator_artifactory_version_manual_release(mocker):
         GitHub.__init__.return_value = None
         mocker.patch.object(GitHub, 'get_git_last_tag')
         GitHub.get_git_last_tag.return_value = '1.0.0.0'
-        mocker.patch.object(ArtiFactory, '__init__')
-        ArtiFactory.__init__.return_value = None
-        mocker.patch.object(ArtiFactory, 'publish_build_artifact')
-        ArtiFactory.publish_build_artifact.return_value = None
+        mocker.patch.object(Artifactory, '__init__')
+        Artifactory.__init__.return_value = None
+        mocker.patch.object(Artifactory, 'publish_build_artifact')
+        Artifactory.publish_build_artifact.return_value = None
         
         flow.aggregator.main()
         
@@ -604,8 +603,7 @@ def test_aggregator_zipit_version_manual_release(mocker):
         GitHub.get_git_last_tag.return_value = '1.0.0.0'
         mocker.patch.object(flow.aggregator, 'ZipIt')
         flow.aggregator.ZipIt.return_value = None
-        
-        
+
         flow.aggregator.main()        
 
 def test_aggregator_github_outputs_version():

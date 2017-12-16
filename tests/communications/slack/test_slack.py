@@ -40,8 +40,8 @@ def test_publish_deployment_missing_version(monkeypatch):
 
     with open(current_test_directory + "/tracker_stories.json", 'r') as myfile:
         tracker_json_data = json.loads(myfile.read())
-        with patch('flow.utils.commons.printMSG') as mock_printmsg_fn:
-            with pytest.raises(SystemExit) as cm:
+        with patch('flow.utils.commons.print_msg') as mock_printmsg_fn:
+            with pytest.raises(SystemExit):
                 _b = MagicMock(BuildConfig)
                 _b.build_env_info = mock_build_config_dict['environments']['unittest']
                 _b.json_config = mock_build_config_dict
@@ -61,8 +61,8 @@ def test_publish_deployment_missing_webhook(monkeypatch):
     if os.getenv('SLACK_WEBHOOK_URL'):
         monkeypatch.delenv('SLACK_WEBHOOK_URL')
 
-    with patch('flow.utils.commons.printMSG') as mock_printmsg_fn:
-        with pytest.raises(SystemExit) as cm:
+    with patch('flow.utils.commons.print_msg') as mock_printmsg_fn:
+        with pytest.raises(SystemExit):
             _b = MagicMock(BuildConfig)
             _b.build_env_info = mock_build_config_dict['environments']['unittest']
             _b.json_config = mock_build_config_dict
@@ -80,7 +80,7 @@ def test_publish_deployment_missing_webhook(monkeypatch):
 # def test_publish_deployment_no_valid_webhook(monkeypatch):
 #     monkeypatch.setenv('SLACK_WEBHOOK_URL', 'https://hooks.slack.com/services/T03PB1F2E/B22KH4LAG/NOTAVLIDHOOK')
 #
-#     with patch('flow.utils.commons.printMSG') as mock_printmsg_fn:
+#     with patch('flow.utils.commons.print_msg') as mock_printmsg_fn:
 #         with pytest.raises(SystemExit) as cm:
 #             _b = MagicMock(BuildConfig)
 #             _b.build_env_info = mock_build_config_dict['environments']['unittest']
@@ -100,7 +100,7 @@ def test_publish_error_to_slack_missing_webhook(monkeypatch):
     if os.getenv('SLACK_WEBHOOK_URL'):
         monkeypatch.delenv('SLACK_WEBHOOK_URL')
 
-    with patch('flow.utils.commons.printMSG') as mock_printmsg_fn:
+    with patch('flow.utils.commons.print_msg') as mock_printmsg_fn:
         Slack.publish_error('test', 'test', 'test', 'test', )
         print(str(mock_printmsg_fn.mock_calls))
 
