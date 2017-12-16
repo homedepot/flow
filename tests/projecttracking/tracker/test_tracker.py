@@ -146,8 +146,8 @@ def test_init_missing_tracker(monkeypatch):
     _b = MagicMock(BuildConfig)
     _b.json_config = mock_build_config_missing_tracker_dict
 
-    with patch('flow.utils.commons.printMSG') as mock_printmsg_fn:
-        with pytest.raises(SystemExit) as cm:
+    with patch('flow.utils.commons.print_msg') as mock_printmsg_fn:
+        with pytest.raises(SystemExit):
 
             Tracker(config_override=_b)
 
@@ -161,8 +161,8 @@ def test_init_missing_tracker_project_id(monkeypatch):
     _b = MagicMock(BuildConfig)
     _b.json_config = mock_build_config_missing_projectid_dict
 
-    with patch('flow.utils.commons.printMSG') as mock_printmsg_fn:
-        with pytest.raises(SystemExit) as cm:
+    with patch('flow.utils.commons.print_msg') as mock_printmsg_fn:
+        with pytest.raises(SystemExit):
 
             Tracker(config_override=_b)
 
@@ -177,8 +177,8 @@ def test_init_missing_tracker_url(monkeypatch):
     parser = configparser.ConfigParser()
     _b.settings = parser
 
-    with patch('flow.utils.commons.printMSG') as mock_printmsg_fn:
-        with pytest.raises(SystemExit) as cm:
+    with patch('flow.utils.commons.print_msg') as mock_printmsg_fn:
+        with pytest.raises(SystemExit):
 
             Tracker(config_override=_b)
 
@@ -194,8 +194,8 @@ def test_init_missing_tracker_url_but_contains_tracker_in_config_parser(monkeypa
     parser.add_section('tracker')
     _b.settings = parser
 
-    with patch('flow.utils.commons.printMSG') as mock_printmsg_fn:
-        with pytest.raises(SystemExit) as cm:
+    with patch('flow.utils.commons.print_msg') as mock_printmsg_fn:
+        with pytest.raises(SystemExit):
 
             Tracker(config_override=_b)
 
@@ -206,8 +206,8 @@ def test_init_missing_env_variable(monkeypatch):
     if os.getenv('TRACKER_TOKEN'):
         monkeypatch.delenv('TRACKER_TOKEN')
 
-    with patch('flow.utils.commons.printMSG') as mock_printmsg_fn:
-        with pytest.raises(SystemExit) as cm:
+    with patch('flow.utils.commons.print_msg') as mock_printmsg_fn:
+        with pytest.raises(SystemExit):
 
             Tracker()
 

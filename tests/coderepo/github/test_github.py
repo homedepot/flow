@@ -96,22 +96,22 @@ def test_convert_semver_string_to_semver_tag_array_release():
 
 def test_convert_semver_string_to_semver_tag_array_bad_format():
     _github = GitHub(verify_repo=False)
-    with pytest.raises(Exception) as exc:
-        tag_array = _github.convert_semver_string_to_semver_tag_array("homer_was_here")
+    with pytest.raises(Exception):
+        _github.convert_semver_string_to_semver_tag_array("homer_was_here")
         assert True
 
 
 def test_convert_semver_string_to_semver_tag_array_bad_format_missing_v():
     _github = GitHub(verify_repo=False)
-    with pytest.raises(Exception) as exc:
-        tag_array = _github.convert_semver_string_to_semver_tag_array("1.0.0")
+    with pytest.raises(Exception):
+        _github.convert_semver_string_to_semver_tag_array("1.0.0")
         assert True
 
 
 def test_convert_semver_string_to_semver_tag_array_bad_format_missing_build_number():
     _github = GitHub(verify_repo=False)
-    with pytest.raises(Exception) as exc:
-        tag_array = _github.convert_semver_string_to_semver_tag_array("v1.0.0+")
+    with pytest.raises(Exception):
+        _github.convert_semver_string_to_semver_tag_array("v1.0.0+")
         assert True
 
 
@@ -134,7 +134,7 @@ def test_convert_semver_tag_array_to_semver_string_tag_is_none():
 
 
 # this point is under discussion about if these are legitimate.
-# at this point if these are enbled then the regex needs to be more lenient
+# at this point if these are enabled then the regex needs to be more lenient
 # and then what about the output of tag, should it be a flag that lets you set
 # the v or not?  Something in buildconfig.json?
 
@@ -271,13 +271,6 @@ def test_get_highest_semver_snapshot_tag_when_no_tags():
     assert highest_tag is None
 
 
-def test_get_highest_semver_snapshot_tag_when_no_tags():
-    _github = GitHub(verify_repo=False)
-    _github.get_all_tags_and_shas_from_github = MagicMock(return_value=[])
-    highest_tag = _github.get_highest_semver_release_tag()
-    assert highest_tag is None
-
-
 def test_does_semver_tag_exist():
     _github = GitHub(verify_repo=False)
     current_test_directory = os.path.dirname(os.path.realpath(__file__))
@@ -381,6 +374,7 @@ def test_fetch_commit_history_for_repo_with_no_tags():
     assert len(commits_array) == 60
 
 
+# noinspection PyUnresolvedReferences
 @responses.activate
 def test_verify_repo_existence():
 
@@ -394,10 +388,11 @@ def test_verify_repo_existence():
     assert len(responses.calls) == 1
 
 
+# noinspection PyUnresolvedReferences
 @responses.activate
 def test_verify_repo_does_not_existence():
 
-    with patch('flow.utils.commons.printMSG') as mock_printmsg_fn:
+    with patch('flow.utils.commons.print_msg') as mock_printmsg_fn:
 
         _github = GitHub(verify_repo=False)
 
@@ -415,8 +410,8 @@ def test_verify_repo_does_not_existence():
 
 def test_calculate_next_semver_no_tag_type():
     _github = GitHub(verify_repo=False)
-    with patch('flow.utils.commons.printMSG') as mock_printmsg_fn:
-        with pytest.raises(SystemExit) as exc:
+    with patch('flow.utils.commons.print_msg') as mock_printmsg_fn:
+        with pytest.raises(SystemExit):
             # tag type must be either "release" or "snapshot"
             tag_type = None
             bump_type = None
@@ -428,8 +423,8 @@ def test_calculate_next_semver_no_tag_type():
 
 def test_calculate_next_semver_bad_tag_type():
     _github = GitHub(verify_repo=False)
-    with patch('flow.utils.commons.printMSG') as mock_printmsg_fn:
-        with pytest.raises(SystemExit) as exc:
+    with patch('flow.utils.commons.print_msg') as mock_printmsg_fn:
+        with pytest.raises(SystemExit):
             # tag type must be either "release" or "snapshot"
             tag_type = "bubba"
             bump_type = None
@@ -440,8 +435,8 @@ def test_calculate_next_semver_bad_tag_type():
 
 def test_calculate_next_semver_tag_type_release_but_no_bump_type():
     _github = GitHub(verify_repo=False)
-    with patch('flow.utils.commons.printMSG') as mock_printmsg_fn:
-        with pytest.raises(SystemExit) as exc:
+    with patch('flow.utils.commons.print_msg') as mock_printmsg_fn:
+        with pytest.raises(SystemExit):
             # tag type must be either "release" or "snapshot"
             tag_type = "release"
             bump_type = None
@@ -452,8 +447,8 @@ def test_calculate_next_semver_tag_type_release_but_no_bump_type():
 
 def test_calculate_next_semver_tag_type_release_but_bad_bump_type():
     _github = GitHub(verify_repo=False)
-    with patch('flow.utils.commons.printMSG') as mock_printmsg_fn:
-        with pytest.raises(SystemExit) as exc:
+    with patch('flow.utils.commons.print_msg') as mock_printmsg_fn:
+        with pytest.raises(SystemExit):
             # tag type must be either "release" or "snapshot"
             tag_type = "release"
             bump_type = "bubba"
@@ -536,6 +531,7 @@ def test_calculate_next_semver_next_snapshot_after_release():
     assert new_tag_array == [0, 1, 0, 1]
 
 
+# noinspection PyUnresolvedReferences
 @responses.activate
 def test_add_tag_and_release_notes_to_github():
 
@@ -611,7 +607,7 @@ def test_init_without_github_token(monkeypatch):
     if os.getenv('GITHUB_TOKEN'):
         monkeypatch.delenv('GITHUB_TOKEN')
 
-    with patch('flow.utils.commons.printMSG') as mock_printmsg_fn:
+    with patch('flow.utils.commons.print_msg') as mock_printmsg_fn:
         _github = GitHub(verify_repo=False)
         _github._load_github_token()
     mock_printmsg_fn.assert_any_call('GitHub', '_load_github_token', "No github token found.  If your repo doesn't allow anonymous "
@@ -621,12 +617,12 @@ def test_init_without_github_token(monkeypatch):
 def test_verify_required_attributes_missing(monkeypatch):
     monkeypatch.setenv('GITHUB_TOKEN', 'fake_token')
 
-    with patch('flow.utils.commons.printMSG') as mock_printmsg_fn:
+    with patch('flow.utils.commons.print_msg') as mock_printmsg_fn:
         with pytest.raises(SystemExit):
             _b = MagicMock(BuildConfig)
             _b.json_config = mock_build_config_missing_github_dict
 
-            _gh = GitHub(config_override=_b)
+            GitHub(config_override=_b)
 
     mock_printmsg_fn.assert_called_with('GitHub', '_verify_required_attributes', "The build config associated with "
                                                                                  "github is missing, 'github'.", 'ERROR')
@@ -635,12 +631,12 @@ def test_verify_required_attributes_missing(monkeypatch):
 def test_verify_required_attributes_missing_org(monkeypatch):
     monkeypatch.setenv('GITHUB_TOKEN', 'fake_token')
 
-    with patch('flow.utils.commons.printMSG') as mock_printmsg_fn:
+    with patch('flow.utils.commons.print_msg') as mock_printmsg_fn:
         with pytest.raises(SystemExit):
             _b = MagicMock(BuildConfig)
             _b.json_config = mock_build_config_missing_org_dict
 
-            _gh = GitHub(config_override=_b)
+            GitHub(config_override=_b)
 
     mock_printmsg_fn.assert_called_with('GitHub', '_verify_required_attributes', "The build config associated with "
                                                                                  "github is missing, 'org'."
@@ -649,7 +645,7 @@ def test_verify_required_attributes_missing_org(monkeypatch):
 def test_get_all_git_commit_history_between_provided_tags_invalid_beginning_tag(monkeypatch):
     monkeypatch.setenv('GITHUB_TOKEN', 'fake_token')
 
-    with patch('flow.utils.commons.printMSG') as mock_printmsg_fn:
+    with patch('flow.utils.commons.print_msg') as mock_printmsg_fn:
         with pytest.raises(SystemExit):
             _b = MagicMock(BuildConfig)
             _b.json_config = mock_build_config_dict
@@ -666,7 +662,7 @@ def test_get_all_git_commit_history_between_provided_tags_invalid_beginning_tag(
 def test_get_all_git_commit_history_between_provided_tags_invalid_ending_tag(monkeypatch):
     monkeypatch.setenv('GITHUB_TOKEN', 'fake_token')
 
-    with patch('flow.utils.commons.printMSG') as mock_printmsg_fn:
+    with patch('flow.utils.commons.print_msg') as mock_printmsg_fn:
         with pytest.raises(SystemExit):
             _b = MagicMock(BuildConfig)
             _b.json_config = mock_build_config_dict
@@ -687,7 +683,7 @@ def test_get_all_git_commit_history_between_provided_tags_beginning_tag_not_foun
     with open(current_test_directory + "/git_tag_mock_output_random.txt", 'r') as myfile:
         captured_tag_data=list(map(lambda tag: (tag, 'sha'), myfile.read().split('\n')))
 
-    with patch('flow.utils.commons.printMSG') as mock_printmsg_fn:
+    with patch('flow.utils.commons.print_msg') as mock_printmsg_fn:
         with pytest.raises(SystemExit):
             _b = MagicMock(BuildConfig)
             _b.json_config = mock_build_config_dict
@@ -696,7 +692,7 @@ def test_get_all_git_commit_history_between_provided_tags_beginning_tag_not_foun
             _gh.get_all_tags_and_shas_from_github = MagicMock(return_value=captured_tag_data)
 
             good_tag = [1, 99, 98]
-            returned_commits = _gh.get_all_git_commit_history_between_provided_tags(good_tag)
+            _gh.get_all_git_commit_history_between_provided_tags(good_tag)
 
     mock_printmsg_fn.assert_any_call('GitHub', 'get_all_git_commit_history_between_provided_tags', "Version tag not "
                                                                                                    "found v1.99.98",

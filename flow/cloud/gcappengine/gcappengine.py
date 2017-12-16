@@ -2,7 +2,7 @@ import os
 import platform
 import subprocess
 import tarfile
-import urllib
+import urllib.request
 import ssl
 
 from subprocess import TimeoutExpired
@@ -17,10 +17,11 @@ class GCAppEngine(Cloud):
 
     clazz = 'GCAppEngine'
     config = BuildConfig
+    path_to_google_sdk = None
 
     def __init__(self, config_override=None):
         method = '__init__'
-        commons.printMSG(GCAppEngine.clazz, method, 'begin')
+        commons.print_msg(GCAppEngine.clazz, method, 'begin')
 
         if config_override is not None:
             self.config = config_override
@@ -30,14 +31,15 @@ class GCAppEngine(Cloud):
         else:
             GCAppEngine.path_to_google_sdk = ""
 
-        commons.printMSG(GCAppEngine.clazz, method, 'end')
+        commons.print_msg(GCAppEngine.clazz, method, 'end')
 
     def _download_google_sdk(self):
         method = '_download_google_sdk'
-        commons.printMSG(GCAppEngine.clazz, method, 'begin')
+        commons.print_msg(GCAppEngine.clazz, method, 'begin')
 
         ctx = ssl.create_default_context()
         ctx.check_hostname = False
+        # noinspection PyUnresolvedReferences
         ctx.verify_mode = ssl.CERT_NONE
 
         cmd = "where" if platform.system() == "Windows" else "which"
@@ -46,9 +48,9 @@ class GCAppEngine(Cloud):
         gcloud_location = self.config.settings.get('googlecloud', 'cloud_sdk_path') + self.config.settings.get('googlecloud', 'gcloud_version')
 
         if rtn == 0:
-            commons.printMSG(GCAppEngine.clazz, method, 'gcloud already installed')
+            commons.print_msg(GCAppEngine.clazz, method, 'gcloud already installed')
         else:
-            commons.printMSG(GCAppEngine.clazz, method, "gcloud CLI was not installed on this image. "
+            commons.print_msg(GCAppEngine.clazz, method, "gcloud CLI was not installed on this image. "
                                                         "Downloading Google Cloud SDK from {}".format(
                 gcloud_location))
 
@@ -60,19 +62,19 @@ class GCAppEngine(Cloud):
             tar.extractall()
             tar.close()
 
-        commons.printMSG(GCAppEngine.clazz, method, 'end')
+        commons.print_msg(GCAppEngine.clazz, method, 'end')
 
     def _verify_required_attributes(self):
         method = '_verfify_required_attributes'
 
         if not os.getenv('GCAPPENGINE_USER_JSON'):
-            commons.printMSG(GCAppEngine.clazz, method, 'Credentials not loaded.  Please define ''environment variable '
+            commons.print_msg(GCAppEngine.clazz, method, 'Credentials not loaded.  Please define ''environment variable '
                                                         '\'GCAPPENGINE_USER_JSON\'', 'ERROR')
             exit(1)
 
     def _write_service_account_json_to_file(self):
         method = '_write_service_account_json_to_file'
-        commons.printMSG(GCAppEngine.clazz, method, 'begin')
+        commons.print_msg(GCAppEngine.clazz, method, 'begin')
 
         try:
             file = open('gcloud.json', 'w+')
@@ -80,15 +82,15 @@ class GCAppEngine(Cloud):
             file.write(os.getenv('GCAPPENGINE_USER_JSON'))
 
         except Exception as e:
-            commons.printMSG(GCAppEngine.clazz, method, "Failed writing gcloud auth json to gcloud.json from "
+            commons.print_msg(GCAppEngine.clazz, method, "Failed writing gcloud auth json to gcloud.json from "
                                                         "'GCAPPENGINE_USER_JSON'.  Error: {}'".format(e), 'ERROR')
             exit(1)
 
-        commons.printMSG(GCAppEngine.clazz, method, 'end')
+        commons.print_msg(GCAppEngine.clazz, method, 'end')
 
     def _gcloud_login(self):
         method = '_gcloud_login'
-        commons.printMSG(GCAppEngine.clazz, method, 'begin')
+        commons.print_msg(GCAppEngine.clazz, method, 'begin')
 
         cmd = "{path}gcloud auth activate-service-account --key-file {keyfile} --quiet".format(
             path=GCAppEngine.path_to_google_sdk,
@@ -101,10 +103,10 @@ class GCAppEngine(Cloud):
         while gcloud_login.poll() is None:
             line = gcloud_login.stdout.readline().decode('utf-8').strip(' \r\n')
 
-            commons.printMSG(GCAppEngine.clazz, method, line)
+            commons.print_msg(GCAppEngine.clazz, method, line)
 
             # if 'credentials were rejected' in line.lower():
-            #     commons.printMSG(GCAppEngine.clazz, method, "Make sure that your credentials are correct for {"
+            #     commons.print_msg(GCAppEngine.clazz, method, "Make sure that your credentials are correct for {"
             #                                                  "}".format(CloudFoundry.cf_user), 'ERROR')
             #     login_failed = True
 
@@ -112,16 +114,16 @@ class GCAppEngine(Cloud):
             gcloud_login_output, errs = gcloud_login.communicate(timeout=120)
 
             for line in gcloud_login_output.splitlines():
-                commons.printMSG(GCAppEngine.clazz, method, line.decode('utf-8'))
+                commons.print_msg(GCAppEngine.clazz, method, line.decode('utf-8'))
 
             if gcloud_login.returncode != 0:
-                commons.printMSG(GCAppEngine.clazz, method, "Failed calling cloud auth. Return code of {}. Make "
+                commons.print_msg(GCAppEngine.clazz, method, "Failed calling cloud auth. Return code of {}. Make "
                                                              "sure the user has proper permission to deploy.".format(
                                                                 gcloud_login.returncode), 'ERROR')
                 login_failed = True
 
         except TimeoutExpired:
-            commons.printMSG(GCAppEngine.clazz, method, "Timed out calling GCLOUD AUTH.", 'ERROR')
+            commons.print_msg(GCAppEngine.clazz, method, "Timed out calling GCLOUD AUTH.", 'ERROR')
             login_failed = True
 
         if login_failed:
@@ -129,11 +131,11 @@ class GCAppEngine(Cloud):
             os.system('stty sane')
             exit(1)
 
-        commons.printMSG(GCAppEngine.clazz, method, 'end')
+        commons.print_msg(GCAppEngine.clazz, method, 'end')
 
     def _determine_app_yml(self):
         method = '_determine_app_yml'
-        commons.printMSG(GCAppEngine.clazz, method, 'begin')
+        commons.print_msg(GCAppEngine.clazz, method, 'begin')
 
         if os.path.isfile("app-{}.yml".format(self.config.build_env)):
             app_yaml = "app-{}.yml".format(self.config.build_env)
@@ -144,30 +146,31 @@ class GCAppEngine(Cloud):
         elif os.path.isfile("{dir}/app-{env}.yaml".format(dir=self.config.push_location, env=self.config.build_env)):
             app_yaml = "{dir}/app-{env}.yaml".format(dir=self.config.push_location, env=self.config.build_env)
         else:
-            commons.printMSG(GCAppEngine.clazz, method, "Failed to find app_yaml file app-{}.yml/yaml".format(
+            commons.print_msg(GCAppEngine.clazz, method, "Failed to find app_yaml file app-{}.yml/yaml".format(
                 self.config.build_env), 'ERROR')
             exit(1)
 
-        commons.printMSG(GCAppEngine.clazz, method, "Using app_yaml {}".format(app_yaml))
+        # noinspection PyUnboundLocalVariable
+        commons.print_msg(GCAppEngine.clazz, method, "Using app_yaml {}".format(app_yaml))
 
-        commons.printMSG(GCAppEngine.clazz, method, 'end')
+        commons.print_msg(GCAppEngine.clazz, method, 'end')
 
         return app_yaml
 
     def _gcloud_deploy(self, app_yaml, promote=True):
         method = '_gcloud_deploy'
-        commons.printMSG(GCAppEngine.clazz, method, 'begin')
+        commons.print_msg(GCAppEngine.clazz, method, 'begin')
 
         promote_flag = "--no-promote" if promote is False else ""
         cmd = "{path}gcloud app deploy {dir}/{env} --quiet --version {ver} {promote}".format(
             path=GCAppEngine.path_to_google_sdk,
             dir=self.config.push_location,
             env=app_yaml,
-            ver=((self.config.version_number).replace('+','--')).replace('.','-'),
+            ver=self.config.version_number.replace('+', '--').replace('.', '-'),
             promote=promote_flag)
 
 
-        commons.printMSG(GCAppEngine.clazz, method, cmd)
+        commons.print_msg(GCAppEngine.clazz, method, cmd)
 
         gcloud_app_deploy = subprocess.Popen(cmd.split(), shell=False, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
@@ -175,20 +178,20 @@ class GCAppEngine(Cloud):
 
         while gcloud_app_deploy.poll() is None:
             line = gcloud_app_deploy.stdout.readline().decode('utf-8').strip(' \r\n')
-            commons.printMSG(GCAppEngine.clazz, method, line)
+            commons.print_msg(GCAppEngine.clazz, method, line)
 
         try:
-            gcloud_app_deploy_output, errs = gcloud_app_deploy.communicate(timeout=300)
+            gcloud_app_deploy.communicate(timeout=300)
 
             if gcloud_app_deploy.returncode != 0:
-                commons.printMSG(GCAppEngine.clazz, method, "Failed calling {command}.  Return code of {"
-                                                             "rtn}.".format(command=cmd,
-                                                                            rtn=gcloud_app_deploy.returncode),
+                commons.print_msg(GCAppEngine.clazz, method, "Failed calling {command}.  Return code of {rtn}."
+                                  .format(command=cmd,
+                                         rtn=gcloud_app_deploy.returncode),
                                  'ERROR')
                 deploy_failed = True
 
         except TimeoutExpired:
-            commons.printMSG(GCAppEngine.clazz, method, "Timed out calling {}".format(cmd), 'ERROR')
+            commons.print_msg(GCAppEngine.clazz, method, "Timed out calling {}".format(cmd), 'ERROR')
             deploy_failed = True
 
         if deploy_failed:
@@ -196,11 +199,11 @@ class GCAppEngine(Cloud):
             # self._cf_logout()
             exit(1)
 
-        commons.printMSG(GCAppEngine.clazz, method, 'end')
+        commons.print_msg(GCAppEngine.clazz, method, 'end')
 
     def deploy(self, app_yaml=None, promote=True):
         method = 'deploy'
-        commons.printMSG(GCAppEngine.clazz, method, 'begin')
+        commons.print_msg(GCAppEngine.clazz, method, 'begin')
 
         self._verify_required_attributes()
 
@@ -218,6 +221,6 @@ class GCAppEngine(Cloud):
 
         self._gcloud_deploy(app_yaml, promote)
 
-        commons.printMSG(GCAppEngine.clazz, method, 'DEPLOYMENT SUCCESSFUL')
+        commons.print_msg(GCAppEngine.clazz, method, 'DEPLOYMENT SUCCESSFUL')
 
-        commons.printMSG(GCAppEngine.clazz, method, 'end')
+        commons.print_msg(GCAppEngine.clazz, method, 'end')

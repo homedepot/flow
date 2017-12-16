@@ -132,9 +132,9 @@ bot_name (required) default bot name.  Can be overridden by users in their build
 
 emoji (required) default emoji.  Can be overridden by users in their buildConfig.json.
 
-release_note_attachment_color (required) default bar color for release notes.  Can be overriden by users in their buildConfig.json.
+release_note_attachment_color (required) default bar color for release notes.  Can be overridden by users in their buildConfig.json.
 
-error_attachment_color (required) default bar color for errors sent to slack.  Can be overriden by users in their buildConfig.json.
+error_attachment_color (required) default bar color for errors sent to slack.  Can be overridden by users in their buildConfig.json.
 
 generic_message_slack_url (optional) sets generic channel when using the custom message feature of slack
 
@@ -240,7 +240,7 @@ SLACK_WEBHOOK_URL (optional) for sending error messages from Flow to your slack 
 
 ARTIFACTORY_USER (optional) user for uploading to artifactory
 
-CF_BUILDPACK (optional)  Custom build packs should typically be indicated in your manifest; however, sometimes URLs for buildpacks may contains sensitive information, such as a github oauth token.  You can use this environment variable to avoid exposing this in your manifest.
+CF_BUILDPACK (optional)  Custom build packs should typically be indicated in your manifest; however, sometimes URLs for build packs may contains sensitive information, such as a github oauth token.  You can use this environment variable to avoid exposing this in your manifest.
 
 **Settings.ini (Global Settings):**
 

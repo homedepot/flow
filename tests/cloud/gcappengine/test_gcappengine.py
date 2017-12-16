@@ -15,7 +15,7 @@ mock_build_config_dict = {
         "artifactoryDomain": "https://maven.artifactory.fake.com/artifactory",
         "artifactoryRepoKey": "libs-release-local",
         "artifactoryRepoKeySnapshot": "libs-snapshot-local",
-        "artifactoryGroup": "com/fake/teamname",
+        "artifactoryGroup": "com/fake/team",
         "artifactType": "tar.gz"
     },
     "github": {
@@ -50,7 +50,7 @@ def test_init_missing_json_login(monkeypatch):
     if os.getenv('GCAPPENGINE_USER_JSON'):
         monkeypatch.delenv('GCAPPENGINE_USER_JSON')
 
-    with patch('flow.utils.commons.printMSG') as mock_printmsg_fn:
+    with patch('flow.utils.commons.print_msg') as mock_printmsg_fn:
         with pytest.raises(SystemExit):
             _gcAppEngine = GCAppEngine()
             _gcAppEngine.deploy()
@@ -69,7 +69,7 @@ def test_no_promote(monkeypatch):
     _b.project_name = mock_build_config_dict['projectInfo']['name']
     _b.version_number = 'v1.0.0'
 
-    with patch('flow.utils.commons.printMSG') as mock_printmsg_fn:
+    with patch('flow.utils.commons.print_msg') as mock_printmsg_fn:
         with pytest.raises(SystemExit):
             _gcAppEngine = GCAppEngine(config_override=_b)
             _gcAppEngine._gcloud_deploy('dummy.yml', promote=False)
@@ -88,7 +88,7 @@ def test_promote(monkeypatch):
     _b.project_name = mock_build_config_dict['projectInfo']['name']
     _b.version_number = 'v1.0.0'
 
-    with patch('flow.utils.commons.printMSG') as mock_printmsg_fn:
+    with patch('flow.utils.commons.print_msg') as mock_printmsg_fn:
         with pytest.raises(SystemExit):
             _gcAppEngine = GCAppEngine(config_override=_b)
             _gcAppEngine._gcloud_deploy('dummy.yml', promote=True)
