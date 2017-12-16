@@ -8,9 +8,9 @@ def register_parser(new_parser):
 
 
 def run_action(args):
-    foo = Foo()
+    foo_instance = Foo()
 
     if args.action == 'fooa':
-        foo.bar()
+        foo_instance.bar()
     elif args.action == 'foob':
-        foo.baz()
+        foo_instance.baz()

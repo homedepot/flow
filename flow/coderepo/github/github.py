@@ -33,7 +33,7 @@ class GitHub(Code_Repo):
 
     def __init__(self, config_override=None, verify_repo=True):
         method = '__init__'
-        commons.printMSG(GitHub.clazz, method, 'begin')
+        commons.print_msg(GitHub.clazz, method, 'begin')
 
         # check if we provided an override
         if config_override is not None:
@@ -48,24 +48,24 @@ class GitHub(Code_Repo):
 
             self._verify_repo_existence(GitHub.url, GitHub.org, GitHub.repo)
 
-        commons.printMSG(GitHub.clazz, method, 'end')
+        commons.print_msg(GitHub.clazz, method, 'end')
 
     def _load_github_token(self):
         method = '_load_github_token'
-        commons.printMSG(GitHub.clazz, method, 'begin')
+        commons.print_msg(GitHub.clazz, method, 'begin')
 
         GitHub.token = os.getenv('GITHUB_TOKEN')
 
         if not GitHub.token:
-            commons.printMSG(GitHub.clazz, method, "No github token found.  If your repo doesn't allow anonymous "
+            commons.print_msg(GitHub.clazz, method, "No github token found.  If your repo doesn't allow anonymous "
                                                     "access, some operations may fail. To define a token, please set "
                                                     "environment variable 'GITHUB_TOKEN'", 'WARN')
 
-        commons.printMSG(GitHub.clazz, method, 'end')
+        commons.print_msg(GitHub.clazz, method, 'end')
 
     def _refresh_tags(self):
         method = '_refresh_tags'
-        commons.printMSG(GitHub.clazz, method, 'getting latest tags')
+        commons.print_msg(GitHub.clazz, method, 'getting latest tags')
 
         pull_tags_cmd = "git pull --tags"
         pull_tags = subprocess.Popen(pull_tags_cmd.split(), shell=False, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
@@ -73,24 +73,25 @@ class GitHub(Code_Repo):
         pull_tags_outputs, pull_tags_errs = pull_tags.communicate(timeout=300)
 
         for tag_line in pull_tags_outputs.splitlines():
-            commons.printMSG(GitHub.clazz, method, tag_line.decode("utf-8"))
+            commons.print_msg(GitHub.clazz, method, tag_line.decode("utf-8"))
 
     def _verify_required_attributes(self):
         method = '_verify_required_attributes'
 
         try:
+            # noinspection PyStatementEffect
             self.config.json_config['github']
             GitHub.url = self.config.json_config['github']['URL']
             GitHub.org = self.config.json_config['github']['org']
             GitHub.repo = self.config.json_config['github']['repo']
         except KeyError as e:
-            commons.printMSG(GitHub.clazz, method, "The build config associated with github is missing, {}."
-                             .format(e), 'ERROR')
+            commons.print_msg(GitHub.clazz, method, "The build config associated with github is missing, {}."
+                              .format(e), 'ERROR')
             exit(1)
 
     def _verify_repo_existence(self, url, org, repo, token=None):
         method = '_verify_repo_existence'
-        commons.printMSG(GitHub.clazz, method, 'begin')
+        commons.print_msg(GitHub.clazz, method, 'begin')
 
         repo_url = url + '/' + org + '/' + repo
 
@@ -103,32 +104,35 @@ class GitHub(Code_Repo):
         else:
             headers = {'Content-type': cicommons.content_json, 'Accept': cicommons.content_json}
 
-        commons.printMSG(GitHub.clazz, method, repo_url)
+        commons.print_msg(GitHub.clazz, method, repo_url)
 
         try:
             resp = requests.get(repo_url, headers=headers, timeout=self.http_timeout)
         except requests.ConnectionError:
-            commons.printMSG(GitHub.clazz, method, "Request to GitHub timed out.", "ERROR")
+            commons.print_msg(GitHub.clazz, method, "Request to GitHub timed out.", "ERROR")
             exit(1)
         except Exception as e:
-            commons.printMSG(GitHub.clazz, method, "Failed to access github location {}".format(e), "ERROR")
+            commons.print_msg(GitHub.clazz, method, "Failed to access github location {}".format(e), "ERROR")
             exit(1)
 
-        commons.printMSG(GitHub.clazz, method, resp)
+        # noinspection PyUnboundLocalVariable
+        commons.print_msg(GitHub.clazz, method, resp)
 
         if resp.status_code != 200:
-            commons.printMSG(GitHub.clazz, method, "Failed to access github location {url}\r\n Response: {"
-                                                   "rsp}".format(url=repo_url, rsp=resp.text), "ERROR")
+            commons.print_msg(GitHub.clazz, method, "Failed to access github location {url}\r\n Response: {rsp}"
+                              .format(url=repo_url,
+                                     rsp=resp.text),
+                             "ERROR")
             exit(1)
 
-        commons.printMSG(GitHub.clazz, method, 'end')
+        commons.print_msg(GitHub.clazz, method, 'end')
 
     def add_tag_and_release_notes_to_github(self, new_version_tag_array, release_notes=None):
         # TODO this needs to be split out and better unit testing added.
         # testing is hard because json attributes are not ordered.
 
         method = 'add_tag_and_release_notes_to_github'
-        commons.printMSG(GitHub.clazz, method, 'begin')
+        commons.print_msg(GitHub.clazz, method, 'begin')
 
         me = Object()
         me.tag_name = self.convert_semver_tag_array_to_semver_string(new_version_tag_array)
@@ -150,15 +154,15 @@ class GitHub(Code_Repo):
         tag_and_release_note_payload = me.to_JSON()
 
         url_params = {'org': self.org, 'repo': self.repo}
-        commons.printMSG(GitHub.clazz, method, self.url)
-        commons.printMSG(GitHub.clazz, method, self.org)
-        commons.printMSG(GitHub.clazz, method, self.repo)
+        commons.print_msg(GitHub.clazz, method, self.url)
+        commons.print_msg(GitHub.clazz, method, self.org)
+        commons.print_msg(GitHub.clazz, method, self.repo)
 
         release_url = self.url + '/' + self.org + '/' + self.repo + '/releases'
 
-        commons.printMSG(GitHub.clazz, method, release_url)
-        commons.printMSG(GitHub.clazz, method, tag_and_release_note_payload)
-        commons.printMSG(GitHub.clazz, method, ("?", url_params))
+        commons.print_msg(GitHub.clazz, method, release_url)
+        commons.print_msg(GitHub.clazz, method, tag_and_release_note_payload)
+        commons.print_msg(GitHub.clazz, method, ("?", url_params))
 
         if self.token is not None:
             headers = {'Content-type': cicommons.content_json, 'Accept': cicommons.content_json, 'Authorization': ('token ' + self.token)}
@@ -168,21 +172,24 @@ class GitHub(Code_Repo):
         try:
             resp = requests.post(release_url, tag_and_release_note_payload, headers=headers, params=url_params, timeout=self.http_timeout)
         except requests.ConnectionError:
-            commons.printMSG(GitHub.clazz, method, 'Request to GitHub timed out.', 'ERROR')
+            commons.print_msg(GitHub.clazz, method, 'Request to GitHub timed out.', 'ERROR')
             exit(1)
         except:
-            commons.printMSG(GitHub.clazz, method, "The github add release notes call failed to {} has failed".format(
+            commons.print_msg(GitHub.clazz, method, "The github add release notes call failed to {} has failed".format(
                 release_url), 'ERROR')
             exit(1)
 
+        # noinspection PyUnboundLocalVariable
         if resp.status_code != 200 and resp.status_code != 201:
-            commons.printMSG(GitHub.clazz, method, "The github add release notes call failed to {url}\r\n Response: {"
-                                                   "rsp}".format(url=release_url, rsp=resp.text), 'ERROR')
+            commons.print_msg(GitHub.clazz, method, "The github add release notes call failed to {url}\r\n Response: {rsp}"
+                              .format(url=release_url,
+                                     rsp=resp.text),
+                             'ERROR')
             exit(1)
         else:
-            commons.printMSG(GitHub.clazz, method, resp.text)
+            commons.print_msg(GitHub.clazz, method, resp.text)
 
-        commons.printMSG(GitHub.clazz, method, 'end')
+        commons.print_msg(GitHub.clazz, method, 'end')
 
     # TODO story details format shouldn't be specific to tracker.  Need to make a common story detail object instead.
     def format_github_specific_release_notes_from_tracker_story_details(self, story_details):
@@ -206,7 +213,7 @@ class GitHub(Code_Repo):
 
                 formatted_release_notes = formatted_release_notes + story_emoji + '<a href="' + release_note.get('url') + '">' + release_note.get('story_type') + ' **' + str(release_note.get('id')) + '**</a>' + ' ' + '\r\n ' + \
                                '&nbsp;&nbsp;&nbsp;&nbsp; **' + release_note.get('name') + '** \r\n ' + \
-                               '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' + (release_note.get('description').replace('\n', '\r\n &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;') + '\r\n' if release_note.get('description') != None else '') + '\r\n\r\n'
+                               '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' + (release_note.get('description').replace('\n', '\r\n &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;') + '\r\n' if release_note.get('description') is not None else '') + '\r\n\r\n'
 
         if formatted_release_notes is None:
             formatted_release_notes = 'No Release Notes'
@@ -216,27 +223,28 @@ class GitHub(Code_Repo):
     def append_release_notes(self, release_name, text_to_append):
 
         method='append_release_notes'
-        commons.printMSG(GitHub.clazz, method, 'begin')
+        commons.print_msg(GitHub.clazz, method, 'begin')
 
         release_url_api = self.url + '/' + self.org + '/' + self.repo + '/releases/tags/' + release_name
         if self.token is None:
-            commons.printMSG(GitHub.clazz, method, 'GITHUB_TOKEN is required to use this method.', 'ERROR')
+            commons.print_msg(GitHub.clazz, method, 'GITHUB_TOKEN is required to use this method.', 'ERROR')
             exit(1)
         headers = {'Content-type': cicommons.content_json, 'Accept': cicommons.content_json, 'Authorization': ('token ' + self.token)}
 
         try:
             resp = requests.get(release_url_api, headers=headers, timeout=self.http_timeout)
         except requests.ConnectionError:
-            commons.printMSG(GitHub.clazz, method, 'Request to GitHub timed out.', 'ERROR')
+            commons.print_msg(GitHub.clazz, method, 'Request to GitHub timed out.', 'ERROR')
             exit(1)
         except:
-            commons.printMSG(GitHub.clazz, method, 'The github add release notes call failed to {} has failed'.format(
+            commons.print_msg(GitHub.clazz, method, 'The github add release notes call failed to {} has failed'.format(
                 release_url_api), 'ERROR')
             exit(1)
 
-        respJson = resp.json()
-        git_release_body = respJson['body']
-        git_release_id = respJson['id']
+        # noinspection PyUnboundLocalVariable
+        resp_json = resp.json()
+        git_release_body = resp_json['body']
+        git_release_id = resp_json['id']
         git_release_body += '\r\n\r\n%s' % text_to_append
 
         jsonMessage = {
@@ -244,40 +252,40 @@ class GitHub(Code_Repo):
         }
         release_url_api = self.url + '/' + self.org + '/' + self.repo + '/releases/' + str(git_release_id)
         try:
-            resp = requests.patch(release_url_api, json=jsonMessage, headers=headers, timeout=self.http_timeout)
+            requests.patch(release_url_api, json=jsonMessage, headers=headers, timeout=self.http_timeout)
         except requests.ConnectionError:
-            commons.printMSG(GitHub.clazz, method, 'Request to GitHub timed out.', 'ERROR')
+            commons.print_msg(GitHub.clazz, method, 'Request to GitHub timed out.', 'ERROR')
             exit(1)
         except:
-            commons.printMSG(GitHub.clazz, method, 'The github add release notes call failed to {} has failed'.format(
+            commons.print_msg(GitHub.clazz, method, 'The github add release notes call failed to {} has failed'.format(
                 release_url_api), 'ERROR')
             exit(1)
 
-        commons.printMSG(GitHub.clazz, method, 'end')
+        commons.print_msg(GitHub.clazz, method, 'end')
 
 
     def calculate_next_semver(self, tag_type, bump_type, highest_version_array):
         method = 'calculate_next_semver'
-        commons.printMSG(GitHub.clazz, method, 'begin')
+        commons.print_msg(GitHub.clazz, method, 'begin')
 
         if highest_version_array is not None:
-            commons.printMSG(GitHub.clazz, method, "Hightest Git tag: {}".format(
+            commons.print_msg(GitHub.clazz, method, "Hightest Git tag: {}".format(
                              self.convert_semver_tag_array_to_semver_string(highest_version_array)))
         else:
-            commons.printMSG(GitHub.clazz, method, "Hightest Git tag: {}".format(str(highest_version_array)))
+            commons.print_msg(GitHub.clazz, method, "Hightest Git tag: {}".format(str(highest_version_array)))
 
-        commons.printMSG(GitHub.clazz, method, "Bump Type: {}".format(str(bump_type)))
-        commons.printMSG(GitHub.clazz, method, "Tag Type: {}".format(str(tag_type)))
+        commons.print_msg(GitHub.clazz, method, "Bump Type: {}".format(str(bump_type)))
+        commons.print_msg(GitHub.clazz, method, "Tag Type: {}".format(str(tag_type)))
 
         new_version_array = None
 
         if tag_type != "release" and tag_type != "snapshot":
-            commons.printMSG(GitHub.clazz, method, "Tag types can only be 'release' or 'snapshot', instead {} was "
+            commons.print_msg(GitHub.clazz, method, "Tag types can only be 'release' or 'snapshot', instead {} was "
                                                    "provided.".format(str(tag_type)))
             exit(1)
 
         if tag_type == "release" and bump_type != "major" and bump_type != "minor" and bump_type != "bug":
-            commons.printMSG(GitHub.clazz, method, "Bump types can only be 'major', 'minor' or 'bug', instead {} was "
+            commons.print_msg(GitHub.clazz, method, "Bump types can only be 'major', 'minor' or 'bug', instead {} was "
                                                    "provided.".format(str(bump_type)))
             exit(1)
 
@@ -285,14 +293,14 @@ class GitHub(Code_Repo):
             if highest_version_array is None:  # no previous snapshot
                 new_version_array = [0, 0, 0, 1]
             else:
-                commons.printMSG(GitHub.clazz, method, "Incrementing +buildnumber based on last tag, since it's a "
+                commons.print_msg(GitHub.clazz, method, "Incrementing +buildnumber based on last tag, since it's a "
                                                        "snapshot build.")
                 new_version_array = highest_version_array[:]
                 # the build index is the 4th item (3rd position)
                 new_version_array[3] = new_version_array[3]+1
 
         elif tag_type == 'release':
-            commons.printMSG(GitHub.clazz, method, 'New Release semver')
+            commons.print_msg(GitHub.clazz, method, 'New Release semver')
 
             if highest_version_array is None:
                 new_version_array = [0, 0, 0, 0]
@@ -313,14 +321,14 @@ class GitHub(Code_Repo):
             elif bump_type == 'bug':
                 new_version_array[2] = new_version_array[2]+1
 
-        commons.printMSG(GitHub.clazz, method, "New Git tag {}".format(self.convert_semver_tag_array_to_semver_string(
+        commons.print_msg(GitHub.clazz, method, "New Git tag {}".format(self.convert_semver_tag_array_to_semver_string(
             new_version_array)))
-        commons.printMSG(GitHub.clazz, method, 'end')
+        commons.print_msg(GitHub.clazz, method, 'end')
         return new_version_array
 
     def get_git_last_tag(self, start_from_version=None):
         method = "get_git_last_tag"
-        commons.printMSG(GitHub.clazz, method, 'begin')
+        commons.print_msg(GitHub.clazz, method, 'begin')
 
         if start_from_version is not None:
             return start_from_version
@@ -339,12 +347,12 @@ class GitHub(Code_Repo):
                     last_tag = name
                     break
 
-        commons.printMSG(GitHub.clazz, method, "last_tag is: {}".format(last_tag))
+        commons.print_msg(GitHub.clazz, method, "last_tag is: {}".format(last_tag))
         return last_tag
 
     def get_git_previous_tag(self, start_from_version=None):
         method = "get_git_previous_tag"
-        commons.printMSG(GitHub.clazz, method, 'begin')
+        commons.print_msg(GitHub.clazz, method, 'begin')
 
         beginning_tag = None
 
@@ -364,8 +372,8 @@ class GitHub(Code_Repo):
         else:
             beginning_tag = start_from_version
         
-        commons.printMSG(GitHub.clazz, method, "starting with {}".format(beginning_tag))
-        commons.printMSG(GitHub.clazz, method, "Category: " + self.config.artifact_category.lower())  
+        commons.print_msg(GitHub.clazz, method, "starting with {}".format(beginning_tag))
+        commons.print_msg(GitHub.clazz, method, "Category: " + self.config.artifact_category.lower())  
         found_tag = False
         for name, _ in tags:
             if found_tag:
@@ -375,32 +383,32 @@ class GitHub(Code_Repo):
                 elif self.config.artifact_category.lower() != 'release' and '+' in name:
                     out_name = name
                 if out_name is not None:
-                    commons.printMSG(GitHub.clazz, method, name)
-                    commons.printMSG(GitHub.clazz, method, 'end')
+                    commons.print_msg(GitHub.clazz, method, name)
+                    commons.print_msg(GitHub.clazz, method, 'end')
                     return out_name
             if name == beginning_tag:
                 found_tag = True
-        commons.printMSG(GitHub.clazz, method, 'tag not found, or was the first tag')
+        commons.print_msg(GitHub.clazz, method, 'tag not found, or was the first tag')
         return None
 
     def get_all_commits_from_github(self, start_from_sha=None):
         method = "get_all_commits_from_github"
-        commons.printMSG(GitHub.clazz, method, 'begin')
+        commons.print_msg(GitHub.clazz, method, 'begin')
 
         if len(GitHub.all_commits) > 0:
             if GitHub.found_all_commits:
-                commons.printMSG(GitHub.clazz, method, 'All commits pulled, returning cached results')
+                commons.print_msg(GitHub.clazz, method, 'All commits pulled, returning cached results')
                 return GitHub.all_commits
 
             foundSha = False
             for commit in GitHub.all_commits:
                 if commit['sha'] == start_from_sha:
                     foundSha = True
-                    commons.printMSG(GitHub.clazz, method, 'The beginning sha is in our cached list')
+                    commons.print_msg(GitHub.clazz, method, 'The beginning sha is in our cached list')
             if foundSha:
-                commons.printMSG(GitHub.clazz, method, 'Returning cached results')
+                commons.print_msg(GitHub.clazz, method, 'Returning cached results')
                 return GitHub.all_commits
-            commons.printMSG(GitHub.clazz, method, 'Beginning sha is not in our cached list, pulling more commits')
+            commons.print_msg(GitHub.clazz, method, 'Beginning sha is not in our cached list, pulling more commits')
 
         per_page = 100
         start_page = (len(GitHub.all_commits)//per_page)+1
@@ -420,17 +428,17 @@ class GitHub(Code_Repo):
 
         while not finished:
 
-            commons.printMSG(GitHub.clazz, method, repo_url)
+            commons.print_msg(GitHub.clazz, method, repo_url)
 
             try:
                 resp = requests.get(repo_url, headers=headers, timeout=self.http_timeout)
             except Exception as e:
-                commons.printMSG(GitHub.clazz, method, "Failed to access github location {}".format(e))
+                commons.print_msg(GitHub.clazz, method, "Failed to access github location {}".format(e))
                 if retries < 2:
                     time.sleep(retries * 5)
                     retries += 1
                     continue
-                commons.printMSG(GitHub.clazz, method, "Failed to access github location {}".format(e), "ERROR")
+                commons.print_msg(GitHub.clazz, method, "Failed to access github location {}".format(e), "ERROR")
                 exit(1)
 
             retries = 0
@@ -442,22 +450,24 @@ class GitHub(Code_Repo):
                 finished = True
 
             if resp.status_code != 200:
-                commons.printMSG(GitHub.clazz, method, "Failed to access github location {url}\r\n Response: {"
-                                                       "rsp}".format(url=repo_url, rsp=resp.text), "ERROR")
+                commons.print_msg(GitHub.clazz, method, "Failed to access github location {url}\r\n Response: {rsp}"
+                                  .format(url=repo_url,
+                                         rsp=resp.text),
+                                 "ERROR")
                 exit(1)
             else:
-                #commons.printMSG(GitHub.clazz, method, resp.text)
-                #commons.printMSG(GitHub.clazz, method, resp.json())
+                #commons.print_msg(GitHub.clazz, method, resp.text)
+                #commons.print_msg(GitHub.clazz, method, resp.json())
                 simplified = []
                 for commit in resp.json():
                     simplified.append({'sha': commit['sha'], 'commit': { 'message': commit['commit']['message'] } })
                     if commit['sha'] == start_from_sha:
-                        commons.printMSG(GitHub.clazz, method, 'Found the beginning sha, stopping lookup')
+                        commons.print_msg(GitHub.clazz, method, 'Found the beginning sha, stopping lookup')
                         finished = True
                 output.extend(simplified)
 
-        commons.printMSG(GitHub.clazz, method, '{} total commits'.format(len(output)))
-        commons.printMSG(GitHub.clazz, method, 'end')
+        commons.print_msg(GitHub.clazz, method, '{} total commits'.format(len(output)))
+        commons.print_msg(GitHub.clazz, method, 'end')
 
         GitHub.all_commits = output
 
@@ -494,9 +504,9 @@ class GitHub(Code_Repo):
 
         if len(GitHub.all_tags_and_shas) > 0:
             if self._verify_tags_found(GitHub.all_tags_and_shas, need_snapshot, need_release, need_tag, need_base):
-                commons.printMSG(GitHub.clazz, method, 'Already pulled necessary tags, returning cached results')
+                commons.print_msg(GitHub.clazz, method, 'Already pulled necessary tags, returning cached results')
                 return GitHub.all_tags_and_shas
-            commons.printMSG(GitHub.clazz, method, 'Necessary tags are not in our cached list, pulling more tags')
+            commons.print_msg(GitHub.clazz, method, 'Necessary tags are not in our cached list, pulling more tags')
        
         per_page = 100
         start_page = (len(GitHub.all_tags_and_shas)//per_page)+1
@@ -514,17 +524,17 @@ class GitHub(Code_Repo):
         retries = 0
 
         while not finished:
-            commons.printMSG(GitHub.clazz, method, repo_url)
+            commons.print_msg(GitHub.clazz, method, repo_url)
 
             try:
                 resp = requests.get(repo_url, headers=headers, timeout=self.http_timeout)
             except Exception as e:
-                commons.printMSG(GitHub.clazz, method, "Failed to access github location {}".format(e))
+                commons.print_msg(GitHub.clazz, method, "Failed to access github location {}".format(e))
                 if retries < 2:
                     time.sleep(retries * 5)
                     retries += 1
                     continue
-                commons.printMSG(GitHub.clazz, method, "Failed to access github location {}".format(e), "ERROR")
+                commons.print_msg(GitHub.clazz, method, "Failed to access github location {}".format(e), "ERROR")
                 exit(1)
 
             retries = 0
@@ -535,22 +545,24 @@ class GitHub(Code_Repo):
                 finished = True
 
             if resp.status_code != 200:
-                commons.printMSG(GitHub.clazz, method, "Failed to access github location {url}\r\n Response: {"
-                                                       "rsp}".format(url=repo_url, rsp=resp.text), "ERROR")
+                commons.print_msg(GitHub.clazz, method, "Failed to access github location {url}\r\n Response: {rsp}"
+                                  .format(url=repo_url,
+                                         rsp=resp.text),
+                                 "ERROR")
                 exit(1)
             else:
-                #commons.printMSG(GitHub.clazz, method, resp.text)
-                #commons.printMSG(GitHub.clazz, method, resp.json())
+                #commons.print_msg(GitHub.clazz, method, resp.text)
+                #commons.print_msg(GitHub.clazz, method, resp.json())
                 simplified = list(map(lambda obj: (obj['name'], obj['commit']['sha']), resp.json()))
                 output.extend(simplified)
                 if self._verify_tags_found(output, need_snapshot, need_release, need_tag, need_base):
-                    commons.printMSG(GitHub.clazz, method, 'Found necessary tags, stopping lookup')
+                    commons.print_msg(GitHub.clazz, method, 'Found necessary tags, stopping lookup')
                     finished = True
 
-        #commons.printMSG(GitHub.clazz, method, output)
+        #commons.print_msg(GitHub.clazz, method, output)
 
-        commons.printMSG(GitHub.clazz, method, '{} total tags'.format(len(output)))
-        commons.printMSG(GitHub.clazz, method, 'end')
+        commons.print_msg(GitHub.clazz, method, '{} total tags'.format(len(output)))
+        commons.print_msg(GitHub.clazz, method, 'end')
         GitHub.all_tags_and_shas = output
 
         return output
@@ -565,8 +577,8 @@ class GitHub(Code_Repo):
         for tag, _ in all_tags:
             try:
                 tag_data.append(self.convert_semver_string_to_semver_tag_array(tag))
-            except Exception as e:
-                commons.printMSG(GitHub.clazz, method, "This tag didn't parse right skipping: {} ".format(tag))
+            except Exception:
+                commons.print_msg(GitHub.clazz, method, "This tag didn't parse right skipping: {} ".format(tag))
 
         tag_data.sort(reverse=True)
         GitHub.all_tags_sorted = tag_data
@@ -692,19 +704,20 @@ class GitHub(Code_Repo):
         # if you set the semver_array_beginning_version to None, it will pull *ALL* history **be gentle**
 
         method = 'get_all_git_commit_history_between_provided_tags'
-        commons.printMSG(GitHub.clazz, method, method)
+        commons.print_msg(GitHub.clazz, method, method)
 
         if self.verify_sem_ver_tag(semver_array_beginning_version) is False:
-            commons.printMSG(GitHub.clazz, method, "Invalid beginning version defined {}".format(
+            commons.print_msg(GitHub.clazz, method, "Invalid beginning version defined {}".format(
                 semver_array_beginning_version), 'ERROR')
             exit(1)
 
         if semver_array_ending_version is not None and self.verify_sem_ver_tag(semver_array_ending_version) is False:
-            commons.printMSG(GitHub.clazz, method, "Invalid ending version defined {}".format(
+            commons.print_msg(GitHub.clazz, method, "Invalid ending version defined {}".format(
                 semver_array_ending_version), 'ERROR')
             exit(1)
 
         semver_array_beginning_version = self.convert_semver_tag_array_to_semver_string(semver_array_beginning_version)
+        # noinspection PyTypeChecker
         semver_array_ending_version = self.convert_semver_tag_array_to_semver_string(semver_array_ending_version)
 
         # get all tags to get shas
@@ -713,28 +726,28 @@ class GitHub(Code_Repo):
         beginning_sha = ''
 
         if semver_array_ending_version is not None:
-            commons.printMSG(GitHub.clazz, method, semver_array_ending_version)
+            commons.print_msg(GitHub.clazz, method, semver_array_ending_version)
             filtered_tags = list(filter(lambda tag: tag[0] == semver_array_ending_version, tags))
             if len(filtered_tags) == 0:
                 print("Version tag not found {}".format(semver_array_ending_version))
-                commons.printMSG(GitHub.clazz, method, "Version tag not found {}".format(semver_array_ending_version),
+                commons.print_msg(GitHub.clazz, method, "Version tag not found {}".format(semver_array_ending_version),
                                  'ERROR')
                 exit(1)
             else:
                 beginning_sha = filtered_tags[0][1]
             ending_sha = filtered_tags[0][1]
         if semver_array_beginning_version is not None:
-            commons.printMSG(GitHub.clazz, method, semver_array_beginning_version)
+            commons.print_msg(GitHub.clazz, method, semver_array_beginning_version)
             filtered_tags = list(filter(lambda tag: tag[0] == semver_array_beginning_version, tags))
             if len(filtered_tags) == 0:
                 print("Version tag not found {}".format(semver_array_beginning_version))
-                commons.printMSG(GitHub.clazz, method, "Version tag not found {}".format(semver_array_beginning_version),
+                commons.print_msg(GitHub.clazz, method, "Version tag not found {}".format(semver_array_beginning_version),
                                  'ERROR')
                 exit(1)
             else:
                 beginning_sha = filtered_tags[0][1]
 
-        commons.printMSG(GitHub.clazz, method, ending_sha + ' , ' + beginning_sha)
+        commons.print_msg(GitHub.clazz, method, ending_sha + ' , ' + beginning_sha)
 
         # get all commits here
         commits = self.get_all_commits_from_github(beginning_sha)
@@ -742,19 +755,19 @@ class GitHub(Code_Repo):
         found_beginning = False
 
         if semver_array_beginning_version is None and semver_array_ending_version is None:  # Everything!
-            commons.printMSG(GitHub.clazz, method, "No tag present. Pulling all git commit statements instead.")
+            commons.print_msg(GitHub.clazz, method, "No tag present. Pulling all git commit statements instead.")
             trimmed_commits = commits[:]
             found_beginning = True
         elif semver_array_ending_version is None:  # Everything since tag
-            commons.printMSG(GitHub.clazz, method, "The first tag: {}".format(semver_array_beginning_version))
+            commons.print_msg(GitHub.clazz, method, "The first tag: {}".format(semver_array_beginning_version))
             for commit in commits:
                 if commit['sha'] == beginning_sha:
                     found_beginning = True
                     break
                 trimmed_commits.append(commit)
         else:  # Between two tags.  Mostly used when re-deploying old versions to send release notes
-            commons.printMSG(GitHub.clazz, method, "The first tag: ".format(semver_array_beginning_version))
-            commons.printMSG(GitHub.clazz, method, "The last tag: ".format(semver_array_ending_version))
+            commons.print_msg(GitHub.clazz, method, "The first tag: ".format(semver_array_beginning_version))
+            commons.print_msg(GitHub.clazz, method, "The last tag: ".format(semver_array_ending_version))
             found_end = False
             for commit in commits:
                 if commit['sha'] == ending_sha:
@@ -762,18 +775,18 @@ class GitHub(Code_Repo):
                 if commit['sha'] == beginning_sha:
                     found_beginning = True
                     break
-                if found_end == True:
+                if found_end:
                     trimmed_commits.append(commit)
 
-        trimmed_commits = list(map(lambda commit: "{} {}".format(commit['sha'][0:7], commit['commit']['message']), trimmed_commits))
+        trimmed_commits = list(map(lambda current_sommit: "{} {}".format(current_sommit['sha'][0:7], current_sommit['commit']['message']), trimmed_commits))
 
-        commons.printMSG(GitHub.clazz, method, "Number of commits found: {}".format(len(trimmed_commits)))
+        commons.print_msg(GitHub.clazz, method, "Number of commits found: {}".format(len(trimmed_commits)))
         if not found_beginning:
             branch = self.config.build_env_info['associatedBranchName']
-            commons.printMSG(GitHub.clazz, method, "The commit sha {} could not be found in the commit history of branch '{}', so no tracker stories will be pulled.".format(beginning_sha, branch), 'WARN')
-            commons.printMSG(GitHub.clazz, method, "This likely means tag {} was created on a branch other than {}.".format(semver_array_beginning_version, branch))
+            commons.print_msg(GitHub.clazz, method, "The commit sha {} could not be found in the commit history of branch '{}', so no tracker stories will be pulled.".format(beginning_sha, branch), 'WARN')
+            commons.print_msg(GitHub.clazz, method, "This likely means tag {} was created on a branch other than {}.".format(semver_array_beginning_version, branch))
             trimmed_commits = []
-        commons.printMSG(GitHub.clazz, method, 'end')
+        commons.print_msg(GitHub.clazz, method, 'end')
         return trimmed_commits
 
     def _is_semver_tag_array_release_or_snapshot(self, semver_array):
@@ -790,13 +803,13 @@ class GitHub(Code_Repo):
 
     def download_code_at_version(self):
         method = "download_code_at_version"
-        commons.printMSG(GitHub.clazz, method, "begin")
+        commons.print_msg(GitHub.clazz, method, "begin")
 
         artifact_to_download = self._get_artifact_url()
 
         artifact = self.config.version_number + '.tar.gz'
 
-        commons.printMSG(GitHub.clazz, method, ("Attempting to download from github: {}".format(artifact_to_download)))
+        commons.print_msg(GitHub.clazz, method, ("Attempting to download from github: {}".format(artifact_to_download)))
 
         if not os.path.exists(os.path.join(self.config.push_location, 'unzipped')):
             os.makedirs(os.path.join(self.config.push_location, 'unzipped'))
@@ -823,16 +836,16 @@ class GitHub(Code_Repo):
             self._copy_unzipped_file_to_deployment_directory()
 
         except Exception as ex:
-            commons.printMSG(GitHub.clazz, method, "Failed to download {art}.  Error: {e}".format(art=artifact, e=ex),
+            commons.print_msg(GitHub.clazz, method, "Failed to download {art}.  Error: {e}".format(art=artifact, e=ex),
                              'ERROR')
             exit(1)
 
-        commons.printMSG(GitHub.clazz, method, "end")
+        commons.print_msg(GitHub.clazz, method, "end")
 
     def _get_artifact_url(self):
         method = "_get_artifact_url"
 
-        commons.printMSG(GitHub.clazz, method, "begin")
+        commons.print_msg(GitHub.clazz, method, "begin")
 
         if GitHub.token is not None:
             headers = {'Content-type': cicommons.content_json, 'Accept': cicommons.content_json, 'Authorization': ('token ' + GitHub.token)}
@@ -842,15 +855,15 @@ class GitHub(Code_Repo):
         tag_information_url = GitHub.url.replace('\\', '/').rstrip('/') + '/' + self.org + '/' + self.repo + \
                               '/releases/tags/' + self.config.version_number
 
-        commons.printMSG(GitHub.clazz, method, ("Retrieving Github information from " + tag_information_url))
+        commons.print_msg(GitHub.clazz, method, ("Retrieving Github information from " + tag_information_url))
 
         resp = requests.get(tag_information_url, headers=headers)
 
         if resp.status_code != 200:
-            commons.printMSG(GitHub.clazz, method, ("Failed to access github tag information at " + tag_information_url + "\r\n Response: " + resp.text), "ERROR")
+            commons.print_msg(GitHub.clazz, method, ("Failed to access github tag information at " + tag_information_url + "\r\n Response: " + resp.text), "ERROR")
             exit(1)
         else:
-            commons.printMSG(GitHub.clazz, method, resp.text)
+            commons.print_msg(GitHub.clazz, method, resp.text)
 
         json_data = json.loads(resp.text)
 
@@ -866,25 +879,25 @@ class GitHub(Code_Repo):
 
     def _copy_unzipped_file_to_deployment_directory(self):
         method = "_copy_unzipped_file_to_deployment_directory"
-        commons.printMSG(GitHub.clazz, method, "begin")
+        commons.print_msg(GitHub.clazz, method, "begin")
 
         try:
             # github tar puts it in a parent directory.  Pull everything out of the parent directory
             if len([name for name in os.listdir(os.path.join(self.config.push_location, 'unzipped')) if os.path.isdir(os.path.join(self.config.push_location, 'unzipped', name))]) == 1:
-                commons.printMSG(GitHub.clazz, method, "Github contents unzipped.  Copying out of parent directory. ")
-                for dir in os.listdir(os.path.join(self.config.push_location, 'unzipped')):
-                    if os.path.isdir(os.path.join(self.config.push_location, 'unzipped', dir)):
-                        self._copy_tree(os.path.join(self.config.push_location, 'unzipped', dir),
+                commons.print_msg(GitHub.clazz, method, "Github contents unzipped.  Copying out of parent directory. ")
+                for current_dir in os.listdir(os.path.join(self.config.push_location, 'unzipped')):
+                    if os.path.isdir(os.path.join(self.config.push_location, 'unzipped', current_dir)):
+                        self._copy_tree(os.path.join(self.config.push_location, 'unzipped', current_dir),
                                         self.config.push_location+'/',
                                         False, None)
 
         except Exception as ex:
             print(ex)
-            commons.printMSG(GitHub.clazz, method,
-                             ("failed to move files from", os.path.join(self.config.push_location, 'unzipped'), "to", self.config.push_location), "ERROR")
+            commons.print_msg(GitHub.clazz, method,
+                              ("failed to move files from", os.path.join(self.config.push_location, 'unzipped'), "to", self.config.push_location), "ERROR")
             exit(1)
 
-        commons.printMSG(GitHub.clazz, method, "end")
+        commons.print_msg(GitHub.clazz, method, "end")
 
     def _copy_tree(self, src, dst, symlinks=False, ignore=None):
         for item in os.listdir(src):

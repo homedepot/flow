@@ -23,5 +23,5 @@ class Artifact_Storage(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def download_and_extract_artifacts_locally(self):
+    def download_and_extract_artifacts_locally(self, download_dir, extract):
         pass
