@@ -2,6 +2,10 @@ language: python
 dist: trusty
 sudo: false
 
+branches:
+  only:
+  - travis
+
 services:
   - docker
 
