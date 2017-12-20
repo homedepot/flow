@@ -36,6 +36,7 @@ getversion - returns the latest version number.
 
 **Usage:** `flow github [Flags] [Action] [Environment]`
 
+
 **Flags:**
 
 -v VERSION, --version VERSION (optional) If manually versioning, this is passed in by the user.  Note: versionStrategy in buildConfig should be set to "manual"
