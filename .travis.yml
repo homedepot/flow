@@ -25,6 +25,7 @@ install:
   - pip install -e .
 
 script:
+  - scripts/unittest.sh
   - flow github version production
   - coverage run --source flow -m py.test
   - bandit -r -ll -ii -x tests .
@@ -32,14 +33,14 @@ script:
   - flow github -o VERSION getversion production
   - docker build -t aturner/flow .
 
-deploy:
-  provider: pypi
-  user: $PYPI_USER
-  password: $PYPI_PWD
-  skip_cleanup: true
-
 after_success:
   - coverage report
   - coveralls
   - docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD";
   - docker push aturner/flow;
+
+deploy:
+  provider: pypi
+  user: $PYPI_USER
+  password: $PYPI_PWD
+  skip_cleanup: true
