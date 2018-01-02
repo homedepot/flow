@@ -38,9 +38,13 @@ after_success:
   - coveralls
   - docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD";
   - docker push aturner/flow;
+  on:
+    branch: master
 
 deploy:
   provider: pypi
   user: $PYPI_USER
   password: $PYPI_PWD
   skip_cleanup: true
+  on:
+    branch: master
