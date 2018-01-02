@@ -38,8 +38,6 @@ after_success:
   - coveralls
   - docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD";
   - docker push aturner/flow;
-  on:
-    branch: master
 
 deploy:
   provider: pypi
