@@ -25,7 +25,7 @@ install:
   - pip install -e .
 
 script:
-  - py.test -s -v ./tests --capture=sys | tee test-results/results.txt
+  - py.test -s -v ./tests --capture=sys
   - flow github version production
   - coverage run --source flow -m py.test
   - bandit -r -ll -ii -x tests .
