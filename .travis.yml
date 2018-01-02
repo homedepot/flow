@@ -23,7 +23,6 @@ install:
   - pip install coveralls
   - pip install bandit
   - pip install -e .
-  - pip install twine
 
 script:
   - flow github version production
