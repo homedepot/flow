@@ -22,7 +22,7 @@ before_script:
 install:
   - pip install coveralls
   - pip install bandit
-  - pip install THD_Flow
+  - pip install -e ../
   - pip install twine
 
 script:
