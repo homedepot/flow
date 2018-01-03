@@ -24,25 +24,31 @@ install:
   - pip install bandit
   - pip install -e .
 
-script:
-  - py.test -s -v ./tests --capture=sys
-  - flow github version production
-  - coverage run --source flow -m py.test
-  - bandit -r -ll -ii -x tests .
-  - flow tracker label-release production
-  - flow github -o VERSION getversion production
-  - docker build -t aturner/flow .
-
-after_success:
-  - coverage report
-  - coveralls
-  - docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD";
-  - docker push aturner/flow;
-
-deploy:
-  provider: pypi
-  user: $PYPI_USER
-  password: $PYPI_PWD
-  skip_cleanup: true
-  on:
-    branch: master
+jobs:
+  include:
+    - stage: version
+      script: flow github version production
+    - stage: unit test
+      script: py.test -s -v ./tests --capture=sys
+    - stage: quality
+      script: coverage run --source flow -m py.test
+      after_success:
+        - coverage report
+        - coveralls
+      script: bandit -r -ll -ii -x tests .
+      script: flow tracker label-release production
+    - stage: pypi
+      deploy:
+        provider: pypi
+        user: $PYPI_USER
+        password: $PYPI_PWD
+        skip_cleanup: true
+        on:
+          branch: master
+    - stage: docker
+      script:
+        - flow github -o VERSION getversion production
+        - docker build -t aturner/flow .
+      after_success:
+        - docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD";
+        - docker push aturner/flow;
