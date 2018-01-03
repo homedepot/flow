@@ -10,27 +10,28 @@ branches:
 services:
   - docker
 
-
-
 if: tag IS blank
 
 before_script:
   - pip install --upgrade setuptools
 
-install:
-  - pip install coveralls
-  - pip install bandit
-  - pip install -e .
-
 jobs:
   include:
     - stage: version
+      install:
+        - pip install -e .
       python: "3.5"
       script: flow github version production
     - stage: unit test
+      install:
+        - pip install -e .
       python: "3.5"
       script: py.test -s -v ./tests --capture=sys
     - stage: quality
+      install:
+        - pip install coveralls
+        - pip install bandit
+        - pip install -e .
       python: "3.5"
       script: coverage run --source flow -m py.test
       after_success:
@@ -49,6 +50,8 @@ jobs:
         on:
           branch: master
     - stage: docker
+      install:
+        - pip install -e .
       python: "3.5"
       script:
         - flow github -o VERSION getversion production
