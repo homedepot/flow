@@ -40,6 +40,7 @@ jobs:
       script: flow tracker label-release production
     - stage: pypi
       python: "3.5"
+      script: skip
       deploy:
         provider: pypi
         user: $PYPI_USER
