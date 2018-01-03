@@ -9,8 +9,6 @@ branches:
 
 if: tag IS blank
 
-script:
-  - export ENV=$(if [ "$TRAVIS_BRANCH" == "travis" ]; then echo development; else echo production; fi)
 
 jobs:
   include:
@@ -18,7 +16,7 @@ jobs:
       install:
         - pip install -e .
       python: "3.5"
-      script: flow github version $ENV
+      script: export ENV=$(if [ "$TRAVIS_BRANCH" == "travis" ]; then echo development; else echo production; fi) && flow github version $ENV
     - stage: unit test
       install:
         - pip install -e .
