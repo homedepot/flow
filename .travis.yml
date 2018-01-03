@@ -1,4 +1,5 @@
 language: python
+sudo: required
 dist: trusty
 
 cache: pip
@@ -25,15 +26,12 @@ install:
 jobs:
   include:
     - stage: version
-      sudo: true
       python: "3.5"
       script: flow github version production
     - stage: unit test
-      sudo: false
       python: "3.5"
       script: py.test -s -v ./tests --capture=sys
     - stage: quality
-      sudo: false
       python: "3.5"
       script: coverage run --source flow -m py.test
       after_success:
@@ -42,7 +40,6 @@ jobs:
       script: bandit -r -ll -ii -x tests .
       script: flow tracker label-release production
     - stage: pypi
-      sudo: false
       python: "3.5"
       script: skip
       deploy:
@@ -53,7 +50,6 @@ jobs:
         on:
           branch: master
     - stage: docker
-      sudo: false
       python: "3.5"
       script:
         - flow github -o VERSION getversion production
