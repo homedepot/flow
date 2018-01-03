@@ -10,9 +10,7 @@ branches:
 services:
   - docker
 
-matrix:
-  include:
-    - python: "3.5"
+
 
 if: tag IS blank
 
@@ -27,10 +25,13 @@ install:
 jobs:
   include:
     - stage: version
+      python: "3.5"
       script: flow github version production
     - stage: unit test
+      python: "3.5"
       script: py.test -s -v ./tests --capture=sys
     - stage: quality
+      python: "3.5"
       script: coverage run --source flow -m py.test
       after_success:
         - coverage report
@@ -38,6 +39,7 @@ jobs:
       script: bandit -r -ll -ii -x tests .
       script: flow tracker label-release production
     - stage: pypi
+      python: "3.5"
       deploy:
         provider: pypi
         user: $PYPI_USER
@@ -46,6 +48,7 @@ jobs:
         on:
           branch: master
     - stage: docker
+      python: "3.5"
       script:
         - flow github -o VERSION getversion production
         - docker build -t aturner/flow .
