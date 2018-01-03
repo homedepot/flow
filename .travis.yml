@@ -34,6 +34,7 @@ jobs:
       script: bandit -r -ll -ii -x tests .
       script: flow tracker label-release production
     - stage: pypi
+      if: branch = master
       python: "3.5"
       script: skip
       deploy:
@@ -41,9 +42,8 @@ jobs:
         user: $PYPI_USER
         password: $PYPI_PWD
         skip_cleanup: true
-        on:
-          branch: master
     - stage: docker
+      if: branch = master
       install:
         - pip install -e .
       python: "3.5"
