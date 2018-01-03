@@ -92,10 +92,10 @@ def test_promote(monkeypatch):
     _b.version_number = 'v1.0.0'
 
     with patch('flow.utils.commons.printMSG') as mock_printmsg_fn:
-        with patch.object(subprocess, 'Popen') as mocked_popen:
-            mocked_popen.return_value.returncode = 0
-            mocked_popen.return_value.communicate.return_value = ("EVERYTHING IS AWESOME", 'FAKE_RETURN')
-            _gcAppEngine = GCAppEngine(config_override=_b)
-            _gcAppEngine._gcloud_deploy('dummy.yml', promote=True)
+        # with patch.object(subprocess, 'Popen') as mocked_popen:
+        #     mocked_popen.return_value.returncode = 0
+        #     mocked_popen.return_value.communicate.return_value = ("EVERYTHING IS AWESOME", 'FAKE_RETURN')
+        _gcAppEngine = GCAppEngine(config_override=_b)
+        _gcAppEngine._gcloud_deploy('dummy.yml', promote=True)
 
         mock_printmsg_fn.assert_any_call('GCAppEngine', '_gcloud_deploy', 'gcloud app deploy fordeployment/dummy.yml --quiet --version v1-0-0 ')
