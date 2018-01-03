@@ -1,6 +1,7 @@
 language: python
 dist: trusty
 sudo: false
+cache: pip
 
 branches:
   only:
