@@ -1,6 +1,6 @@
 language: python
 dist: trusty
-sudo: false
+sudo: required
 cache: pip
 
 branches:
@@ -9,14 +9,13 @@ branches:
 
 if: tag IS blank
 
-
 jobs:
   include:
     - stage: version
       install:
         - pip install -e .
       python: "3.5"
-      script: export ENV=$(if [ "$TRAVIS_BRANCH" == "travis" ]; then echo development; else echo production; fi) && flow github version $ENV
+      script: export ENV=$(if [ "$TRAVIS_BRANCH" == "master" ]; then echo production; else echo development; fi) && flow github version $ENV
     - stage: unit test
       install:
         - pip install -e .
@@ -33,7 +32,7 @@ jobs:
         - coverage report
         - coveralls
       script: bandit -r -ll -ii -x tests .
-      script: flow tracker label-release production
+      script: export ENV=$(if [ "$TRAVIS_BRANCH" == "travis" ]; then echo production; else echo development; fi) && flow tracker label-release $ENV
     - stage: pypi
       if: branch = master
       python: "3.5"
@@ -49,7 +48,7 @@ jobs:
         - pip install -e .
       python: "3.5"
       script:
-        - flow github -o VERSION getversion production
+        - export ENV=$(if [ "$TRAVIS_BRANCH" == "travis" ]; then echo production; else echo development; fi) && flow github -o VERSION getversion $ENV
         - docker build -t aturner/flow .
       after_success:
         - docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD";
