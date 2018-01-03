@@ -7,13 +7,7 @@ branches:
   only:
   - travis
 
-services:
-  - docker
-
 if: tag IS blank
-
-before_script:
-  - pip install --upgrade setuptools
 
 jobs:
   include:
