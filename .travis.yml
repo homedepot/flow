@@ -25,7 +25,7 @@ install:
 jobs:
   include:
     - stage: version
-      sudo: false
+      sudo: true
       python: "3.5"
       script: flow github version production
     - stage: unit test
