@@ -12,7 +12,7 @@ from flow.buildconfig import BuildConfig
 def test_scan_code_missing_executable_path(monkeypatch):
     monkeypatch.setenv('SONAR_HOME','FAKEHOME')
 
-    with patch('flow.utils.commons.printMSG') as mock_printmsg_fn:
+    with patch('flow.utils.commons.print_msg') as mock_printmsg_fn:
         with pytest.raises(SystemExit):
             _b = MagicMock(BuildConfig)
             parser = configparser.ConfigParser()
@@ -30,10 +30,10 @@ def test_scan_code_missing_executable_path(monkeypatch):
 def test_scan_retry_logic(monkeypatch):
     monkeypatch.setenv('SONAR_HOME','FAKEHOME')
 
-    def _submit_scan_failure(self):
+    def _submit_scan_failure():
         raise Exception
 
-    with patch('flow.utils.commons.printMSG') as mock_printmsg_fn:
+    with patch('flow.utils.commons.print_msg') as mock_printmsg_fn:
         with patch('flow.staticqualityanalysis.sonar.sonarmodule.SonarQube._submit_scan', new=_submit_scan_failure):
             with patch('os.path.isfile', return_value=True):
                 with pytest.raises(SystemExit):
@@ -54,7 +54,7 @@ def test_scan_code_missing_sonar_home(monkeypatch):
     if os.getenv('SONAR_HOME'):
         monkeypatch.delenv('SONAR_HOME')
 
-    with patch('flow.utils.commons.printMSG') as mock_printmsg_fn:
+    with patch('flow.utils.commons.print_msg') as mock_printmsg_fn:
         with pytest.raises(SystemExit):
             _b = MagicMock(BuildConfig)
             parser = configparser.ConfigParser()
@@ -72,7 +72,7 @@ def test_scan_code_missing_sonar_home(monkeypatch):
 def test_scan_code_missing_sonar_project_properties(monkeypatch):
     monkeypatch.setenv('SONAR_HOME','FAKEHOME')
 
-    with patch('flow.utils.commons.printMSG') as mock_printmsg_fn:
+    with patch('flow.utils.commons.print_msg') as mock_printmsg_fn:
         with patch('os.path.isfile', return_value=False):
             with pytest.raises(SystemExit):
                 _b = MagicMock(BuildConfig)

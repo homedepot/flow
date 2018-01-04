@@ -16,7 +16,7 @@ mock_build_config_dict = {
         "artifactoryDomain": "https://maven.artifactory.fake.com/artifactory",
         "artifactoryRepoKey": "libs-release-local",
         "artifactoryRepoKeySnapshot": "libs-snapshot-local",
-        "artifactoryGroup": "com/fake/teamname",
+        "artifactoryGroup": "com/fake/team",
         "artifactType": "tar.gz"
     },
     "github": {
@@ -51,7 +51,7 @@ def test_init_missing_json_login(monkeypatch):
     if os.getenv('GCAPPENGINE_USER_JSON'):
         monkeypatch.delenv('GCAPPENGINE_USER_JSON')
 
-    with patch('flow.utils.commons.printMSG') as mock_printmsg_fn:
+    with patch('flow.utils.commons.print_msg') as mock_printmsg_fn:
         with pytest.raises(SystemExit):
             _gcAppEngine = GCAppEngine()
             _gcAppEngine.deploy()

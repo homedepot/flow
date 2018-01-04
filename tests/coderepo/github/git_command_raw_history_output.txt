@@ -11,7 +11,7 @@
 &&&f7d9258&&&@@@Adding MDM to tasks_requiring_github@@@
 &&&cfa4aeb&&&@@@Merge pull request #29 from fake/patch-1@@@
 &&&950893f&&&@@@Added cut to git for-each-ref calls to avoid pulling back the timezone offset.@@@
-&&&c67b3e0&&&@@@fixed bug with snapshot version not being pulled as latests when there was a recent release version.  [#134114167]@@@
+&&&c67b3e0&&&@@@fixed bug with snapshot version not being pulled as latest when there was a recent release version.  [#134114167]@@@
 &&&0763f7a&&&@@@Merge pull request #27 from ci-cd/artifactory-bug-fix-134082057@@@
 &&&00431a9&&&@@@correcting priority of checking environment variables@@@
 &&&223342f&&&@@@Adding ability to specify artifactory user [#134082057]@@@
@@ -28,7 +28,7 @@
 &&&0ae49fa&&&@@@fixed bug requring snowfield user [#133455353]@@@
 &&&7fc6615&&&@@@moved artifactory key to environment variable@@@
 &&&e6cc51a&&&@@@Moved github api to env variable@@@
-&&&fadad65&&&@@@removed print in favor of commons.printMSG [#133448693]@@@
+&&&fadad65&&&@@@removed print in favor of commons.print_msg [#133448693]@@@
 &&&e6bcbdf&&&@@@moved all snowfield url's to settings.ini and added catch for token [#133446639]@@@
 &&&4c9b4d2&&&@@@Now you should use ARTIFACTORY_TOKEN env variable instead of settings.ini or buildConfig.json [#133445393]@@@
 &&&55b2373&&&@@@No longer using fake by default for github api token.  Use GITHUB_TOKEN pwd parameter or secrets file to inject [#133436887]@@@
