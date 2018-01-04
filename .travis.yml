@@ -49,7 +49,7 @@ jobs:
       python: "3.5"
       script:
         - export ENV=$(if [ "$TRAVIS_BRANCH" == "travis" ]; then echo production; else echo development; fi) && flow github -o VERSION getversion $ENV
-        - docker build -t aturner/flow .
+        - docker build -t $DOCKER_PROJECT .
       after_success:
         - docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD";
         - docker push $DOCKER_PROJECT;
