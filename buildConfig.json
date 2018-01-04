@@ -10,7 +10,7 @@
 	},
 
 	"github": {
-		"org": "aturnerbulldawg",
+		"org": "homedepot",
 		"repo": "flow",
 		"URL": "https://api.github.com/repos"
 	},
@@ -28,7 +28,7 @@
 	"environments": {
 		"development": {
 			"artifactCategory": "snapshot",
-			"associatedBranchName": "travis"
+			"associatedBranchName": "develop"
 		},
 		"production": {
 			"artifactCategory": "release",
