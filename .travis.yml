@@ -5,7 +5,7 @@ cache: pip
 
 branches:
   only:
-  - travis
+  - master
 
 if: tag IS blank
 
@@ -52,4 +52,4 @@ jobs:
         - docker build -t aturner/flow .
       after_success:
         - docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD";
-        - docker push aturner/flow;
+        - docker push $DOCKER_PROJECT;
