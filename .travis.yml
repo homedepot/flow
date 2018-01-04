@@ -32,7 +32,7 @@ jobs:
         - coverage report
         - coveralls
       script: bandit -r -ll -ii -x tests .
-      script: export ENV=$(if [ "$TRAVIS_BRANCH" == "travis" ]; then echo production; else echo development; fi) && flow tracker label-release $ENV
+      script: export ENV=$(if [ "$TRAVIS_BRANCH" == "master" ]; then echo production; else echo development; fi) && flow tracker label-release $ENV
     - stage: pypi
       if: branch = master
       python: "3.5"
@@ -48,7 +48,7 @@ jobs:
         - pip install -e .
       python: "3.5"
       script:
-        - export ENV=$(if [ "$TRAVIS_BRANCH" == "travis" ]; then echo production; else echo development; fi) && flow github -o VERSION getversion $ENV
+        - export ENV=$(if [ "$TRAVIS_BRANCH" == "master" ]; then echo production; else echo development; fi) && flow github -o VERSION getversion $ENV
         - docker build -t $DOCKER_PROJECT .
       after_success:
         - docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD";
