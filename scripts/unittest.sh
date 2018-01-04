@@ -12,6 +12,7 @@ elif [ -d ~/.virtualenvs/ci ] ; then
     . ~/.virtualenvs/ci/bin/activate
 else
     echo "Cannot locate virutal env directory"
+    exit 1
 fi
 
 pip install -r requirements.txt
