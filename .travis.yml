@@ -1,6 +1,6 @@
 language: python
 dist: trusty
-sudo: falsegit ad
+sudo: false
 cache: pip
 
 branches:
