@@ -106,14 +106,28 @@ class GitHub(Code_Repo):
 
         commons.print_msg(GitHub.clazz, method, repo_url)
 
-        try:
-            resp = requests.get(repo_url, headers=headers, timeout=self.http_timeout)
-        except requests.ConnectionError:
-            commons.print_msg(GitHub.clazz, method, "Request to GitHub timed out.", "ERROR")
-            exit(1)
-        except Exception as e:
-            commons.print_msg(GitHub.clazz, method, "Failed to access github location {}".format(e), "ERROR")
-            exit(1)
+        retries = 0
+        finished = False
+        while not finished:
+            try:
+                resp = requests.get(repo_url, headers=headers, timeout=self.http_timeout)
+                finished = True
+            except requests.ConnectionError:
+                commons.print_msg(GitHub.clazz, method, "Request to GitHub timed out, retrying...")
+                if retries < 2:
+                    time.sleep(retries * 5)
+                    retries += 1
+                    continue
+                commons.print_msg(GitHub.clazz, method, "Request to GitHub timed out.", "ERROR")
+                exit(1)
+            except Exception as e:
+                commons.print_msg(GitHub.clazz, method, "Failed to access github location {}, retrying".format(e))
+                if retries < 2:
+                    time.sleep(retries * 5)
+                    retries += 1
+                    continue
+                commons.print_msg(GitHub.clazz, method, "Failed to access github location {}".format(e), "ERROR")
+                exit(1)
 
         # noinspection PyUnboundLocalVariable
         commons.print_msg(GitHub.clazz, method, resp)
