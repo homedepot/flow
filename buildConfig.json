@@ -1,6 +1,6 @@
 {
 	"projectInfo": {
-		"name": "CI-Python",
+		"name": "flow",
 		"language": "python",
 		"versionStrategy": "tracker"
 	},
@@ -12,11 +12,11 @@
 	"github": {
 		"org": "homedepot",
 		"repo": "flow",
-		"URL": "https://github.com/api/v3/repos"
+		"URL": "https://api.github.com/repos"
 	},
 
 	"tracker": {
-		"projectId": 153562353
+		"projectId": 2135573
 	},
 
 	"slack": {
