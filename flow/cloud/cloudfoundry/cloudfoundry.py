@@ -630,7 +630,7 @@ class CloudFoundry(Cloud):
         cmd_array.append(CloudFoundry.cf_org)
         cmd_array.append("-s")
         cmd_array.append(CloudFoundry.cf_space)
-
+        
         print(cmd_array)
         cf_target = subprocess.Popen(cmd_array, shell=False, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
