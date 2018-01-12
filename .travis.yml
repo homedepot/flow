@@ -1,0 +1,55 @@
+language: python
+dist: trusty
+sudo: false
+cache: pip
+
+branches:
+  only:
+  - master
+
+if: tag IS blank
+
+jobs:
+  include:
+    - stage: version
+      install:
+        - pip install -e .
+      python: "3.5"
+      script: export ENV=$(if [ "$TRAVIS_BRANCH" == "master" ]; then echo production; else echo development; fi) && flow github version $ENV
+    - stage: unit test
+      install:
+        - pip install -e .
+      python: "3.5"
+      script: py.test -s -v ./tests --capture=sys
+    - stage: quality
+      install:
+        - pip install coveralls
+        - pip install bandit
+        - pip install -e .
+      python: "3.5"
+      script: coverage run --source flow -m py.test
+      after_success:
+        - coverage report
+        - coveralls
+      script: bandit -r -ll -ii -x tests .
+      script: export ENV=$(if [ "$TRAVIS_BRANCH" == "master" ]; then echo production; else echo development; fi) && flow tracker label-release $ENV
+    - stage: pypi
+      if: branch = master
+      python: "3.5"
+      script: skip
+      deploy:
+        provider: pypi
+        user: $PYPI_USER
+        password: $PYPI_PWD
+        skip_cleanup: true
+    - stage: docker
+      if: branch = master
+      install:
+        - pip install -e .
+      python: "3.5"
+      script:
+        - export ENV=$(if [ "$TRAVIS_BRANCH" == "master" ]; then echo production; else echo development; fi) && flow github -o VERSION getversion $ENV
+        - docker build -t $DOCKER_PROJECT .
+      after_success:
+        - docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD";
+        - docker push $DOCKER_PROJECT;
