@@ -520,7 +520,7 @@ class CloudFoundry(Cloud):
         method = 'cf_login'
         commons.print_msg(CloudFoundry.clazz, method, 'begin')
 
-        cmd = "{path}cf login -a {cf_api_endpoint} -u {cf_user} -p {cf_pwd} -o {cf_org} -s {cf_space} --skip-ssl-validation".format(
+        cmd = "{path}cf login -a {cf_api_endpoint} -u {cf_user} -p {cf_pwd} -o \"{cf_org}\" -s \"{cf_space}\" --skip-ssl-validation".format(
             path=CloudFoundry.path_to_cf,
             cf_api_endpoint=CloudFoundry.cf_api_endpoint,
             cf_user=CloudFoundry.cf_user,
@@ -529,7 +529,18 @@ class CloudFoundry(Cloud):
             cf_space=CloudFoundry.cf_space
         )
 
-        cf_login = subprocess.Popen(cmd.split(), shell=False, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        cmd_array = "{path}cf login -a {cf_api_endpoint} -u {cf_user} -p {cf_pwd} -o".format(
+            path=CloudFoundry.path_to_cf,
+            cf_api_endpoint=CloudFoundry.cf_api_endpoint,
+            cf_user=CloudFoundry.cf_user,
+            cf_pwd=CloudFoundry.cf_pwd
+        ).split()
+        cmd_array.append(CloudFoundry.cf_org)
+        cmd_array.append("-s")
+        cmd_array.append(CloudFoundry.cf_space)
+        cmd_array.append("--skip-ssl-validation")
+
+        cf_login = subprocess.Popen(cmd_array, shell=False, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
         login_failed = False
 
@@ -615,12 +626,13 @@ class CloudFoundry(Cloud):
             commons.print_msg(CloudFoundry.clazz, method, "Timed out calling login for {}".format(
                 CloudFoundry.cf_user), 'ERROR')
 
-        # Test targeting of org and space
-        cmd = "{path}cf target -o {org} -s {space}".format(path=CloudFoundry.path_to_cf,
-                                                           org=CloudFoundry.cf_org,
-                                                           space=CloudFoundry.cf_space)
+        cmd_array = '{path}cf target -o'.format(path=CloudFoundry.path_to_cf).split()
+        cmd_array.append(CloudFoundry.cf_org)
+        cmd_array.append("-s")
+        cmd_array.append(CloudFoundry.cf_space)
 
-        cf_target = subprocess.Popen(cmd.split(), shell=False, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        print(cmd_array)
+        cf_target = subprocess.Popen(cmd_array, shell=False, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
         try:
             cf_target_output, cf_target_err = cf_target.communicate(timeout=30)
