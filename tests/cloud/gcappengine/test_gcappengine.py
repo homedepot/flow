@@ -70,7 +70,7 @@ def test_no_promote(monkeypatch):
     _b.project_name = mock_build_config_dict['projectInfo']['name']
     _b.version_number = 'v1.0.0'
 
-    with patch('flow.utils.commons.printMSG') as mock_printmsg_fn:
+    with patch('flow.utils.commons.print_msg') as mock_printmsg_fn:
         with patch.object(subprocess, 'Popen') as mocked_popen:
             mocked_popen.return_value.returncode = 0
             mocked_popen.return_value.communicate.return_value = ("EVERYTHING IS AWESOME", 'FAKE_RETURN')
@@ -91,7 +91,7 @@ def test_promote(monkeypatch):
     _b.project_name = mock_build_config_dict['projectInfo']['name']
     _b.version_number = 'v1.0.0'
 
-    with patch('flow.utils.commons.printMSG') as mock_printmsg_fn:
+    with patch('flow.utils.commons.print_msg') as mock_printmsg_fn:
         with patch.object(subprocess, 'Popen') as mocked_popen:
             mocked_popen.return_value.returncode = 0
             mocked_popen.return_value.communicate.return_value = ("EVERYTHING IS AWESOME", 'FAKE_RETURN')
