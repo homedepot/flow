@@ -136,7 +136,7 @@ class CloudFoundry(Cloud):
 
     def _get_stopped_apps(self):
         method = '_get_stopped_apps'
-        commons.printMSG(CloudFoundry.clazz, method, 'begin')
+        commons.print_msg(CloudFoundry.clazz, method, 'begin')
 
         cmd = "{path}cf apps | grep {proj}*-v\d*\.\d*\.\d* | grep stopped | awk '{{print $1}}'".format(
             path=CloudFoundry.path_to_cf,
@@ -150,15 +150,15 @@ class CloudFoundry(Cloud):
             CloudFoundry.stopped_apps, errs = stopped_apps.communicate(timeout=60)
 
             for line in CloudFoundry.stopped_apps.splitlines():
-                commons.printMSG(CloudFoundry.clazz, method, "App Already Stopped: {}".format(line.decode('utf-8')))
+                commons.print_msg(CloudFoundry.clazz, method, "App Already Stopped: {}".format(line.decode('utf-8')))
 
             if stopped_apps.returncode != 0:
-                commons.printMSG(CloudFoundry.clazz, method, "Failed calling {command}. Return code of {rtn}".format(
+                commons.print_msg(CloudFoundry.clazz, method, "Failed calling {command}. Return code of {rtn}".format(
                     command=cmd, rtn=stopped_apps.returncode), 'ERROR')
                 get_stopped_apps_failed = True
 
         except TimeoutExpired:
-            commons.printMSG(CloudFoundry.clazz, method, "Timed out calling {}".format(cmd), 'ERROR')
+            commons.print_msg(CloudFoundry.clazz, method, "Timed out calling {}".format(cmd), 'ERROR')
             get_stopped_apps_failed = True
 
         if get_stopped_apps_failed:
@@ -167,11 +167,11 @@ class CloudFoundry(Cloud):
             self._cf_logout()
             exit(1)
 
-        commons.printMSG(CloudFoundry.clazz, method, 'end')
+        commons.print_msg(CloudFoundry.clazz, method, 'end')
 
     def _get_started_apps(self, force_deploy=False):
         method = '_get_started_apps'
-        commons.printMSG(CloudFoundry.clazz, method, 'begin')
+        commons.print_msg(CloudFoundry.clazz, method, 'begin')
 
         cmd = "{path}cf apps | grep {proj}*-v\d*\.\d*\.\d* | grep started | awk '{{print $1}}'".format(
             path=CloudFoundry.path_to_cf,
@@ -185,29 +185,29 @@ class CloudFoundry(Cloud):
             CloudFoundry.started_apps, errs = started_apps.communicate(timeout=60)
 
             for line in CloudFoundry.started_apps.splitlines():
-                commons.printMSG(CloudFoundry.clazz, method, "Started App: {}".format(line.decode('utf-8')))
+                commons.print_msg(CloudFoundry.clazz, method, "Started App: {}".format(line.decode('utf-8')))
                 version_to_look_for = "{proj}-{ver}".format(proj=self.config.project_name,
                                                             ver=self.config.version_number)
 
                 if line.decode('utf-8') == version_to_look_for and not force_deploy:
-                    commons.printMSG(CloudFoundry.clazz, method, "App version {} already exists and is running. "
+                    commons.print_msg(CloudFoundry.clazz, method, "App version {} already exists and is running. "
                                                                  "Cannot perform zero-downtime deployment.  To "
                                                                  "override, set force flag = 'true'".format(
                         version_to_look_for), 'ERROR')
                     get_started_apps_failed = True
 
                 elif line.decode('utf-8') == version_to_look_for and force_deploy:
-                    commons.printMSG(CloudFoundry.clazz, method, "Already found {} but force_deploy turned on. "
+                    commons.print_msg(CloudFoundry.clazz, method, "Already found {} but force_deploy turned on. "
                                                                  "Continuing with deployment.  Downtime will occur "
                                                                  "during deployment.".format(version_to_look_for))
             if started_apps.returncode != 0:
-                commons.printMSG(CloudFoundry.clazz, method, "Failed calling {command}. Return code of {rtn}".format(
+                commons.print_msg(CloudFoundry.clazz, method, "Failed calling {command}. Return code of {rtn}".format(
                     command=cmd, rtn=started_apps.returncode), 'ERROR')
 
                 get_started_apps_failed = True
 
         except TimeoutExpired:
-            commons.printMSG(CloudFoundry.clazz, method, "Timed out calling {}".format(cmd), 'ERROR')
+            commons.print_msg(CloudFoundry.clazz, method, "Timed out calling {}".format(cmd), 'ERROR')
             get_started_apps_failed = True
 
         if get_started_apps_failed:
@@ -217,7 +217,7 @@ class CloudFoundry(Cloud):
             self._cf_logout()
             exit(1)
 
-        commons.printMSG(CloudFoundry.clazz, method, 'end')
+        commons.print_msg(CloudFoundry.clazz, method, 'end')
 
     def _determine_manifests(self):
         method = '_determine_manifests'
