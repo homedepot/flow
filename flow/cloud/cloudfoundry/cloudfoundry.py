@@ -569,10 +569,10 @@ class CloudFoundry(Cloud):
         method = 'cf_login_check'
         commons.print_msg(CloudFoundry.clazz, method, 'begin')
 
-        cmd = "{path}cf api {api}".format(path=CloudFoundry.path_to_cf,
+        cmd_api = "{path}cf api {api}".format(path=CloudFoundry.path_to_cf,
                                           api=CloudFoundry.cf_api_endpoint)
 
-        cf_api = subprocess.Popen(cmd.split(), shell=False, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        cf_api = subprocess.Popen(cmd_api.split(), shell=False, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
         try:
             cf_api_output, cf_api_err = cf_api.communicate(timeout=30)
@@ -582,18 +582,18 @@ class CloudFoundry(Cloud):
 
             if cf_api.returncode != 0:
                 commons.print_msg(CloudFoundry.clazz, method, "Failed calling {command}. Return code of {rtn}".format(
-                                 command=cmd, rtn=cf_api.returncode), 'ERROR')
+                                 command=cmd_api, rtn=cf_api.returncode), 'ERROR')
                 exit(1)
 
         except TimeoutExpired:
-            commons.print_msg(CloudFoundry.clazz, method, "Timed out calling {}".format(cmd), 'ERROR')
+            commons.print_msg(CloudFoundry.clazz, method, "Timed out calling {}".format(cmd_api), 'ERROR')
 
         # Test user/pwd login
-        cmd = "{path}cf auth {cf_user} {cf_pwd}".format(path=CloudFoundry.path_to_cf,
+        cmd_auth = "{path}cf auth {cf_user} {cf_pwd}".format(path=CloudFoundry.path_to_cf,
                                                          cf_user=CloudFoundry.cf_user,
                                                          cf_pwd=CloudFoundry.cf_pwd)
 
-        cf_login = subprocess.Popen(cmd.split(), shell=False, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        cf_login = subprocess.Popen(cmd_auth.split(), shell=False, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
         try:
             cf_login_output, cf_login_err = cf_login.communicate(timeout=30)
@@ -612,13 +612,13 @@ class CloudFoundry(Cloud):
             commons.print_msg(CloudFoundry.clazz, method, "Timed out calling login for {}".format(
                 CloudFoundry.cf_user), 'ERROR')
 
-        cmd_array = '{path}cf target -o'.format(path=CloudFoundry.path_to_cf).split()
-        cmd_array.append(CloudFoundry.cf_org)
-        cmd_array.append("-s")
-        cmd_array.append(CloudFoundry.cf_space)
+        cmd_target_array = '{path}cf target -o'.format(path=CloudFoundry.path_to_cf).split()
+        cmd_target_array.append(CloudFoundry.cf_org)
+        cmd_target_array.append("-s")
+        cmd_target_array.append(CloudFoundry.cf_space)
         
-        print(cmd_array)
-        cf_target = subprocess.Popen(cmd_array, shell=False, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        print(cmd_target_array)
+        cf_target = subprocess.Popen(cmd_target_array, shell=False, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
         try:
             cf_target_output, cf_target_err = cf_target.communicate(timeout=30)
@@ -628,11 +628,11 @@ class CloudFoundry(Cloud):
 
             if cf_target.returncode != 0:
                 commons.print_msg(CloudFoundry.clazz, method, "Failed calling {command}. Return code of {rtn}".format(
-                                 command=cmd, rtn=cf_target.returncode), 'ERROR')
+                                 command=cmd_target_array, rtn=cf_target.returncode), 'ERROR')
                 exit(1)
 
         except TimeoutExpired:
-            commons.print_msg(CloudFoundry.clazz, method, "Timed out calling {}".format(cmd), 'ERROR')
+            commons.print_msg(CloudFoundry.clazz, method, "Timed out calling {}".format(cmd_target_array), 'ERROR')
             exit(1)
 
         commons.print_msg(CloudFoundry.clazz, method, 'end')
