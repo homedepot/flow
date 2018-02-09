@@ -286,7 +286,7 @@ For the help documentation, please check `flow gcappengine -h`
 
 
 ## License
-Licensed under the [MIT License](LICENSE)
+Licensed under the [Apache License](LICENSE)
 
 
 ## Key Contributors
