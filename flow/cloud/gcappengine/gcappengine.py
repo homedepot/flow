@@ -161,7 +161,7 @@ class GCAppEngine(Cloud):
         method = '_gcloud_deploy'
         commons.print_msg(GCAppEngine.clazz, method, 'begin')
 
-        promote_flag = "--no-promote" if promote is False else ""
+        promote_flag = "--no-promote" if promote is False else "--promote"
         cmd = "{path}gcloud app deploy {dir}/{env} --quiet --version {ver} {promote}".format(
             path=GCAppEngine.path_to_google_sdk,
             dir=self.config.push_location,
