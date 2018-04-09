@@ -33,7 +33,7 @@ class Artifactory(Artifact_Storage):
     pom_filename = None
     pom_file = None
     config = BuildConfig
-    http_timeout = 30
+    http_timeout = 60
 
     def __init__(self, config_override=None):
         method = '__init__'
