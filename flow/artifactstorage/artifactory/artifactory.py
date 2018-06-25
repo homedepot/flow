@@ -102,11 +102,8 @@ class Artifactory(Artifact_Storage):
                                                   auth=(os.getenv('ARTIFACTORY_USER'), os.getenv('ARTIFACTORY_TOKEN')),
                                                   headers=headers,
                                                   timeout=self.http_timeout)
-                    if remove_resp.status_code == 403:
-                        commons.print_msg(Artifactory.clazz, method,
-                                          "Failed publishing to artifactory: {response}. \nArtifact version must "
-                                          "be updated before publishing".format(response=remove_resp.text), "ERROR")
-                        exit(1)
+
+                    self.check_artifact_permissions(remove_resp, method)
 
                     resp = requests.put(file_url,
                                         auth=(os.getenv('ARTIFACTORY_USER'), os.getenv('ARTIFACTORY_TOKEN')),
@@ -125,11 +122,8 @@ class Artifactory(Artifact_Storage):
                                                         os.getenv('ARTIFACTORY_TOKEN')),
                                                   headers=headers,
                                                   timeout=self.http_timeout)
-                    if remove_resp.status_code == 403:
-                        commons.print_msg(Artifactory.clazz, method,
-                                          "Failed publishing to artifactory: {response}. \nArtifact version must "
-                                          "be updated before publishing".format(response=remove_resp.text), "ERROR")
-                        exit(1)
+
+                    self.check_artifact_permissions(remove_resp, method)
 
                     resp = requests.put(file_url,
                                         auth=(BuildConfig.settings.get('artifactory', 'user'),
@@ -149,11 +143,8 @@ class Artifactory(Artifact_Storage):
                     remove_resp = requests.delete(file_url,
                                                   headers=headers,
                                                   timeout=self.http_timeout)
-                    if remove_resp.status_code == 403:
-                        commons.print_msg(Artifactory.clazz, method,
-                                          "Failed publishing to artifactory: {response}. \nArtifact version must "
-                                          "be updated before publishing".format(response=remove_resp.text), "ERROR")
-                        exit(1)
+
+                    self.check_artifact_permissions(remove_resp, method)
 
                     resp = requests.put(file_url,
                                         headers=headers,
@@ -170,11 +161,8 @@ class Artifactory(Artifact_Storage):
                     remove_resp = requests.delete(file_url,
                                                   headers=headers,
                                                   timeout=self.http_timeout)
-                    if remove_resp.status_code == 403:
-                        commons.print_msg(Artifactory.clazz, method,
-                                          "Failed publishing to artifactory: {response}. \nArtifact version must "
-                                          "be updated before publishing".format(response=remove_resp.text), "ERROR")
-                        exit(1)
+
+                    self.check_artifact_permissions(remove_resp, method)
                     resp = requests.put(file_url, headers=headers, data=zip_file, timeout=self.http_timeout)
         except requests.ConnectionError as e:
             error = str(e)
@@ -434,3 +422,10 @@ class Artifactory(Artifact_Storage):
         print(download_path)
 
         commons.print_msg(Artifactory.clazz, method, 'end')
+
+    def check_artifact_permissions(self, remove_resp, method):
+        if remove_resp.status_code == 403:
+            commons.print_msg(Artifactory.clazz, method,
+                              "Failed publishing to artifactory: {response}. \nArtifact version must "
+                              "be updated before publishing".format(response=remove_resp.text), "ERROR")
+            exit(1)
