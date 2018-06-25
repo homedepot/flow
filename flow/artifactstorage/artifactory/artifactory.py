@@ -80,11 +80,34 @@ class Artifactory(Artifact_Storage):
         try:
             with open(file, 'rb') as zip_file:
                 file_url = "{artifact_home}/{file}".format(artifact_home=self.get_artifact_home_url(), file=file_name)
+                commons.print_msg(Artifactory.clazz, method, "Checking url {} for existing artifact.".format(file_url))
+
+                artifact_exist_check_resp = requests.get(file_url, timeout=self.http_timeout)
+                if artifact_exist_check_resp.status_code == 200:
+                    commons.print_msg(Artifactory.clazz, method, "Artifact with version {} already exists. "
+                                                                 "Removing and attempting to publish."
+                                      .format(self.config.version_number),
+                                      "WARN")
+
+                # Attempt to DELETE current artifact first and upload new one instead of PUT to work around
+                # broken pipe error when Artifactory terminates early on a larger payload if Artifactory user
+                # does not have DELETE permission
                 commons.print_msg(Artifactory.clazz, method, "Publishing to {}".format(file_url))
 
                 # token and user env variables
                 if os.getenv('ARTIFACTORY_TOKEN') and os.getenv('ARTIFACTORY_USER'):
                     commons.print_msg(Artifactory.clazz, method, 'Found artifactory token and user.')
+
+                    remove_resp = requests.delete(file_url,
+                                                  auth=(os.getenv('ARTIFACTORY_USER'), os.getenv('ARTIFACTORY_TOKEN')),
+                                                  headers=headers,
+                                                  timeout=self.http_timeout)
+                    if remove_resp.status_code == 403:
+                        commons.print_msg(Artifactory.clazz, method,
+                                          "Failed publishing to artifactory: {response}. \nArtifact version must "
+                                          "be updated before publishing".format(response=remove_resp.text), "ERROR")
+                        exit(1)
+
                     resp = requests.put(file_url,
                                         auth=(os.getenv('ARTIFACTORY_USER'), os.getenv('ARTIFACTORY_TOKEN')),
                                         headers=headers,
@@ -96,6 +119,18 @@ class Artifactory(Artifact_Storage):
                         BuildConfig.settings.has_option('artifactory', 'user'):
                     commons.print_msg(Artifactory.clazz, method, 'Found artifactory token.  Using default user '
                                                                  'specified in settings.ini.')
+
+                    remove_resp = requests.delete(file_url,
+                                                  auth=(BuildConfig.settings.get('artifactory', 'user'),
+                                                        os.getenv('ARTIFACTORY_TOKEN')),
+                                                  headers=headers,
+                                                  timeout=self.http_timeout)
+                    if remove_resp.status_code == 403:
+                        commons.print_msg(Artifactory.clazz, method,
+                                          "Failed publishing to artifactory: {response}. \nArtifact version must "
+                                          "be updated before publishing".format(response=remove_resp.text), "ERROR")
+                        exit(1)
+
                     resp = requests.put(file_url,
                                         auth=(BuildConfig.settings.get('artifactory', 'user'),
                                               os.getenv('ARTIFACTORY_TOKEN')),
@@ -111,6 +146,15 @@ class Artifactory(Artifact_Storage):
                                'Content-type': commons.content_oct_stream,
                                'Accept': commons.content_json}
 
+                    remove_resp = requests.delete(file_url,
+                                                  headers=headers,
+                                                  timeout=self.http_timeout)
+                    if remove_resp.status_code == 403:
+                        commons.print_msg(Artifactory.clazz, method,
+                                          "Failed publishing to artifactory: {response}. \nArtifact version must "
+                                          "be updated before publishing".format(response=remove_resp.text), "ERROR")
+                        exit(1)
+
                     resp = requests.put(file_url,
                                         headers=headers,
                                         data=zip_file,
@@ -122,9 +166,20 @@ class Artifactory(Artifact_Storage):
                                                                  'user, set environment variable \'ARTIFACTORY_TOKEN\' '
                                                                  'and \'ARTIFACTORY_USER\'.',
                                       'WARN')
+
+                    remove_resp = requests.delete(file_url,
+                                                  headers=headers,
+                                                  timeout=self.http_timeout)
+                    if remove_resp.status_code == 403:
+                        commons.print_msg(Artifactory.clazz, method,
+                                          "Failed publishing to artifactory: {response}. \nArtifact version must "
+                                          "be updated before publishing".format(response=remove_resp.text), "ERROR")
+                        exit(1)
                     resp = requests.put(file_url, headers=headers, data=zip_file, timeout=self.http_timeout)
-        except requests.ConnectionError:
-            commons.print_msg(Artifactory.clazz, method, "Request to Artifactory timed out.", "ERROR")
+        except requests.ConnectionError as e:
+            error = str(e)
+            commons.print_msg(Artifactory.clazz, method, "Request to Artifactory raised a ConnectionError: {}"
+                              .format(error), "ERROR")
             exit(1)
         except Exception as ex:
             commons.print_msg(Artifactory.clazz, method, "Failed publishing to artifactory: {}. Sometimes this can be "
