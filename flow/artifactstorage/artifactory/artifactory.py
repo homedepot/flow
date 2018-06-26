@@ -423,7 +423,7 @@ class Artifactory(Artifact_Storage):
 
         commons.print_msg(Artifactory.clazz, method, 'end')
 
-    def check_artifact_permissions(self, remove_resp, method):
+    def _check_artifact_permissions(self, remove_resp, method):
         if remove_resp.status_code == 403:
             commons.print_msg(Artifactory.clazz, method,
                               "Failed publishing to artifactory: {response}. \nArtifact version must "
