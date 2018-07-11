@@ -36,7 +36,7 @@ jobs:
     - stage: pypi
       if: branch = master
       python: "3.5"
-      script: skip
+      script: export ENV=$(if [ "$TRAVIS_BRANCH" == "master" ]; then echo production; else echo development; fi) && flow github -o VERSION getversion $ENV
       deploy:
         provider: pypi
         user: $PYPI_USER
