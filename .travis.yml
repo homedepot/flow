@@ -29,7 +29,7 @@ jobs:
       python: "3.5"
       script: 
         - coverage run --source flow -m py.test
-        # - bandit -r -ll -ii -x tests .
+        - bandit -r -ll -ii -x tests .
         - export ENV=$(if [ "$TRAVIS_BRANCH" == "master" ]; then echo production; else echo development; fi) && flow tracker label-release $ENV
       after_success:
         - coverage report

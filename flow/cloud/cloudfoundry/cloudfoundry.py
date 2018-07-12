@@ -142,7 +142,7 @@ class CloudFoundry(Cloud):
             path=CloudFoundry.path_to_cf,
             proj=self.config.project_name)
 
-        stopped_apps = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        stopped_apps = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT) # nosec
 
         get_stopped_apps_failed = False
 
@@ -177,7 +177,7 @@ class CloudFoundry(Cloud):
             path=CloudFoundry.path_to_cf,
             proj=self.config.project_name)
 
-        started_apps = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        started_apps = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT) # nosec
 
         get_started_apps_failed = False
 
