@@ -103,7 +103,7 @@ class Artifactory(Artifact_Storage):
                                                   headers=headers,
                                                   timeout=self.http_timeout)
 
-                    self.check_artifact_permissions(remove_resp, method)
+                    self._check_artifact_permissions(remove_resp, method)
 
                     resp = requests.put(file_url,
                                         auth=(os.getenv('ARTIFACTORY_USER'), os.getenv('ARTIFACTORY_TOKEN')),
@@ -123,7 +123,7 @@ class Artifactory(Artifact_Storage):
                                                   headers=headers,
                                                   timeout=self.http_timeout)
 
-                    self.check_artifact_permissions(remove_resp, method)
+                    self._check_artifact_permissions(remove_resp, method)
 
                     resp = requests.put(file_url,
                                         auth=(BuildConfig.settings.get('artifactory', 'user'),
@@ -144,7 +144,7 @@ class Artifactory(Artifact_Storage):
                                                   headers=headers,
                                                   timeout=self.http_timeout)
 
-                    self.check_artifact_permissions(remove_resp, method)
+                    self._check_artifact_permissions(remove_resp, method)
 
                     resp = requests.put(file_url,
                                         headers=headers,
@@ -162,7 +162,7 @@ class Artifactory(Artifact_Storage):
                                                   headers=headers,
                                                   timeout=self.http_timeout)
 
-                    self.check_artifact_permissions(remove_resp, method)
+                    self._check_artifact_permissions(remove_resp, method)
                     resp = requests.put(file_url, headers=headers, data=zip_file, timeout=self.http_timeout)
         except requests.ConnectionError as e:
             error = str(e)
