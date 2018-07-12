@@ -1,8 +1,10 @@
 # Flow
 A CLI tool for common Continuous Integration/Continuous Delivery Tasks
 
+[![Build Status](https://travis-ci.org/homedepot/flow.svg?branch=master)](https://travis-ci.org/homedepot/flow)
 [![Coverage Status](https://coveralls.io/repos/github/homedepot/flow/badge.svg?branch=master)](https://coveralls.io/github/homedepot/flow?branch=master)
 [![PyPI version](https://badge.fury.io/py/THD-Flow.svg)](https://badge.fury.io/py/THD-Flow)
+
 
 **Current Integrations:**
 * GitHub
