@@ -145,7 +145,7 @@ class Tracker(Project_Tracking):
             else:
                 commons.print_msg(Tracker.clazz, method, resp.text)
         except requests.ConnectionError:
-            commons.print_msg(Tracker.clazz, method, 'Request to Tracker timed out.', 'WARN')
+            commons.print_msg(Tracker.clazz, method, 'Connection error. ' + str(e), 'WARN')
         except Exception as e:
             commons.print_msg(Tracker.clazz, method, "Unable to tag story {story} with label {lbl}".format(
                 story=story_id, lbl=label), 'WARN')
