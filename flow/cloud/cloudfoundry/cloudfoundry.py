@@ -254,16 +254,13 @@ class CloudFoundry(Cloud):
             file_to_push = "{dir}/{file}".format(dir=self.config.push_location, file=self.find_deployable(
                 self.config.artifact_extension, self.config.push_location))
 
-        domain = "-d {}".format(CloudFoundry.cf_domain) if CloudFoundry.cf_domain is not None else ""
         buildpack = "-b {}".format(os.getenv('CF_BUILDPACK')) if os.getenv('CF_BUILDPACK') else ""
 
-        cmd = CloudFoundry.path_to_cf + "cf push {project_name}-{version} -p {pushlocation} -f {manifest} {buildpack} " \
-                                        "{cf_domain}".format(project_name=self.config.project_name,
-                                                               version=self.config.version_number,
-                                                               pushlocation=file_to_push,
-                                                               manifest=manifest,
-                                                               buildpack=buildpack,
-                                                               cf_domain=domain)
+        cmd = CloudFoundry.path_to_cf + "cf push {project_name}-{version} -p {pushlocation} -f {manifest} {buildpack} ".format(project_name=self.config.project_name,
+                                            version=self.config.version_number,
+                                            pushlocation=file_to_push,
+                                            manifest=manifest,
+                                            buildpack=buildpack)
 
         commons.print_msg(CloudFoundry.clazz, method, cmd.split())
         cf_push = subprocess.Popen(cmd.split(), shell=False, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
