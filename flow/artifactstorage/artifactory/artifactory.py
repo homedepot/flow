@@ -413,13 +413,13 @@ class Artifactory(Artifact_Storage):
                 tar = tarfile.open(download_path)
                 tar.extractall(download_dir)
                 tar.close()
-                commons.print_msg(Artifactory.clazz, method, 'Deploying a tar from {}'.format(download_path))
+                commons.print_msg(Artifactory.clazz, method, 'Extracting tar {}'.format(download_path))
             if extension == "zip":
                 with zipfile.ZipFile(download_path, "r") as z:
                     z.extractall(download_dir)
 
-                commons.print_msg(Artifactory.clazz, method, "Deploying a zip from {}".format(download_path))
-        print(download_path)
+                commons.print_msg(Artifactory.clazz, method, "Extracting zip {}".format(download_path))
+            os.remove(download_path)
 
         commons.print_msg(Artifactory.clazz, method, 'end')
 
