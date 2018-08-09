@@ -410,16 +410,16 @@ class Artifactory(Artifact_Storage):
         if extract:
             # Unzip/untar file downloaded from Artifactory if required
             if extension == "tar.gz" or extension == "tar" or extension == "tgz":
+                commons.print_msg(Artifactory.clazz, method, 'Extracting tar {}'.format(download_path))
                 tar = tarfile.open(download_path)
                 tar.extractall(download_dir)
                 tar.close()
-                commons.print_msg(Artifactory.clazz, method, 'Extracting tar {}'.format(download_path))
+                os.remove(download_path)
             if extension == "zip":
+                commons.print_msg(Artifactory.clazz, method, "Extracting zip {}".format(download_path))
                 with zipfile.ZipFile(download_path, "r") as z:
                     z.extractall(download_dir)
-
-                commons.print_msg(Artifactory.clazz, method, "Extracting zip {}".format(download_path))
-            os.remove(download_path)
+                os.remove(download_path)
 
         commons.print_msg(Artifactory.clazz, method, 'end')
 
