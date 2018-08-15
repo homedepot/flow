@@ -84,8 +84,8 @@ class Tracker(Project_Tracking):
 
         try:
             resp = requests.get(tracker_story_details_url, headers=headers, timeout=self.http_timeout)
-        except requests.ConnectionError:
-            commons.print_msg(Tracker.clazz, method, 'Request to Tracker timed out.', 'ERROR')
+        except requests.ConnectionError as e:
+            commons.print_msg(Tracker.clazz, method, 'Connection error. ' + str(e), 'ERROR')
             exit(1)
         except Exception as e:
             commons.print_msg(Tracker.clazz, method, "Failed retrieving story detail from call to {} ".format(
@@ -144,7 +144,7 @@ class Tracker(Project_Tracking):
                                                                                        response=resp.text), 'WARN')
             else:
                 commons.print_msg(Tracker.clazz, method, resp.text)
-        except requests.ConnectionError:
+        except requests.ConnectionError as e:
             commons.print_msg(Tracker.clazz, method, 'Connection error. ' + str(e), 'WARN')
         except Exception as e:
             commons.print_msg(Tracker.clazz, method, "Unable to tag story {story} with label {lbl}".format(
