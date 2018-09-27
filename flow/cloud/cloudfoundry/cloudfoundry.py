@@ -372,36 +372,38 @@ class CloudFoundry(Cloud):
             else:
                 cmd1 = "{}cf routes".format(CloudFoundry.path_to_cf)
                 cmd2 = "grep {}".format(line.decode("utf-8"))
-                cmd3 = ["awk", "{{print $2}}"]
+                cmd3 = ["awk", "{{print $2,$3}}"]
 
-                cmd_string = cmd1+cmd2+str(cmd3)
+                cmd_string = ' '.join([cmd1, cmd2, str(cmd3)])
                 commons.print_msg(CloudFoundry.clazz, method, cmd_string)
                 run1 = subprocess.Popen(cmd1.split(), stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
                 run2 = subprocess.Popen(cmd2.split(), stdin=run1.stdout, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-                existing_routes = subprocess.Popen(cmd3, stdin=run2.stdout, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                existing_routes_domains = subprocess.Popen(cmd3, stdin=run2.stdout, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
                 if CloudFoundry.cf_domain is not None:
                     try:
                         run1.stdout.close()
                         run2.stdout.close()
-                        existing_routes_output, err = existing_routes.communicate(timeout=120)
+                        existing_routes_domains_output, err = existing_routes_domains.communicate(timeout=120)
 
-                        cmd_string = cmd1+cmd2+str(cmd3)
-                        if existing_routes.returncode != 0:
+                        if existing_routes_domains.returncode != 0:
                             commons.print_msg(CloudFoundry.clazz, method, "Failed calling {command}. Return code of {rtn}"
                                               .format(command=cmd_string,
-                                                     rtn=existing_routes.returncode),
+                                                     rtn=existing_routes_domains.returncode),
                                              'ERROR')
 
-                        for route_line in existing_routes_output.splitlines():
+                        route_domain_lines = existing_routes_domains_output.splitlines()
+
+                        for route_domain_line in route_domain_lines:
+                            route_line, domain_line = route_domain_line.decode("utf-8").split(' ')
                             commons.print_msg(CloudFoundry.clazz, method, "Removing route {route} from {line}".format(
-                                route=route_line.decode("utf-8"), line=line.decode("utf-8")))
+                                route=route_line, line=line.decode("utf-8")))
 
                             cmd = "{path}cf unmap-route {old_app} {cf_domain} -n {route_line}".format(
                                 path=CloudFoundry.path_to_cf,
                                 old_app=line.decode("utf-8"),
-                                cf_domain=CloudFoundry.cf_domain,
-                                route_line=route_line.decode("utf-8"))
+                                cf_domain=domain_line,
+                                route_line=route_line)
 
                             commons.print_msg(CloudFoundry.clazz, method, cmd)
 
@@ -457,7 +459,7 @@ class CloudFoundry(Cloud):
                         os.system('stty sane')
 
                 if unmap_delete_previous_versions_failed:
-                    existing_routes.kill()
+                    existing_routes_domains.kill()
                     # existing_routes.communicate()
                     os.system('stty sane')
                     self._cf_logout()
