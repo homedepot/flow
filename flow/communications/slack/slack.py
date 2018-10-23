@@ -358,10 +358,12 @@ class Slack(communications):
             icon = BuildConfig.settings.get('slack', 'icon')
             slack_message.icon_url = icon
 
-        if channel is None and 'slack' in BuildConfig.json_config and 'channel' in BuildConfig.json_config['slack']:
+        if channel is not None:
+            slack_message.channel = channel
+        elif 'slack' in BuildConfig.json_config and 'channel' in BuildConfig.json_config['slack']:
             slack_channel = BuildConfig.json_config['slack']['channel']
             slack_message.channel = slack_channel
-        elif channel is None and BuildConfig.settings.has_section('slack') and BuildConfig.settings.has_option('slack', 'channel'):
+        elif BuildConfig.settings.has_section('slack') and BuildConfig.settings.has_option('slack', 'channel'):
             slack_channel = BuildConfig.settings.get('slack', 'channel')
             slack_message.channel = slack_channel
 
