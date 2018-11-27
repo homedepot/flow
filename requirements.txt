@@ -1,5 +1,5 @@
 PyDispatcher==2.0.5
-requests==2.18.4
+requests>=2.20.0
 pytest==2.9.2
 responses==0.8.1
 pytest-mock==1.2
