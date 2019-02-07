@@ -259,8 +259,10 @@ def main():
             commons.print_msg(clazz, method, "Setting app yaml to {}".format(args.app_yaml))
             app_yaml = args.app_yaml
 
-        if args.promote is not 'true':
+        if args.promote is not None and args.promote.lower() != 'true':
             app_engine.deploy(app_yaml=app_yaml, promote=False)
+        else:
+            app_engine.deploy(app_yaml=app_yaml)
 
         # noinspection PyPep8Naming
         SIGNAL = 'publish-deploy-complete'
