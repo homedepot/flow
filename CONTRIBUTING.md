@@ -146,11 +146,11 @@ Please ensure that we don't tightly couple our classes together.  Flow is meant 
 
 ## Running Unit Tests on a Mac/Linux
 
-* In an effort to make things simple, take a look at the `./unittest.sh` script.  You should just be able to run this and it will setup everything.  This can only be run after all of the Environment Setup is complete.
+* In an effort to make things simple, take a look at the `scripts/unittest.sh` script.  You should just be able to run this and it will setup everything.  This can only be run after all of the Environment Setup is complete.
 
 ## Continuous Unit Testing on a Mac/Linux
 
-* Run the `./unittest_continous.sh` script which just runs the `./unittest.sh` in a while loop for ever.  ctrl-c to quit.
+* Run the `scripts/unittest_continous.sh` script which just runs the `scripts/unittest.sh` in a while loop for ever.  ctrl-c to quit.
 * To continuously run tests while making code changes use the `pytest-watch` or if you don't feel like typing all of that then `ptw` will suffice
 
 

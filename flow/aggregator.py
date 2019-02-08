@@ -190,7 +190,7 @@ def main():
 
         is_script_run_successful = True
 
-        if 'script' in args and args.script is not None:
+        if args.script is not None:
             commons.print_msg(clazz, method, 'Custom deploy script detected')
             cf.download_cf_cli()
             cf.download_custom_deployment_script(args.script)
@@ -214,12 +214,12 @@ def main():
 
             force = False
 
-            if 'force' in args and args.force is not None and args.force.strip().lower() != 'false':
+            if args.force is not None and args.force.strip().lower() != 'false':
                 force = True
 
             manifest = None
 
-            if 'manifest' in args and args.manifest is not None:
+            if args.manifest is not None:
                 commons.print_msg(clazz, method, "Setting manifest to {}".format(args.manifest))
                 manifest = args.manifest
 
@@ -241,33 +241,28 @@ def main():
 
         is_script_run_successful = True
 
-        if 'script' in args and args.script is not None:
-            commons.print_msg(clazz, method, 'Custom deploy detected')
-            app_engine.download_custom_deployment_script(args.script)
-            is_script_run_successful = app_engine.run_deployment_script(args.script)
+        create_deployment_directory()
+
+        if BuildConfig.artifact_extension is None and BuildConfig.artifact_extensions is None:
+            commons.print_msg(clazz, method, 'Attempting to retrieve and deploy from GitHub.')
+
+            github.download_code_at_version()
         else:
-            commons.print_msg(clazz, method, 'No custom deploy script passed in. Calling standard AppEngine deployment.')
+            commons.print_msg(clazz, method, 'Attempting to retrieve and deploy from Artifactory.')
+            artifactory = Artifactory()
 
-            create_deployment_directory()
+            artifactory.download_and_extract_artifacts_locally(BuildConfig.push_location + '/')
 
-            if BuildConfig.artifact_extension is None and BuildConfig.artifact_extensions is None:
-                commons.print_msg(clazz, method, 'Attempting to retrieve and deploy from GitHub.')
+        app_yaml = None
 
-                github.download_code_at_version()
-            else:
-                commons.print_msg(clazz, method, 'Attempting to retrieve and deploy from Artifactory.')
-                artifactory = Artifactory()
+        if args.app_yaml is not None:
+            commons.print_msg(clazz, method, "Setting app yaml to {}".format(args.app_yaml))
+            app_yaml = args.app_yaml
 
-                artifactory.download_and_extract_artifacts_locally(BuildConfig.push_location + '/')
-
-            app_yaml = None
-
-            if 'app_yaml' in args and args.app_yaml is not None:
-                commons.print_msg(clazz, method, "Setting app yaml to {}".format(args.app_yaml))
-                app_yaml = args.app_yaml
-
-            if 'promote' in args and args.promote is not 'true':
-                app_engine.deploy(app_yaml=app_yaml, promote=False)
+        if args.promote is not None and args.promote.lower() != 'true':
+            app_engine.deploy(app_yaml=app_yaml, promote=False)
+        else:
+            app_engine.deploy(app_yaml=app_yaml)
 
         # noinspection PyPep8Naming
         SIGNAL = 'publish-deploy-complete'
