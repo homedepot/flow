@@ -25,6 +25,12 @@ A CLI tool for common Continuous Integration/Continuous Delivery Tasks
 
 For instructions on contributing, please see [CONTRIBUTING.md](CONTRIBUTING.md).
 
+## Install
+```bash
+python3 setup.py install
+which flow
+```
+NOTE: The installation may require sudo based on user permissions.
 
 ## Usage
 
