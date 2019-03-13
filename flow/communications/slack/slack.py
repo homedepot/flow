@@ -278,8 +278,8 @@ class Slack(communications):
             else:
                 attachment.color = '#ff0000'
 
-            attachment.author_name = environment + " " + (str(app_version) if str(app_version) is not None else 'Uknown Version')
-            attachment.title = "Build " + (os.environ.get('BUILD_ID') if os.environ.get('BUILD_ID') is not None else 'Uknown')
+            attachment.author_name = environment + " " + (str(app_version) if str(app_version) is not None else 'Unknown Version')
+            attachment.title = "Build " + (os.environ.get('BUILD_ID') if os.environ.get('BUILD_ID') is not None else 'Unknown')
             attachment.title_link = (os.environ.get('BUILD_URL') if os.environ.get('BUILD_URL') is not None else '')
             attachment.footer = 'Flow'
             attachment.text = message
@@ -392,7 +392,7 @@ class Slack(communications):
             attachment.color = '#0000ff'
 
         attachment.author_name = app_name + ' ' + environment + " " + (str(app_version) if str(app_version) is not
-                                                                                           None else 'Uknown Version')
+                                                                                           None else 'Unknown Version')
         if 'github' in self.config.json_config and 'org' in self.config.json_config['github']:
             attachment.author_name = "{msg} \n org: {org} \n repo: {repo}".format(msg=attachment.author_name,
                                                                     org=self.config.json_config['github']['org'],
