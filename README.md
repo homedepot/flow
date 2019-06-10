@@ -252,6 +252,8 @@ ARTIFACTORY_USER (optional) user for uploading to artifactory
 
 CF_BUILDPACK (optional)  Custom build packs should typically be indicated in your manifest; however, sometimes URLs for build packs may contains sensitive information, such as a github oauth token.  You can use this environment variable to avoid exposing this in your manifest.
 
+CF_VARS (optional) to specify a vars file or path to vars file to use as argument for `--vars-file`
+
 **Settings.ini (Global Settings):**
 
 cli_download_path (required) path to download cf cli

@@ -255,12 +255,14 @@ class CloudFoundry(Cloud):
                 self.config.artifact_extension, self.config.push_location))
 
         buildpack = "-b {}".format(os.getenv('CF_BUILDPACK')) if os.getenv('CF_BUILDPACK') else ""
+        varsfile = "--vars-file {}".format(os.getenv('CF_VARS')) if os.getenv('CF_VARS') else ""
 
-        cmd = CloudFoundry.path_to_cf + "cf push {project_name}-{version} -p {pushlocation} -f {manifest} {buildpack} ".format(project_name=self.config.project_name,
+        cmd = CloudFoundry.path_to_cf + "cf push {project_name}-{version} -p {pushlocation} -f {manifest} {buildpack} {varsfile}".format(project_name=self.config.project_name,
                                             version=self.config.version_number,
                                             pushlocation=file_to_push,
                                             manifest=manifest,
-                                            buildpack=buildpack)
+                                            buildpack=buildpack,
+                                            varsfile=varsfile)
 
         commons.print_msg(CloudFoundry.clazz, method, cmd.split())
         cf_push = subprocess.Popen(cmd.split(), shell=False, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
