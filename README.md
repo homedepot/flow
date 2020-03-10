@@ -236,6 +236,8 @@ deploy - push application to Pivotal Cloud Foundry
 
 -metrics MANIFEST, --manifest MANIFEST (optional) Custom manifest name if you choose not to  follow standard pattern of{environment}.manifest.yml
 
+--no-download (optional) Skips downloading and extraction of artifact. Useful if the artifact was downloaded and extracted previously.
+
 **Environment Variables:**
 
 GITHUB_TOKEN (Required) for access to your project API _NOTE: Requires repo access only._
