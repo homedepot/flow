@@ -199,18 +199,18 @@ def main():
             commons.print_msg(clazz, method, 'No custom deploy script passed in.  Cloud Foundry detected in '
                                              'buildConfig.  Calling standard CloudFoundry deployment.')
 
-            # TODO make this configurable in case they are using
-            create_deployment_directory()
+            if not args.no_download:
+                create_deployment_directory()
 
-            if BuildConfig.artifact_extension is None and BuildConfig.artifact_extensions is None:
-                commons.print_msg(clazz, method, 'Attempting to retrieve and deploy from GitHub.')
+                if BuildConfig.artifact_extension is None and BuildConfig.artifact_extensions is None:
+                    commons.print_msg(clazz, method, 'Attempting to retrieve and deploy from GitHub.')
 
-                github.download_code_at_version()
-            else:
-                commons.print_msg(clazz, method, 'Attempting to retrieve and deploy from Artifactory.')
-                artifactory = Artifactory()
+                    github.download_code_at_version()
+                else:
+                    commons.print_msg(clazz, method, 'Attempting to retrieve and deploy from Artifactory.')
+                    artifactory = Artifactory()
 
-                artifactory.download_and_extract_artifacts_locally(BuildConfig.push_location + '/')
+                    artifactory.download_and_extract_artifacts_locally(BuildConfig.push_location + '/')
 
             force = False
 
@@ -360,6 +360,9 @@ def load_task_parsers(subparsers):
                                                         'deploy script here.')
     cfdeploy_parser.add_argument('-metrics', '--manifest', help='(optional) Custom manifest name if you choose not to '
                                                                 ' follow standard pattern of{environment}.manifest.yml')
+    cfdeploy_parser.add_argument('--no-download', help='(optional) Skips downloading and extraction of artifact.'
+                                                       'Useful if the artifact was downloaded previously.',
+                                 action='store_true')
 
     zipship_parser = subparsers.add_parser('zipit', help='Support for zipping directory contents and shipping it '
                                                          'somewhere', formatter_class=RawTextHelpFormatter)
