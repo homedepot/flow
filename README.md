@@ -33,48 +33,8 @@ which flow
 NOTE: The installation may require sudo based on user permissions.
 
 ## Setup/Configuration
-Please configure buildConfig.json with your environments and project settings.
-`buildConfig.json` 
-```json
-{
-	"projectInfo": {
-		"name": "project_name",
-		"language": "programming_language",
-		"versionStrategy": "tracker"
-	},
+Please configure [buildConfig.json](buildConfig.json).
 
-	"artifact": {
-		"artifactType": "tar"
-	},
-
-	"github": {
-		"org": "github_organization",
-		"repo": "github_repository",
-		"URL": "https://api.github.com/repos"
-	},
-
-	"tracker": {
-		"projectId": 999999
-	},
-
-	"slack": {
-		"botName": "slack_poster_name",
-		"emoji": ":any_slack_emoji:",
-		"channel": "#slack_channel"
-	},
-
-	"environments": {
-		"development": {
-			"artifactCategory": "snapshot",
-			"associatedBranchName": "develop"
-		},
-		"production": {
-			"artifactCategory": "release",
-			"associatedBranchName": "master"
-		}
-	}
-}
-```
 
 ## Usage
 
