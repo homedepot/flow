@@ -165,7 +165,7 @@ Please ensure that we don't tightly couple our classes together.  Flow is meant 
 # Using PyCharm with Pytest
 * Open Project in PyCharm
 
-* Click On PyCharm > Preferences...
+* Click On PyCharm > Preferences...<br>
 ![Triggers](images/PyCharm_Preferences.png)
 
 * Go To Python Integrated Tools and Select *pytest* as Default Test Runner
