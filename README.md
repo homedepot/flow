@@ -32,6 +32,10 @@ which flow
 ```
 NOTE: The installation may require sudo based on user permissions.
 
+## Setup/Configuration
+Please configure [buildConfig.json](buildConfig.json).
+
+
 ## Usage
 
 
@@ -40,8 +44,8 @@ Generates version numbers (using semantic versioning), attaches release notes an
 
 **Actions:**
 
-version - create new version, tag repo with version number and append build notes
-getversion - returns the latest version number.
+`version` - create new version, tag repo with version number and append build notes
+`getversion` - returns the latest version number.
 
 **Usage:** `flow github [Flags] [Action] [Environment]`
 
@@ -58,9 +62,9 @@ getversion - returns the latest version number.
 
 **Environment Variables:**
 
-TRACKER_TOKEN (Required) to access Pivotal Tracker story information when building release notes
+TRACKER_TOKEN *(required)* to access Pivotal Tracker story information when building release notes
 
-GITHUB_TOKEN (Required) for access to your project API _NOTE: Requires repo access only._
+GITHUB_TOKEN *(required)* for access to your project API _NOTE: Requires repo access only._
 
 SLACK_WEBHOOK_URL (optional) for sending error messages from Flow to your slack channel
 
@@ -73,7 +77,7 @@ Label stories with the version number.
 
 **Actions:**
 
-label-release - lookup stories in commit history and tag each story with the current version number
+`label-release` - lookup stories in commit history and tag each story with the current version number
 
 **Usage:** `flow tracker [Flags] [Action] [Environment]`
 
@@ -83,15 +87,15 @@ label-release - lookup stories in commit history and tag each story with the cur
 
 **Environment Variables:**
 
-GITHUB_TOKEN (Required) for access to your project API _NOTE: Requires repo access only._
+GITHUB_TOKEN *(required)* for access to your project API _NOTE: Requires repo access only._
 
-TRACKER_TOKEN (Required) for accessing story information and labeling stories
+TRACKER_TOKEN *(required)* for accessing story information and labeling stories
 
 SLACK_WEBHOOK_URL (optional) for sending error messages from Flow to your slack channel
 
 **Settings.ini (Global Settings):**
 
-url (required) to the tracker server. Priority is given if a value in buildConfig.json is specified.
+url *(required)* to the tracker server. Priority is given if a value in buildConfig.json is specified.
 
 
 For the help documentation, please check `flow tracker -h`
@@ -102,9 +106,9 @@ Publishes release notes after a deployment.
 
 **Actions:**
 
-release - ship release notes to slack after a deployment has completed
+`release` - ship release notes to slack after a deployment has completed
 
-message - Sends custom slack messages.  One use case is for sending flow deprecation messages to teams during their deployment.
+`message` - Sends custom slack messages.  One use case is for sending flow deprecation messages to teams during their deployment.
 
 **Notes:**
 If no channel is defined in buildConfig.json, this will publish to the default channel for the webhook. It also provides links for manually publishing to other environments specified in the buildConfig.json.
@@ -131,20 +135,20 @@ If no channel is defined in buildConfig.json, this will publish to the default c
 
 **Environment Variables:**
 
-SLACK_WEBHOOK_URL (required) for sending release notes to slack
+SLACK_WEBHOOK_URL *(required)* for sending release notes to slack
 
-TRACKER_TOKEN (Required) to access Pivotal Tracker story information when building release notes
+TRACKER_TOKEN *(required)* to access Pivotal Tracker story information when building release notes
 
-GITHUB_TOKEN (Required) for access to your project API _NOTE: Requires repo access only._
+GITHUB_TOKEN *(required)* for access to your project API _NOTE: Requires repo access only._
 
 **Settings.ini (Global Settings):**
-bot_name (required) default bot name.  Can be overridden by users in their buildConfig.json.
+bot_name *(required)* default bot name.  Can be overridden by users in their buildConfig.json.
 
-emoji (required) default emoji.  Can be overridden by users in their buildConfig.json.
+emoji *(required)* default emoji.  Can be overridden by users in their buildConfig.json.
 
-release_note_attachment_color (required) default bar color for release notes.  Can be overridden by users in their buildConfig.json.
+release_note_attachment_color *(required)* default bar color for release notes.  Can be overridden by users in their buildConfig.json.
 
-error_attachment_color (required) default bar color for errors sent to slack.  Can be overridden by users in their buildConfig.json.
+error_attachment_color *(required)* default bar color for errors sent to slack.  Can be overridden by users in their buildConfig.json.
 
 generic_message_slack_url (optional) sets generic channel when using the custom message feature of slack
 
@@ -164,7 +168,7 @@ The sonar task requires an environment variable, called SONAR_HOME that points t
 
 **Actions:**
 
-scan - submit code to sonar for code quality scan
+`scan` - submit code to sonar for code quality scan
 
 **Usage:** `flow sonar [Flags] [Action] [Environment]`
 
@@ -178,7 +182,7 @@ SLACK_WEBHOOK_URL (optional) for sending error messages from Flow to your slack 
 
 **Settings.ini (Global Settings):**
 
-sonar_runner (required) path to sonar runner executable
+sonar_runner *(required)* path to sonar runner executable
 
 
 For the help documentation, please check `flow sonar -h`
@@ -189,9 +193,9 @@ Task used to upload/download artifacts to/from artifactory.
 
 **Actions:**
 
-upload - uploads artifact to artifactory. location is based on settings in buildConfig.json.
+`upload` - uploads artifact to artifactory. location is based on settings in buildConfig.json.
 
-download - downloads artifact from artifactory. location is based on settings in buildConfig.json and optional version number passed in.
+`download` - downloads artifact from artifactory. location is based on settings in buildConfig.json and optional version number passed in.
 
 _NOTE:_ To include a POM in the upload, set `includePom` in your buildConfig.json, `artifact` stanza.
 
@@ -207,11 +211,11 @@ _NOTE:_ To include a POM in the upload, set `includePom` in your buildConfig.jso
 
 SLACK_WEBHOOK_URL (optional) for sending error messages from Flow to your slack channel
 
-ARTIFACTORY_TOKEN (Required) api token to artifactory OR encrypted password for user if used in conjunction with ARTIFACTORY_USER
+ARTIFACTORY_TOKEN *(required)* api token to artifactory OR encrypted password for user if used in conjunction with ARTIFACTORY_USER
 
 ARTIFACTORY_USER (optional) user for uploading to artifactory
 
-ARTIFACT_BUILD_DIRECTORY (required) directory location where artifact is built
+ARTIFACT_BUILD_DIRECTORY *(required)* directory location where artifact is built
 
 
 For the help documentation, please check `flow artifactory -h`
@@ -222,7 +226,7 @@ Performs a zero-downtime deployment to cloud foundry expecting a manifest named 
 
 **Actions:**
 
-deploy - push application to Pivotal Cloud Foundry
+`deploy` - push application to Pivotal Cloud Foundry
 
 **Usage:** `flow cf [Flags] [Action] [Environment]`
 
@@ -240,13 +244,13 @@ deploy - push application to Pivotal Cloud Foundry
 
 **Environment Variables:**
 
-GITHUB_TOKEN (Required) for access to your project API _NOTE: Requires repo access only._
+GITHUB_TOKEN *(required)* for access to your project API _NOTE: Requires repo access only._
 
-ARTIFACTORY_TOKEN (Required) api token to artifactory OR encrypted password for user if used in conjunction with ARTIFACTORY_USER (api token is preferred over password)
+ARTIFACTORY_TOKEN *(required)* api token to artifactory OR encrypted password for user if used in conjunction with ARTIFACTORY_USER (api token is preferred over password)
 
-DEPLOYMENT_USER (Required) for logging into PCF
+DEPLOYMENT_USER *(required)* for logging into PCF
 
-DEPLOYMENT_PWD (Required) for logging into PCF
+DEPLOYMENT_PWD *(required)* for logging into PCF
 
 SLACK_WEBHOOK_URL (optional) for sending error messages from Flow to your slack channel
 
@@ -258,7 +262,7 @@ CF_VARS (optional) to specify a vars file or path to vars file to use as argumen
 
 **Settings.ini (Global Settings):**
 
-cli_download_path (required) path to download cf cli
+cli_download_path *(required)* path to download cf cli
 
 
 For the help documentation, please check `flow cf -h`
@@ -269,7 +273,7 @@ Performs a deployment to Google App Engine expecting an application yaml named a
 
 **Actions:**
 
-deploy - ship version of code to Google Cloud App Engine
+`deploy` - ship version of code to Google Cloud App Engine
 
 **Usage:** `flow gcappengine [Flags] [Action] [Environment]`
 
@@ -285,13 +289,13 @@ deploy - ship version of code to Google Cloud App Engine
 
 **Environment Variables:**
 
-GCAPPENGINE_USER_JSON (Required)  the contents of a service account json created from Google's Instructions [here](https://cloud.google.com/iam/docs/service-accounts)  NOTE: this is json content, not a uri to a file.
+GCAPPENGINE_USER_JSON *(required)*  the contents of a service account json created from Google's Instructions [here](https://cloud.google.com/iam/docs/service-accounts)  NOTE: this is json content, not a uri to a file.
 
-CLOUDSDK_CORE_PROJECT (Required)  project name as displayed in google cloud
+CLOUDSDK_CORE_PROJECT *(required)*  project name as displayed in google cloud
 
 **Settings.ini (Global Settings):**
 
-cloud_sdk_path (required) path to download gcloud cli
+cloud_sdk_path *(required)* path to download gcloud cli
 
 
 For the help documentation, please check `flow gcappengine -h`
