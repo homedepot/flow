@@ -144,16 +144,35 @@ Please ensure that we don't tightly couple our classes together.  Flow is meant 
 * Build flow from local code:
   `pip install -e ./`
 
-## Running Unit Tests on a Mac/Linux
+## Running Unit Tests on a Mac/Linux (Not Using PyCharm Or Pytest)
 
 * In an effort to make things simple, take a look at the `scripts/unittest.sh` script.  You should just be able to run this and it will setup everything.  This can only be run after all of the Environment Setup is complete.
 
-## Continuous Unit Testing on a Mac/Linux
+## Continuous Unit Testing on a Mac/Linux (Not Using PyCharm or Pytest)
 
 * Run the `scripts/unittest_continous.sh` script which just runs the `scripts/unittest.sh` in a while loop for ever.  ctrl-c to quit.
 * To continuously run tests while making code changes use the `pytest-watch` or if you don't feel like typing all of that then `ptw` will suffice
 
+## Using Pytest
 
+* Install Pytest 
+   * `pip install -U pytest`
+* Verify installation pytest
+   * `pytest -v`
+* Run all unit tests
+   * `pytest`
+
+# Using PyCharm with Pytest
+* Open Project in PyCharm
+
+* Click On PyCharm > Preferences...<br>
+![Triggers](images/PyCharm_Preferences.png)
+
+* Go To Python Integrated Tools and Select *pytest* as Default Test Runner
+![Triggers](images/PyCharm_Select_PyTest.png)
+
+* Select Pytest And click OK    
+     
 ## Testing Flow Changes Locally
 * Clone flow code
 ```
