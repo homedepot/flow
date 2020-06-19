@@ -60,8 +60,8 @@ class BuildConfig:
             BuildConfig.version_strategy = BuildConfig.json_config['projectInfo']['versionStrategy']
         except KeyError:
             commons.print_msg(BuildConfig.clazz, method, "The build config json does not contain projectInfo => "
-                                                        "versionStrategy.  'manual' or 'tracker' values can be "
-                                                        "used.", 'ERROR')
+                                                         "versionStrategy.  'manual' or 'tracker' values can be "
+                                                         "used.", 'ERROR')
             exit(1)
 
         commons.print_msg(BuildConfig.clazz, method, 'end')
@@ -91,7 +91,7 @@ class BuildConfig:
                 'artifactCategory'].lower()
         except KeyError as e:
             commons.print_msg(BuildConfig.clazz, method, "The buildConfig.json is missing a key. {}".format(e),
-                             'ERROR')
+                              'ERROR')
             exit(1)
 
         commons.print_msg(BuildConfig.clazz, method, 'end')
@@ -106,6 +106,6 @@ class BuildConfig:
                 commons.print_msg(BuildConfig.clazz, method, 'Listing files found.')
                 commons.print_msg(BuildConfig.clazz, method, f)
             commons.print_msg(BuildConfig.clazz, method, 'Cannot find buildConfig.json.  Only the files above were '
-                                                        'found in the current directory.', 'ERROR')
+                                                         'found in the current directory.', 'ERROR')
 
             exit(1)
