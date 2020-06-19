@@ -1,14 +1,14 @@
 #!/usr/bin/python
-#slack.py
-
+# slack.py
+import codecs
 import os
 import urllib.parse
 
 import requests
-from flow.buildconfig import BuildConfig
-from flow.communications.communications_abc import communications
 
 import flow.utils.commons as commons
+from flow.buildconfig import BuildConfig
+from flow.communications.communications_abc import communications
 from flow.utils.commons import Object
 
 
@@ -25,7 +25,7 @@ class Slack(communications):
         Slack.slack_url = os.getenv('SLACK_WEBHOOK_URL')
 
         if config_override is not None:
-            self.config = config_override
+            Slack.config = config_override
 
         commons.print_msg(Slack.clazz, method, 'end')
 
@@ -35,7 +35,7 @@ class Slack(communications):
 
         if Slack.slack_url is None:
             commons.print_msg(Slack.clazz, method, 'No Slack URL was found in the environment.  Did you set  '
-                                                  'SLACK_WEBHOOK_URL in your pipeline?', 'ERROR')
+                                                   'SLACK_WEBHOOK_URL in your pipeline?', 'ERROR')
             exit(1)
 
         commons.verify_version(self.config)
@@ -140,7 +140,9 @@ class Slack(communications):
             attachment.fields = []
 
             attachment_field = Object()
-            attachment_field.value = "*" + str(release_note.get('id')) + "*                                                                                                             " + story_emoji + ' _' + release_note.get('story_type') + "_"
+            attachment_field.value = "*" + str(release_note.get(
+                'id')) + "*                                                                                                             " + story_emoji + ' _' + release_note.get(
+                'story_type') + "_"
             attachment_field.short = True
             attachment.fields.append(attachment_field)
             attachment_field = Object()
@@ -150,7 +152,8 @@ class Slack(communications):
             if release_note.get('description') is None or len(release_note.get('description').strip()) == 0:
                 attachment_field.value = '_No description_'
             else:
-                attachment_field.value = (release_note.get('description')[:150] + '..') if len(release_note.get('description')) > 150 else release_note.get('description')
+                attachment_field.value = (release_note.get('description')[:150] + '..') if len(
+                    release_note.get('description')) > 150 else release_note.get('description')
             attachment.fields.append(attachment_field)
             attachment_field = Object()
             attachment_field.value = '*Status*: ' + release_note.get('current_state')
@@ -177,17 +180,17 @@ class Slack(communications):
 
             # has to be defined here too in order to exit properly during the exception but still log appropriate
             # messages when there is a status code available
-            if hasattr('resp', 'status_code') and resp.status_code != 200:
+            if hasattr(resp, 'status_code') and resp.status_code != 200:
                 commons.print_msg(Slack.clazz, method, "Failed sending slack message to {url}.  \r\n Response: {resp}"
                                   .format(url=Slack.slack_url,
-                                         resp=resp.text))
+                                          resp=resp.text))
 
             exit(1)
 
-        if hasattr('resp', 'status_code') and resp.status_code != 200:
+        if hasattr(resp, 'status_code') and resp.status_code != 200:
             commons.print_msg(Slack.clazz, method, "Failed sending slack message to {url}.  \r\n Response: {resp}"
                               .format(url=Slack.slack_url,
-                                     resp=resp.text))
+                                      resp=resp.text))
             exit(1)
 
         commons.print_msg(Slack.clazz, method, 'end')
@@ -205,16 +208,21 @@ class Slack(communications):
             # For each manual deploy environment, lookup the corresponding link for that environment stanza
             for manually_deploy_to_env in manual_deploy_links:
                 try:
-                    manual_deploy_environment_links[manually_deploy_to_env] = self.config.json_config['environments'][manually_deploy_to_env]['manualDeployLink']
+                    manual_deploy_environment_links[manually_deploy_to_env] = \
+                        self.config.json_config['environments'][manually_deploy_to_env]['manualDeployLink']
                     if "?" in manual_deploy_environment_links:
-                        manual_deploy_environment_links[manually_deploy_to_env] = manual_deploy_environment_links[manually_deploy_to_env] + "&"
+                        manual_deploy_environment_links[manually_deploy_to_env] = manual_deploy_environment_links[
+                                                                                      manually_deploy_to_env] + "&"
                     else:
-                        manual_deploy_environment_links[manually_deploy_to_env] = manual_deploy_environment_links[manually_deploy_to_env] + "?"
+                        manual_deploy_environment_links[manually_deploy_to_env] = manual_deploy_environment_links[
+                                                                                      manually_deploy_to_env] + "?"
 
-                    manual_deploy_environment_links[manually_deploy_to_env] = manual_deploy_environment_links[manually_deploy_to_env] + "VERSION=" + urllib.parse.quote_plus(self.config.version_number)
+                    manual_deploy_environment_links[manually_deploy_to_env] = manual_deploy_environment_links[
+                                                                                  manually_deploy_to_env] + "VERSION=" + urllib.parse.quote_plus(
+                        self.config.version_number)
                 except KeyError as e:
                     commons.print_msg(Slack.clazz, method, "Could not find manual deploy link: {}".format(e),
-                                     'ERROR')
+                                      'ERROR')
 
         else:
             commons.print_msg(Slack.clazz, method, 'No manual build links specified')
@@ -226,7 +234,10 @@ class Slack(communications):
         commons.print_msg(Slack.clazz, method, 'begin')
 
         if Slack.slack_url is None:
-            commons.print_msg(Slack.clazz, method, 'No Slack URL was found in the environment.  Did you set SLACK_WEBHOOK_URL in your pipeline?', 'WARN')
+            commons.print_msg(Slack.clazz, method,
+                              'No Slack URL was found in the environment.  Did you set SLACK_WEBHOOK_URL in your '
+                              'pipeline?',
+                              'WARN')
         else:
             icon = None
             emoji = None
@@ -278,8 +289,10 @@ class Slack(communications):
             else:
                 attachment.color = '#ff0000'
 
-            attachment.author_name = environment + " " + (str(app_version) if str(app_version) is not None else 'Unknown Version')
-            attachment.title = "Build " + (os.environ.get('BUILD_ID') if os.environ.get('BUILD_ID') is not None else 'Unknown')
+            attachment.author_name = environment + " " + (
+                str(app_version) if str(app_version) is not None else 'Unknown Version')
+            attachment.title = "Build " + (
+                os.environ.get('BUILD_ID') if os.environ.get('BUILD_ID') is not None else 'Unknown')
             attachment.title_link = (os.environ.get('BUILD_URL') if os.environ.get('BUILD_URL') is not None else '')
             attachment.footer = 'Flow'
             attachment.text = message
@@ -337,57 +350,64 @@ class Slack(communications):
         if slack_url is not None:
             Slack.slack_url = slack_url
 
-        if slack_url is None and Slack.slack_url is None and BuildConfig.settings.has_section('slack') and \
-                BuildConfig.settings.has_option('slack', 'generic_message_slack_url'):
-            Slack.slack_url = BuildConfig.settings.get('slack', 'generic_message_slack_url')
+        if slack_url is None and Slack.slack_url is None and Slack.config.settings.has_section('slack') and \
+                Slack.config.settings.has_option('slack', 'generic_message_slack_url'):
+            Slack.slack_url = Slack.config.settings.get('slack', 'generic_message_slack_url')
         elif slack_url is None and Slack.slack_url is None:
-            commons.print_msg(Slack.clazz, method, 'No Slack URL was found in the environment or settings.ini.  Failed to send message', 'ERROR')
+            commons.print_msg(Slack.clazz, method,
+                              'No Slack URL was found in the environment or settings.ini.  Failed to send message',
+                              'ERROR')
             exit(1)
 
-        if emoji is None and 'slack' in BuildConfig.json_config and 'emoji' in BuildConfig.json_config['slack']:
-            emoji = BuildConfig.json_config['slack']['emoji']
+        if emoji is None and 'slack' in Slack.config.json_config and 'emoji' in Slack.config.json_config['slack']:
+            emoji = Slack.config.json_config['slack']['emoji']
             slack_message.icon_emoji = emoji
-        elif emoji is None and BuildConfig.settings.has_section('slack') and BuildConfig.settings.has_option('slack', 'emoji'):
-            emoji = BuildConfig.settings.get('slack', 'emoji')
+        elif emoji is None and Slack.config.settings.has_section('slack') and Slack.config.settings.has_option('slack',
+                                                                                                               'emoji'):
+            emoji = Slack.config.settings.get('slack', 'emoji')
             slack_message.icon_emoji = emoji
 
-        if icon is None and 'slack' in BuildConfig.json_config and 'icon' in BuildConfig.json_config['slack']:
-            icon = BuildConfig.json_config['slack']['icon']
+        if icon is None and 'slack' in Slack.config.json_config and 'icon' in Slack.config.json_config['slack']:
+            icon = Slack.config.json_config['slack']['icon']
             slack_message.icon_url = icon
-        elif icon is None and BuildConfig.settings.has_section('slack') and BuildConfig.settings.has_option('slack', 'icon'):
-            icon = BuildConfig.settings.get('slack', 'icon')
+        elif icon is None and Slack.config.settings.has_section('slack') and Slack.config.settings.has_option('slack',
+                                                                                                              'icon'):
+            icon = Slack.config.settings.get('slack', 'icon')
             slack_message.icon_url = icon
+            commons.print_msg(Slack.clazz, method, icon)
 
         if channel is not None:
             slack_message.channel = channel
-        elif 'slack' in BuildConfig.json_config and 'channel' in BuildConfig.json_config['slack']:
-            slack_channel = BuildConfig.json_config['slack']['channel']
+        elif 'slack' in Slack.config.json_config and 'channel' in Slack.config.json_config['slack']:
+            slack_channel = Slack.config.json_config['slack']['channel']
             slack_message.channel = slack_channel
-        elif BuildConfig.settings.has_section('slack') and BuildConfig.settings.has_option('slack', 'channel'):
-            slack_channel = BuildConfig.settings.get('slack', 'channel')
+        elif Slack.config.settings.has_section('slack') and Slack.config.settings.has_option('slack', 'channel'):
+            slack_channel = Slack.config.settings.get('slack', 'channel')
             slack_message.channel = slack_channel
 
-        if user is None and 'slack' in BuildConfig.json_config and 'botName' in BuildConfig.json_config['slack']:
-            user = BuildConfig.json_config['slack']['botName']
-        elif user is None and BuildConfig.settings.has_section('slack') and BuildConfig.settings.has_option('slack', 'bot_name'):
-            user = BuildConfig.settings.get('slack', 'bot_name')
+        if user is None and 'slack' in Slack.config.json_config and 'botName' in Slack.config.json_config['slack']:
+            user = Slack.config.json_config['slack']['botName']
+        elif user is None and Slack.config.settings.has_section('slack') and Slack.config.settings.has_option('slack',
+                                                                                                              'bot_name'):
+            user = Slack.config.settings.get('slack', 'bot_name')
 
-        app_version = BuildConfig.version_number
-        environment = BuildConfig.build_env
-        app_name = BuildConfig.json_config['projectInfo']['name']
+        app_version = Slack.config.version_number
+        environment = Slack.config.build_env
+        app_name = Slack.config.json_config['projectInfo']['name']
 
         slack_message.username = user
         slack_message.attachments = []
 
         # Application information
         attachment = Object()
-        attachment.pretext = attachment.fallback = message
+        attachment.pretext = codecs.decode(message, 'unicode_escape')
+        attachment.fallback = message
 
         if attachment_color is not None:
             attachment.color = attachment_color
-        elif (BuildConfig.settings.has_section('slack') and BuildConfig.settings.has_option('slack',
-                                                                                  'release_note_attachment_color')):
-            attachment.color = BuildConfig.settings.get('slack', 'release_note_attachment_color')
+        elif (Slack.config.settings.has_section('slack') and Slack.config.settings.has_option('slack',
+                                                                                              'release_note_attachment_color')):
+            attachment.color = Slack.config.settings.get('slack', 'release_note_attachment_color')
         else:
             attachment.color = '#0000ff'
 
@@ -395,8 +415,11 @@ class Slack(communications):
                                                                                            None else 'Unknown Version')
         if 'github' in self.config.json_config and 'org' in self.config.json_config['github']:
             attachment.author_name = "{msg} \n org: {org} \n repo: {repo}".format(msg=attachment.author_name,
-                                                                    org=self.config.json_config['github']['org'],
-                                                              repo=self.config.json_config['github']['repo'])
+                                                                                  org=self.config.json_config['github'][
+                                                                                      'org'],
+                                                                                  repo=
+                                                                                  self.config.json_config['github'][
+                                                                                      'repo'])
         # attachment.title = app_name
         attachment.title_link = (os.environ.get('BUILD_URL') if os.environ.get('BUILD_URL') is not None else '')
         attachment.footer = 'Flow'
@@ -415,17 +438,17 @@ class Slack(communications):
                                  timeout=Slack.http_timeout)
             if resp.status_code == 200:
                 commons.print_msg(Slack.clazz, method, "Successfully sent to slack. \r\n resp: {}".format(resp.text),
-                                 "DEBUG")
+                                  "DEBUG")
             else:
                 commons.print_msg(Slack.clazz, method, "Failed sending slack message to {url} \r\n Resp: {resp} \r\n "
-                                                      "Status: {stat}".format(url=Slack.slack_url, resp=resp.text,
-                                                                              stat=resp.status_code), "WARN")
+                                                       "Status: {stat}".format(url=Slack.slack_url, resp=resp.text,
+                                                                               stat=resp.status_code), "WARN")
 
         except requests.ConnectionError:
             commons.print_msg(Slack.clazz, method, "Request to Slack timed out.", "ERROR")
         except Exception as e:
             commons.print_msg(Slack.clazz, method, "Failed sending slack message to {url} with exception {ex}"
                               .format(url=Slack.slack_url,
-                                     ex=e))
+                                      ex=e))
 
         commons.print_msg(Slack.clazz, method, 'end')
