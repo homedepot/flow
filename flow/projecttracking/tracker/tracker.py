@@ -125,7 +125,6 @@ class Tracker(Project_Tracking):
                 commons.print_msg(Tracker.clazz, method, json_data)
                 break
             else:
-                json_data = None
                 commons.print_msg(Tracker.clazz, method, "Failed retrieving story detail from call to {url}. \r\n "
                                                          "Response: {response}".format(url=story_detail.get('url', ''),
                                                                                        response=resp.text), 'WARN')
