@@ -97,16 +97,15 @@ class Artifactory(Artifact_Storage):
                 # token and user env variables
                 if os.getenv('ARTIFACTORY_TOKEN') and os.getenv('ARTIFACTORY_USER'):
                     commons.print_msg(Artifactory.clazz, method, 'Found artifactory token and user.')
+                    headers["Authorization"] = "Bearer " + os.getenv('ARTIFACTORY_TOKEN')
 
                     remove_resp = requests.delete(file_url,
-                                                  auth=(os.getenv('ARTIFACTORY_USER'), os.getenv('ARTIFACTORY_TOKEN')),
                                                   headers=headers,
                                                   timeout=self.http_timeout)
 
                     self._check_artifact_permissions(remove_resp, method)
 
                     resp = requests.put(file_url,
-                                        auth=(os.getenv('ARTIFACTORY_USER'), os.getenv('ARTIFACTORY_TOKEN')),
                                         headers=headers,
                                         data=zip_file,
                                         timeout=self.http_timeout)
