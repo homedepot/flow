@@ -7,19 +7,35 @@ A CLI tool for common Continuous Integration/Continuous Delivery Tasks
 
 
 **Current Integrations:**
-* GitHub
-* Pivotal Tracker
-* Sonar
-* Artifactory
-* Cloud Foundry
-* Google AppEngine
-* Slack
-* Grafana
+* **Source Control/Build Management**
+  * [GitHub](#Github)
+  * [Artifactory](#Artifactory)
+  * Google Cloud Storage
+
+* **Code Analysis**  
+  * [Sonar](#Sonar) 
+  * QualityHub
+  * QualityHub2 
+  * Fortify 
+
+* **Agile Process Management**
+  * Pivotal Tracker
+  * Snowfield
+* **Deployment Management**
+  * Pivotal Cloud Foundry
+  * Google AppEngine
+  * Google Kuberentes Engine
+
+* **Notification Mangaement**
+  * [Slack](#Slack)
+
+* **Metrics**
+  * Grafana
 
 ## Join Us
 * Backlog: [Pivotal Tracker](https://www.pivotaltracker.com/n/projects/2135573#)
 * Docker: 
-* Chat: [gitter.im](https://gitter.im/thd-flow)
+* Chat: [gitter.im](https://gitter.im/thd-flow) 
 
 ## Development
 
@@ -62,15 +78,15 @@ Generates version numbers (using semantic versioning), attaches release notes an
 
 **Environment Variables:**
 
-TRACKER_TOKEN *(required)* to access Pivotal Tracker story information when building release notes
-
-GITHUB_TOKEN *(required)* for access to your project API _NOTE: Requires repo access only._
-
-SLACK_WEBHOOK_URL (optional) for sending error messages from Flow to your slack channel
-
+| Variable Name    | Reqiured/Optional | Description |
+|------------------|-------------------|------------------------------------------------------------------------|
+|TRACKER_TOKEN     | Required          | to access Pivotal Tracker story information when building release notes|
+|GITHUB_TOKEN      | Required          | for access to your project API _NOTE: Requires repo access only._      |
+|SLACK_WEBHOOK_URL | Optional          | for sending error messages from Flow to your slack channel             |
 
 For the help documentation, please check `flow github -h`
 
+***
 
 ### Tracker
 Label stories with the version number.
@@ -87,19 +103,19 @@ Label stories with the version number.
 
 **Environment Variables:**
 
-GITHUB_TOKEN *(required)* for access to your project API _NOTE: Requires repo access only._
-
-TRACKER_TOKEN *(required)* for accessing story information and labeling stories
-
-SLACK_WEBHOOK_URL (optional) for sending error messages from Flow to your slack channel
+| Variable Name    | Reqiured/Optional | Description                                                            |
+|------------------|-------------------|------------------------------------------------------------------------|
+|TRACKER_TOKEN     | Required          | for accessing story information and labeling stories                   |
+|GITHUB_TOKEN      | Required          | for access to your project API _NOTE: Requires repo access only._      |
+|SLACK_WEBHOOK_URL | Optional          | for sending error messages from Flow to your slack channel             |
 
 **Settings.ini (Global Settings):**
 
-url *(required)* to the tracker server. Priority is given if a value in buildConfig.json is specified.
-
+- url (required) to the tracker server. Priority is given if a value in buildConfig.json is specified.
 
 For the help documentation, please check `flow tracker -h`
 
+***
 
 ### Slack
 Publishes release notes after a deployment.
@@ -135,26 +151,28 @@ If no channel is defined in buildConfig.json, this will publish to the default c
 
 **Environment Variables:**
 
-SLACK_WEBHOOK_URL *(required)* for sending release notes to slack
-
-TRACKER_TOKEN *(required)* to access Pivotal Tracker story information when building release notes
-
-GITHUB_TOKEN *(required)* for access to your project API _NOTE: Requires repo access only._
+| Variable Name    | Reqiured/Optional | Description                                                            |
+|------------------|-------------------|------------------------------------------------------------------------|
+|TRACKER_TOKEN     | Required          | for accessing story information and labeling stories                   |
+|GITHUB_TOKEN      | Required          | for access to your project API _NOTE: Requires repo access only._      |
+|SLACK_WEBHOOK_URL | Required          | for sending release notes to slack             |
 
 **Settings.ini (Global Settings):**
-bot_name *(required)* default bot name.  Can be overridden by users in their buildConfig.json.
 
-emoji *(required)* default emoji.  Can be overridden by users in their buildConfig.json.
+- bot_name (required) default bot name.  Can be overridden by users in their buildConfig.json.
 
-release_note_attachment_color *(required)* default bar color for release notes.  Can be overridden by users in their buildConfig.json.
+- emoji (required) default emoji.  Can be overridden by users in their buildConfig.json.
 
-error_attachment_color *(required)* default bar color for errors sent to slack.  Can be overridden by users in their buildConfig.json.
+- release_note_attachment_color (required) default bar color for release notes.  Can be overridden by users in their buildConfig.json.
 
-generic_message_slack_url (optional) sets generic channel when using the custom message feature of slack
+- error_attachment_color (required) default bar color for errors sent to slack.  Can be overridden by users in their buildConfig.json.
+
+- generic_message_slack_url (optional) sets generic channel when using the custom message feature of slack
 
 
 For the help documentation, please check `flow slack -h`
 
+***
 
 ### Sonar
 Triggers a sonar scan of your project.
@@ -178,15 +196,17 @@ The sonar task requires an environment variable, called SONAR_HOME that points t
 
 **Environment Variables:**
 
-SLACK_WEBHOOK_URL (optional) for sending error messages from Flow to your slack channel
+| Variable Name    | Reqiured/Optional | Description                                                            |
+|------------------|-------------------|------------------------------------------------------------------------|
+|SLACK_WEBHOOK_URL | Required          | for sending error messages from Flow to your slack channel             |
 
 **Settings.ini (Global Settings):**
 
-sonar_runner *(required)* path to sonar runner executable
-
+- sonar_runner (required) path to sonar runner executable
 
 For the help documentation, please check `flow sonar -h`
 
+***
 
 ### Artifactory
 Task used to upload/download artifacts to/from artifactory.
@@ -209,17 +229,16 @@ _NOTE:_ To include a POM in the upload, set `includePom` in your buildConfig.jso
 
 **Environment Variables:**
 
-SLACK_WEBHOOK_URL (optional) for sending error messages from Flow to your slack channel
-
-ARTIFACTORY_TOKEN *(required)* api token to artifactory OR encrypted password for user if used in conjunction with ARTIFACTORY_USER
-
-ARTIFACTORY_USER (optional) user for uploading to artifactory
-
-ARTIFACT_BUILD_DIRECTORY *(required)* directory location where artifact is built
-
+| Variable Name           | Reqiured/Optional | Description                                                                                          |
+|-------------------------|-------------------|------------------------------------------------------------------------------------------------------|
+|SLACK_WEBHOOK_URL        | Optional          | for sending error messages from Flow to your slack channel                                           |
+|ARTIFACTORY_TOKEN        | Required          | api token to artifactory OR encrypted password for user if used in conjunction with ARTIFACTORY_USER |
+|ARTIFACTORY_USER         | Optional          | user for uploading to artifactory                                                                    |
+|ARTIFACT_BUILD_DIRECTORY | Required          | directory location where artifact is built                                                           |
 
 For the help documentation, please check `flow artifactory -h`
 
+***
 
 ### CF (Pivotal Cloud Foundry)
 Performs a zero-downtime deployment to cloud foundry expecting a manifest named after your environment (e.g. development.manifest.yml). The version for the deployed application defaults to the latest release in GitHub but can be overwritten with the `-v` or `--version` flag. This currently (12-07-16) requires an artifact in artifactory to function.
@@ -241,32 +260,32 @@ Performs a zero-downtime deployment to cloud foundry expecting a manifest named 
 -metrics MANIFEST, --manifest MANIFEST (optional) Custom manifest name if you choose not to  follow standard pattern of{environment}.manifest.yml
 
 --no-download (optional) Skips downloading and extraction of artifact. Useful if the artifact was downloaded and extracted previously.
-
 **Environment Variables:**
 
-GITHUB_TOKEN *(required)* for access to your project API _NOTE: Requires repo access only._
+| Variable Name    | Reqiured/Optional | Description                                                                                                                                 |
+|------------------|-------------------|---------------------------------------------------------------------------------------------------------------------------------------------|
+|SLACK_WEBHOOK_URL | Required          | for sending error messages from Flow to your slack channel                                                                                  |
+|GITHUB_TOKEN      | Required          | for access to your project API _NOTE: Requires repo access only._                                                                           |
+|ARTIFACTORY_TOKEN | Required          | api token to artifactory OR encrypted password for user if used in conjunction with ARTIFACTORY_USER (api token is preferred over password) |
+|DEPLOYMENT_USER   | Required          | for logging into PCF                                                                                                                        |
+|DEPLOYMENT_PWD    | Required          | for logging into PCF                                                                                                                        |
+|ARTIFACTORY_USER  | Optional          | User for uploading to artifactory                                                                                                           |
+|CF_BUILDPACK      | Optional          | Custom build packs should typically be indicated in your manifest; however, sometimes URLs for build packs may contains sensitive information, such as a github oauth token.  You can use this environment variable to avoid exposing this in your manifest.                                                                                                                   |
+|CF_VARS           | Optional          | to specify a vars file or path to vars file to use as argument for `--vars-file`                                                            |
 
-ARTIFACTORY_TOKEN *(required)* api token to artifactory OR encrypted password for user if used in conjunction with ARTIFACTORY_USER (api token is preferred over password)
+CF_VARS (optional) to specify a vars file or path to vars file to use as argument for `--vars-file`
 
-DEPLOYMENT_USER *(required)* for logging into PCF
-
-DEPLOYMENT_PWD *(required)* for logging into PCF
-
-SLACK_WEBHOOK_URL (optional) for sending error messages from Flow to your slack channel
-
-ARTIFACTORY_USER (optional) user for uploading to artifactory
-
-CF_BUILDPACK (optional)  Custom build packs should typically be indicated in your manifest; however, sometimes URLs for build packs may contains sensitive information, such as a github oauth token.  You can use this environment variable to avoid exposing this in your manifest.
+CF_VARS (optional) to specify a vars file or path to vars file to use as argument for `--vars-file`
 
 CF_VARS (optional) to specify a vars file or path to vars file to use as argument for `--vars-file`
 
 **Settings.ini (Global Settings):**
 
-cli_download_path *(required)* path to download cf cli
-
+- cli_download_path (required) path to download cf cli
 
 For the help documentation, please check `flow cf -h`
 
+***
 
 ### Google Cloud App Engine
 Performs a deployment to Google App Engine expecting an application yaml named after your environment (e.g. app-development.yaml/yml) or a custom app-yml name to be passed in. The version for the deployed application defaults to the latest release in GitHub but can be overwritten with the `-v` or `--version` flag. This currently (12-07-16) requires an artifact in artifactory to function.
@@ -289,21 +308,23 @@ Performs a deployment to Google App Engine expecting an application yaml named a
 
 **Environment Variables:**
 
-GCAPPENGINE_USER_JSON *(required)*  the contents of a service account json created from Google's Instructions [here](https://cloud.google.com/iam/docs/service-accounts)  NOTE: this is json content, not a uri to a file.
-
-CLOUDSDK_CORE_PROJECT *(required)*  project name as displayed in google cloud
+| Variable Name        | Reqiured/Optional | Description                                                                                                                                |
+|----------------------|-------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|GCAPPENGINE_USER_JSON | Required          | the contents of a service account json created from Google's Instructions [here](https://cloud.google.com/iam/docs/service-accounts)  NOTE: this is json content, not a uri to a file. |
+|CLOUDSDK_CORE_PROJECT | Required          | project name as displayed in google cloud                                                                                                  |
 
 **Settings.ini (Global Settings):**
 
-cloud_sdk_path *(required)* path to download gcloud cli
-
+- cloud_sdk_path (required) path to download gcloud cli
 
 For the help documentation, please check `flow gcappengine -h`
 
+***
 
 ## License
 Licensed under the [Apache License](LICENSE)
 
+***
 
 ## Key Contributors
 
