@@ -43,6 +43,7 @@ class SonarQube(Static_Quality_Analysis):
                 if retries > 0:
                     time.sleep(sleep_timer * retries)
 
+                print('CALL SUBMIT SCAN')
                 self._submit_scan()
                 keep_retrying = False
             except Exception:
@@ -78,7 +79,8 @@ class SonarQube(Static_Quality_Analysis):
 
         sonar_jar_files = commons.get_files_of_type_from_directory('jar', os.environ.get('SONAR_HOME'))
         if len(sonar_jar_files) > 0:
-            sonar_runner_executable = sonar_jar_files.sort(reverse=True)[0]
+            sonar_jar_files.sort(reverse=True)
+            sonar_runner_executable = sonar_jar_files[0]
         elif not self.config.settings.has_section('sonar') or not self.config.settings.has_option('sonar',
                                                                                                 'sonar_runner'):
             commons.print_msg(SonarQube.clazz, method, 'Sonar runner undefined.  Please define path to sonar '
@@ -87,7 +89,6 @@ class SonarQube(Static_Quality_Analysis):
         else:
             sonar_runner_executable = self.config.settings.get('sonar', 'sonar_runner')
 
-        print(sonar_runner_executable);
         if not os.path.isfile('sonar-project.properties'):
             commons.print_msg(SonarQube.clazz, method, 'No sonar-project.properties file was found.  Please include in the root of your project with a valid value for \'sonar.host.url\'', 'ERROR')
             exit(1)
@@ -99,13 +100,18 @@ class SonarQube(Static_Quality_Analysis):
                 sonar_cmd = 'java -Dsonar.projectKey="' + self.config.project_name + '" -Dsonar.projectName="' + self.config.project_name + '" -Dsonar.projectVersion="' + self.config.version_number + '" -Dsonar.login=$SONAR_USER -Dsonar.password=$SONAR_PWD -Dproject.settings="' + custom_sonar_file + '" -Dproject.home="$PWD" -jar $SONAR_HOME/' + sonar_runner_executable + ' -e -X'
             else:
                 sonar_cmd = 'java -Dsonar.projectKey="' + self.config.project_name + '" -Dsonar.projectName="' + self.config.project_name + '" -Dsonar.projectVersion="' + self.config.version_number + '" -Dproject.settings="' + custom_sonar_file + '" -Dproject.home="$PWD" -jar $SONAR_HOME/' + sonar_runner_executable + ' -e -X'
-
+            print('HELLO')
+            print(sonar_cmd)
+            print('WORLD')
             commons.print_msg(SonarQube.clazz, method, sonar_cmd)
         else:
             if sonar_user is not None and sonar_pwd is not None:
                 sonar_cmd = 'java -Dsonar.projectKey="' + self.config.project_name + '" -Dsonar.projectName="' + self.config.project_name + '" -Dsonar.projectVersion="' + self.config.version_number + '" -Dsonar.login=$SONAR_USER -Dsonar.password=$SONAR_PWD -Dproject.home="$PWD" -jar $SONAR_HOME/' + sonar_runner_executable + ' -e -X'
             else:
                 sonar_cmd = 'java -Dsonar.projectKey="' + self.config.project_name + '" -Dsonar.projectName="' + self.config.project_name + '" -Dsonar.projectVersion="' + self.config.version_number + '" -Dproject.home="$PWD" -jar $SONAR_HOME/' + sonar_runner_executable + ' -e -X'
+            print('HELLO')
+            print(sonar_cmd)
+            print('WORLD')
             commons.print_msg(SonarQube.clazz, method, sonar_cmd)
 
         p = subprocess.Popen(sonar_cmd.split(), shell=False, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)

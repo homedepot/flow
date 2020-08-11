@@ -1,5 +1,6 @@
 import configparser
 import os
+from unittest.mock import call
 from unittest.mock import MagicMock
 from unittest.mock import patch
 
@@ -12,18 +13,39 @@ from flow.buildconfig import BuildConfig
 def test_scan_code_single_jar_executable_path(monkeypatch):
     monkeypatch.setenv('SONAR_HOME','FAKEHOME')
 
-    with patch('flow.utils.commons.get_files_of_type_from_directory') as mock_getfiletypefromdir_fn:
-        with pytest.raises(SystemExit):
-            mock_getfiletypefromdir_fn.return_value = ['sonar-scanner.jar']
-            _b = MagicMock(BuildConfig)
-            parser = configparser.ConfigParser()
-            parser.add_section('sonar')
-            _b.settings = parser
+    with patch('flow.utils.commons.print_msg') as mock_printmsg_fn:
+        with patch('flow.utils.commons.get_files_of_type_from_directory') as mock_getfiletypefromdir_fn:
+            with pytest.raises(SystemExit):
+                mock_getfiletypefromdir_fn.return_value = ['sonar-scanner.jar']
+                _b = MagicMock(BuildConfig)
+                parser = configparser.ConfigParser()
+                parser.add_section('sonar')
+                _b.settings = parser
 
-            _sonar = SonarQube(config_override=_b)
-            _sonar.scan_code()
+                _sonar = SonarQube(config_override=_b)
+                _sonar.scan_code()
 
     mock_getfiletypefromdir_fn.assert_called_with('jar', 'FAKEHOME')
+
+
+def test_scan_code_settings_executable_path(monkeypatch):
+    monkeypatch.setenv('SONAR_HOME','FAKEHOME')
+
+    with patch('flow.utils.commons.print_msg') as mock_printmsg_fn:
+        with patch('flow.utils.commons.get_files_of_type_from_directory') as mock_getfiletypefromdir_fn:
+            with pytest.raises(SystemExit):
+                mock_getfiletypefromdir_fn.return_value = []
+                _b = MagicMock(BuildConfig)
+                parser = configparser.ConfigParser()
+                parser.add_section('sonar')
+                parser.set('sonar', 'sonar_runner', 'sonar-runner-dist-2.4.jar')
+                _b.settings = parser
+
+                _sonar = SonarQube(config_override=_b)
+                _sonar.scan_code()
+
+    mock_getfiletypefromdir_fn.assert_called_with('jar', 'FAKEHOME')
+
 
 def test_scan_code_missing_executable_path(monkeypatch):
     monkeypatch.setenv('SONAR_HOME','FAKEHOME')
