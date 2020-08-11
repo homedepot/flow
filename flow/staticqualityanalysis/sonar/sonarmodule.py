@@ -76,7 +76,10 @@ class SonarQube(Static_Quality_Analysis):
             commons.print_msg(SonarQube.clazz, method, '\'SONAR_HOME\' environment variable must be defined', 'ERROR')
             exit(1)
 
-        if not self.config.settings.has_section('sonar') or not self.config.settings.has_option('sonar',
+        sonar_jar_files = commons.get_files_of_type_from_directory('jar', os.environ.get('SONAR_HOME'))
+        if len(sonar_jar_files) > 0:
+            sonar_runner_executable = sonar_jar_files.sort(reverse=True)[0]
+        elif not self.config.settings.has_section('sonar') or not self.config.settings.has_option('sonar',
                                                                                                 'sonar_runner'):
             commons.print_msg(SonarQube.clazz, method, 'Sonar runner undefined.  Please define path to sonar '
                                                       'runner in settings.ini.', 'ERROR')
@@ -84,6 +87,7 @@ class SonarQube(Static_Quality_Analysis):
         else:
             sonar_runner_executable = self.config.settings.get('sonar', 'sonar_runner')
 
+        print(sonar_runner_executable);
         if not os.path.isfile('sonar-project.properties'):
             commons.print_msg(SonarQube.clazz, method, 'No sonar-project.properties file was found.  Please include in the root of your project with a valid value for \'sonar.host.url\'', 'ERROR')
             exit(1)
