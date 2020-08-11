@@ -43,7 +43,6 @@ class SonarQube(Static_Quality_Analysis):
                 if retries > 0:
                     time.sleep(sleep_timer * retries)
 
-                print('CALL SUBMIT SCAN')
                 self._submit_scan()
                 keep_retrying = False
             except Exception:
@@ -100,18 +99,12 @@ class SonarQube(Static_Quality_Analysis):
                 sonar_cmd = 'java -Dsonar.projectKey="' + self.config.project_name + '" -Dsonar.projectName="' + self.config.project_name + '" -Dsonar.projectVersion="' + self.config.version_number + '" -Dsonar.login=$SONAR_USER -Dsonar.password=$SONAR_PWD -Dproject.settings="' + custom_sonar_file + '" -Dproject.home="$PWD" -jar $SONAR_HOME/' + sonar_runner_executable + ' -e -X'
             else:
                 sonar_cmd = 'java -Dsonar.projectKey="' + self.config.project_name + '" -Dsonar.projectName="' + self.config.project_name + '" -Dsonar.projectVersion="' + self.config.version_number + '" -Dproject.settings="' + custom_sonar_file + '" -Dproject.home="$PWD" -jar $SONAR_HOME/' + sonar_runner_executable + ' -e -X'
-            print('HELLO')
-            print(sonar_cmd)
-            print('WORLD')
             commons.print_msg(SonarQube.clazz, method, sonar_cmd)
         else:
             if sonar_user is not None and sonar_pwd is not None:
                 sonar_cmd = 'java -Dsonar.projectKey="' + self.config.project_name + '" -Dsonar.projectName="' + self.config.project_name + '" -Dsonar.projectVersion="' + self.config.version_number + '" -Dsonar.login=$SONAR_USER -Dsonar.password=$SONAR_PWD -Dproject.home="$PWD" -jar $SONAR_HOME/' + sonar_runner_executable + ' -e -X'
             else:
                 sonar_cmd = 'java -Dsonar.projectKey="' + self.config.project_name + '" -Dsonar.projectName="' + self.config.project_name + '" -Dsonar.projectVersion="' + self.config.version_number + '" -Dproject.home="$PWD" -jar $SONAR_HOME/' + sonar_runner_executable + ' -e -X'
-            print('HELLO')
-            print(sonar_cmd)
-            print('WORLD')
             commons.print_msg(SonarQube.clazz, method, sonar_cmd)
 
         p = subprocess.Popen(sonar_cmd.split(), shell=False, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)

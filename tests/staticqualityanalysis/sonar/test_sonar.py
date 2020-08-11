@@ -1,6 +1,5 @@
 import configparser
 import os
-from unittest.mock import call
 from unittest.mock import MagicMock
 from unittest.mock import patch
 
@@ -84,6 +83,7 @@ def test_scan_retry_logic(monkeypatch):
                     parser.add_section('project')
                     parser.set('project', 'retry_sleep_interval', '0')
                     _b.settings = parser
+                    
                     _sonar = SonarQube(config_override=_b)
                     _sonar.scan_code()
 
