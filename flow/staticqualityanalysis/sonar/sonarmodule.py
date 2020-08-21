@@ -96,15 +96,15 @@ class SonarQube(Static_Quality_Analysis):
             custom_sonar_file = self.config.json_config['sonar']['propertiesFile']
 
             if sonar_user is not None and sonar_pwd is not None:
-                sonar_cmd = 'java -Dsonar.projectKey="' + self.config.project_name + '" -Dsonar.projectName="' + self.config.project_name + '" -Dsonar.projectVersion="' + self.config.version_number + '" -Dsonar.login=$SONAR_USER -Dsonar.password=$SONAR_PWD -Dproject.settings="' + custom_sonar_file + '" -Dproject.home="$PWD" -jar $SONAR_HOME/' + sonar_runner_executable + ' -e -X'
+                sonar_cmd = 'java -Dsonar.projectKey="' + self.config.sonar_project_key + '" -Dsonar.projectName="' + self.config.sonar_project_key + '" -Dsonar.projectVersion="' + self.config.version_number + '" -Dsonar.login=$SONAR_USER -Dsonar.password=$SONAR_PWD -Dproject.settings="' + custom_sonar_file + '" -Dproject.home="$PWD" -jar $SONAR_HOME/' + sonar_runner_executable + ' -e -X'
             else:
-                sonar_cmd = 'java -Dsonar.projectKey="' + self.config.project_name + '" -Dsonar.projectName="' + self.config.project_name + '" -Dsonar.projectVersion="' + self.config.version_number + '" -Dproject.settings="' + custom_sonar_file + '" -Dproject.home="$PWD" -jar $SONAR_HOME/' + sonar_runner_executable + ' -e -X'
+                sonar_cmd = 'java -Dsonar.projectKey="' + self.config.sonar_project_key + '" -Dsonar.projectName="' + self.config.sonar_project_key + '" -Dsonar.projectVersion="' + self.config.version_number + '" -Dproject.settings="' + custom_sonar_file + '" -Dproject.home="$PWD" -jar $SONAR_HOME/' + sonar_runner_executable + ' -e -X'
             commons.print_msg(SonarQube.clazz, method, sonar_cmd)
         else:
             if sonar_user is not None and sonar_pwd is not None:
-                sonar_cmd = 'java -Dsonar.projectKey="' + self.config.project_name + '" -Dsonar.projectName="' + self.config.project_name + '" -Dsonar.projectVersion="' + self.config.version_number + '" -Dsonar.login=$SONAR_USER -Dsonar.password=$SONAR_PWD -Dproject.home="$PWD" -jar $SONAR_HOME/' + sonar_runner_executable + ' -e -X'
+                sonar_cmd = 'java -Dsonar.projectKey="' + self.config.sonar_project_key + '" -Dsonar.projectName="' + self.config.sonar_project_key + '" -Dsonar.projectVersion="' + self.config.version_number + '" -Dsonar.login=$SONAR_USER -Dsonar.password=$SONAR_PWD -Dproject.home="$PWD" -jar $SONAR_HOME/' + sonar_runner_executable + ' -e -X'
             else:
-                sonar_cmd = 'java -Dsonar.projectKey="' + self.config.project_name + '" -Dsonar.projectName="' + self.config.project_name + '" -Dsonar.projectVersion="' + self.config.version_number + '" -Dproject.home="$PWD" -jar $SONAR_HOME/' + sonar_runner_executable + ' -e -X'
+                sonar_cmd = 'java -Dsonar.projectKey="' + self.config.sonar_project_key + '" -Dsonar.projectName="' + self.config.sonar_project_key + '" -Dsonar.projectVersion="' + self.config.version_number + '" -Dproject.home="$PWD" -jar $SONAR_HOME/' + sonar_runner_executable + ' -e -X'
             commons.print_msg(SonarQube.clazz, method, sonar_cmd)
 
         p = subprocess.Popen(sonar_cmd.split(), shell=False, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)

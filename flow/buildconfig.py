@@ -22,6 +22,7 @@ class BuildConfig:
     artifact_extension = None
     artifact_extensions = None
     push_location = 'fordeployment'
+    sonar_project_key = None
 
     def __init__(self, args):
         method = '__init__'
