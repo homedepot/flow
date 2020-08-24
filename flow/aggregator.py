@@ -166,8 +166,11 @@ def main():
                                          attachment_color=attachment_color, slack_url=slack_url)
         metrics.write_metric(task, args.action)
     elif task == 'sonar':
+        if 'sonar_project_key' in args and args.sonar_project_key is not None:
+            BuildConfig.sonar_project_key = args.sonar_project_key
+        else:
+            BuildConfig.sonar_project_key = BuildConfig.project_name
         sonar = SonarQube()
-
         sonar.scan_code()
         metrics.write_metric(task, args.action)
     elif task == 'artifactory':
@@ -344,6 +347,8 @@ def load_task_parsers(subparsers):
     sonar_parser.add_argument('-v', '--version', help='(optional) If manually versioning, this is passed in by the '
                                                       'user.  Note: versionStrategy in buildConfig should be set to '
                                                       '"manual"')
+    sonar_parser.add_argument('-pk', '--sonar-project-key', help='(optional) If passed then this value is used for sonar.projectKey and sonar.projectName '
+                                                          'otherwise buildConfig projectInfo.name is used.')
 
     cfdeploy_parser = subparsers.add_parser("cf", help="Cloud Foundry Deploy task",
                                             formatter_class=RawTextHelpFormatter)
