@@ -10,10 +10,9 @@ from flow.utils.commons import Object
 
 
 class Tracker(Project_Tracking):
-
     clazz = 'Tracker'
     token = None
-    project_id = None
+    project_ids = None
     tracker_url = None
     config = BuildConfig
     http_timeout = 30
@@ -29,19 +28,38 @@ class Tracker(Project_Tracking):
 
         if not Tracker.token:
             commons.print_msg(Tracker.clazz, method, 'No tracker token found in environment.  Did you define '
-                                                    'environment variable \'TRACKER_TOKEN\'?', 'ERROR')
+                                                     'environment variable \'TRACKER_TOKEN\'?', 'ERROR')
             exit(1)
 
         try:
             # below line is to maintain backwards compatibility since stanza was renamed
             tracker_json_config = self.config.json_config['tracker'] if 'tracker' in self.config.json_config else \
-                                  self.config.json_config['projectTracking']["tracker"]
+                self.config.json_config['projectTracking']["tracker"]
 
-            Tracker.project_id = str(tracker_json_config['projectId'])
+            if tracker_json_config.get('projectId') is not None and tracker_json_config.get('projectIds') is not None:
+                raise KeyError('projectIds')
+            elif tracker_json_config.get('projectId') is not None:
+                Tracker.project_ids = [str(tracker_json_config['projectId'])]
+            elif tracker_json_config.get('projectIds') is not None:
+                Tracker.project_ids = []
+                for project_id in tracker_json_config.get('projectIds'):
+                    Tracker.project_ids.append(str(project_id))
+            else:
+                raise KeyError('projectId')
+
+            commons.print_msg(Tracker.clazz, method, Tracker.project_ids)
         except KeyError as e:
-            commons.print_msg(Tracker.clazz,
-                              method,
-                             "The build config associated with projectTracking is missing key {}".format(str(e)), 'ERROR')
+            if e.args[0] == 'projectIds':
+                commons.print_msg(Tracker.clazz,
+                                  method,
+                                  "The build config may only contain 'projectId' for single project id"
+                                  "or 'projectIds' containing an array of project ids",
+                                  'ERROR')
+            else:
+                commons.print_msg(Tracker.clazz,
+                                  method,
+                                  "The build config associated with projectTracking is missing key {}".format(str(e)),
+                                  'ERROR')
             exit(1)
 
         # Check for tracker url first in buildConfig, second try settings.ini
@@ -49,11 +67,12 @@ class Tracker(Project_Tracking):
         try:
             # noinspection PyUnboundLocalVariable
             Tracker.tracker_url = tracker_json_config['url']
-        except:
+        except KeyError:
             if self.config.settings.has_section('tracker') and self.config.settings.has_option('tracker', 'url'):
                 Tracker.tracker_url = self.config.settings.get('tracker', 'url')
             else:
-                commons.print_msg(Tracker.clazz, method, 'No tracker url found in buildConfig or settings.ini.', 'ERROR')
+                commons.print_msg(Tracker.clazz, method, 'No tracker url found in buildConfig or settings.ini.',
+                                  'ERROR')
                 exit(1)
 
     def get_details_for_all_stories(self, story_list):
@@ -61,6 +80,7 @@ class Tracker(Project_Tracking):
         commons.print_msg(Tracker.clazz, method, 'begin')
 
         story_details = []
+        commons.print_msg(Tracker.clazz, method, story_list)
 
         for i, story_id in enumerate(story_list):
             story_detail = self._retrieve_story_detail(story_id)
@@ -76,34 +96,38 @@ class Tracker(Project_Tracking):
         method = '_retrieve_story_detail'
         commons.print_msg(Tracker.clazz, method, 'begin')
 
-        tracker_story_details_url = Tracker.tracker_url + '/services/v5/projects/' + Tracker.project_id + '/stories/' + story_id
+        tracker_story_details = []
+        json_data = None
+        resp = None
+
+        if Tracker.project_ids is not None:
+            for project_id in Tracker.project_ids:
+                tracker_story_details.append(
+                    {'url': Tracker.tracker_url + '/services/v5/projects/' + project_id + '/stories/' + story_id})
 
         headers = {'Content-type': 'application/json', 'Accept': 'application/json', 'X-TrackerToken': Tracker.token}
 
-        commons.print_msg(Tracker.clazz, method, tracker_story_details_url)
+        for story_detail in tracker_story_details:
+            try:
+                commons.print_msg(Tracker.clazz, method, story_detail['url'])
+                resp = requests.get(story_detail['url'], headers=headers, timeout=self.http_timeout)
+            except requests.ConnectionError as e:
+                commons.print_msg(Tracker.clazz, method, 'Connection error. ' + str(e), 'ERROR')
+                exit(1)
+            except Exception as e:
+                commons.print_msg(Tracker.clazz, method, "Failed retrieving story detail from call to {} ".format(
+                    story_detail.get('url', '')), 'ERROR')
+                commons.print_msg(Tracker.clazz, method, e, 'ERROR')
+                exit(1)
 
-        try:
-            resp = requests.get(tracker_story_details_url, headers=headers, timeout=self.http_timeout)
-        except requests.ConnectionError as e:
-            commons.print_msg(Tracker.clazz, method, 'Connection error. ' + str(e), 'ERROR')
-            exit(1)
-        except Exception as e:
-            commons.print_msg(Tracker.clazz, method, "Failed retrieving story detail from call to {} ".format(
-                tracker_story_details_url), 'ERROR')
-            commons.print_msg(Tracker.clazz, method, e, 'ERROR')
-            exit(1)
-
-        json_data = None
-
-        # noinspection PyUnboundLocalVariable
-        if resp.status_code == 200:
-            json_data = json.loads(resp.text)
-            commons.print_msg(Tracker.clazz, method, json_data)
-            commons.print_msg(Tracker.clazz, method, resp.text)
-        else:
-            commons.print_msg(Tracker.clazz, method, "Failed retrieving story detail from call to {url}. \r\n "
-                                                    "Response: {response}".format(url=tracker_story_details_url,
-                                                                                  response=resp.text), 'WARN')
+            if resp.status_code == 200:
+                json_data = json.loads(resp.text)
+                commons.print_msg(Tracker.clazz, method, json_data)
+                break
+            else:
+                commons.print_msg(Tracker.clazz, method, "Failed retrieving story detail from call to {url}. \r\n "
+                                                         "Response: {response}".format(url=story_detail.get('url', ''),
+                                                                                       response=resp.text), 'WARN')
 
         commons.print_msg(Tracker.clazz, method, 'end')
         return json_data
@@ -126,30 +150,32 @@ class Tracker(Project_Tracking):
         label_to_post = Object()
         label_to_post.name = label.lower()
 
-        tracker_url = "{url}/services/v5/projects/{projid}/stories/{storyid}/labels".format(url=Tracker.tracker_url,
-                                                                                            projid=Tracker.project_id,
-                                                                                            storyid=story_id)
+        for project_id in Tracker.project_ids:
+            tracker_url = "{url}/services/v5/projects/{projid}/stories/{storyid}/labels".format(url=Tracker.tracker_url,
+                                                                                                projid=project_id,
+                                                                                                storyid=story_id)
 
-        headers = {'Content-type': 'application/json', 'Accept': 'application/json', 'X-TrackerToken': Tracker.token}
+            headers = {'Content-type': 'application/json', 'Accept': 'application/json',
+                       'X-TrackerToken': Tracker.token}
 
-        commons.print_msg(Tracker.clazz, method, tracker_url)
-        commons.print_msg(Tracker.clazz, method, label_to_post.to_JSON())
+            commons.print_msg(Tracker.clazz, method, tracker_url)
+            commons.print_msg(Tracker.clazz, method, label_to_post.to_JSON())
 
-        try:
-            resp = requests.post(tracker_url, label_to_post.to_JSON(), headers=headers, timeout=self.http_timeout)
+            try:
+                resp = requests.post(tracker_url, label_to_post.to_JSON(), headers=headers, timeout=self.http_timeout)
 
-            if resp.status_code != 200:
-                commons.print_msg(Tracker.clazz, method, "Unable to tag story {story} with label {lbl} \r\n "
-                                                         "Response: {response}".format(story=story_id, lbl=label,
-                                                                                       response=resp.text), 'WARN')
-            else:
-                commons.print_msg(Tracker.clazz, method, resp.text)
-        except requests.ConnectionError as e:
-            commons.print_msg(Tracker.clazz, method, 'Connection error. ' + str(e), 'WARN')
-        except Exception as e:
-            commons.print_msg(Tracker.clazz, method, "Unable to tag story {story} with label {lbl}".format(
-                story=story_id, lbl=label), 'WARN')
-            commons.print_msg(Tracker.clazz, method, e, 'WARN')
+                if resp.status_code != 200:
+                    commons.print_msg(Tracker.clazz, method, "Unable to tag story {story} with label {lbl} \r\n "
+                                                             "Response: {response}".format(story=story_id, lbl=label,
+                                                                                           response=resp.text), 'WARN')
+                else:
+                    commons.print_msg(Tracker.clazz, method, resp.text)
+            except requests.ConnectionError as e:
+                commons.print_msg(Tracker.clazz, method, 'Connection error. ' + str(e), 'WARN')
+            except Exception as e:
+                commons.print_msg(Tracker.clazz, method, "Unable to tag story {story} with label {lbl}".format(
+                    story=story_id, lbl=label), 'WARN')
+                commons.print_msg(Tracker.clazz, method, e, 'WARN')
 
         commons.print_msg(Tracker.clazz, method, 'end')
 
@@ -164,7 +190,8 @@ class Tracker(Project_Tracking):
                 if label.get('name') == 'major':
                     return 'major'
 
-            if story.get('story_type') == 'feature' or story.get('story_type') == 'chore' or story.get('story_type') == 'release':
+            if story.get('story_type') == 'feature' or story.get('story_type') == 'chore' or story.get(
+                    'story_type') == 'release':
                 bump_type = 'minor'
             elif story.get('story_type') == 'bug' and bump_type is None:
                 bump_type = 'bug'
