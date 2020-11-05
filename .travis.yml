@@ -3,10 +3,6 @@ dist: trusty
 sudo: false
 cache: pip
 
-branches:
-  only:
-  - master
-
 if: tag IS blank
 
 jobs:
