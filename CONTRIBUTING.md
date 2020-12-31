@@ -9,7 +9,9 @@
 * **After** your changes have been propagated to develop and you have tested, you are ready to promote to master.  This is done via another pull request by you.
 * Many changes will require unit tests.  If you submit significant changes with unit tests you may be asked to add them before the changes are accepted. This is a perfect opportunity to practice [TDD](https://en.wikipedia.org/wiki/Test-driven_development) if you are not already!
 
-## Adding New Modules
+
+# Adding New Modules
+
 ### Reusable Modules
 Most modules should be written in a manner that allows for reuse by the general public and other organizations.  These modules should be added to the flow folder.
 ### Proprietary Modules
@@ -46,7 +48,7 @@ There may be times when you need to trigger code in your module based on other s
 The preferred approach is to utilize [PyDispatch](http://pydispatcher.sourceforge.net) to emit events that require a dependency.
 
 
-## Coding standards
+# Coding standards
 The biggest rule is that you attempt to follow existing patterns and conventions in the code.  The authors of Flow attempted to follow [common patterns and best practices](https://www.python.org/dev/peps/pep-0008).  With that said, there are a few opinions that had to be decided on in order to be consistent.
 
 #### Single vs Double Quote
@@ -89,6 +91,8 @@ If an error occurs that should halt flow CLI from continuing, in addition to log
 #### Coupling
 Please ensure that we don't tightly couple our classes together.  Flow is meant to be modular, allowing teams to pick/choose/create modules that work together.
 
+
+# Project Setup
 
 ## Environment Setup for Mac (Tested with 10.11.6)
 * Using homebrew install python 3.
@@ -144,6 +148,61 @@ Please ensure that we don't tightly couple our classes together.  Flow is meant 
 * Build flow from local code:
   `pip install -e ./`
 
+## Environment Setup for Windows 10 Using Windows Subsystem for Linux
+* Install Python
+  * `https://www.python.org/downloads/`
+
+* Install python3-distutils and python3-apt
+  * `sudo apt-get install python3-distutils`
+  * `sudo apt-get install python3-apt`
+
+* Download & Install pip
+  * `curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py`
+  * `python3 get-pip.py`
+
+* Set up virtualenvwrapper
+  * `sudo -H pip install virtualenvwrapper --ignore-installed six`
+  * `source /usr/local/bin/virtualenvwrapper.sh`
+  ### Troubleshooting virtualenvwrapper
+  * Error
+    ```
+    virtualenvwrapper_run_hook:12: permission denied: virtualenvwrapper.sh: There was a problem running the initialization hooks. 
+
+    If Python could not import the module virtualenvwrapper.hook_loader, check that virtualenvwrapper has been installed for VIRTUALENVWRAPPER_PYTHON= and that PATH is set properly.
+    ```
+  * Solution: Add the following lines to the end of your ~/.bash_profile or ~/.zshrc and restart your terminal
+    ```
+    VIRTUALENVWRAPPER_PYTHON=/usr/local/bin/python3
+    WORKON_HOME=~/.virtualenvs
+    source /usr/local/bin/virtualenvwrapper.sh
+    ```
+  * Error
+    ```
+    virtualenvwrapper_run_hook:12: no such file or directory: /usr/local/bin/python3
+    virtualenvwrapper.sh: There was a problem running the initialization hooks.
+
+    If Python could not import the module virtualenvwrapper.hook_loader,
+    check that virtualenvwrapper has been installed for
+    VIRTUALENVWRAPPER_PYTHON=/usr/local/bin/python3 and that PATH is
+    set properly.
+    ```
+  * Solution: Create a symlink to your python installation
+    * `ln -s $(which python3) /usr/local/bin/python3`
+
+* Create the flow virtual environment
+  * `mkvirtualenv -p $(which python3) flow`
+* Tell your system to use the flow virtual environment:
+  * `workon flow`
+* Clone the flow repo and cd into that directory:
+  * `git clone ...`
+* Build flow from local code: 
+  * `pip install -e ./`
+* Verify that Flow built correctly
+  * `Flow --help`
+
+
+# Running Tests
+
 ## Running Unit Tests on a Mac/Linux (Not Using PyCharm Or Pytest)
 
 * In an effort to make things simple, take a look at the `scripts/unittest.sh` script.  You should just be able to run this and it will setup everything.  This can only be run after all of the Environment Setup is complete.
@@ -162,7 +221,7 @@ Please ensure that we don't tightly couple our classes together.  Flow is meant 
 * Run all unit tests
    * `pytest`
 
-# Using PyCharm with Pytest
+## Using PyCharm with Pytest
 * Open Project in PyCharm
 
 * Click On PyCharm > Preferences...<br>
@@ -175,35 +234,35 @@ Please ensure that we don't tightly couple our classes together.  Flow is meant 
      
 ## Testing Flow Changes Locally
 * Clone flow code
-```
-cd ~/Documents/workspace/
-git clone ...
-cd flow
-```
+  ```
+  cd ~/Documents/workspace/
+  git clone ...
+  cd flow
+  ```
 * Make your enhancement or bug fixes to flow locally
 * Build flow from local code:
   `pip install -e ./`
 * Clone a project that you want to test with your flow changes
-```
-cd ~/Documents/workspace/
-git clone ...
-cd ...
-```
+  ```
+  cd ~/Documents/workspace/
+  git clone ...
+  cd ...
+  ```
 * Run a flow command, testing against the test project cloned above.
-```
-#change to work on your local python virtualenv
-workon flow
-```
-```
-#these tokens may be required for your github task to run.  Set the environment variable, similar to concourse parameters/secrets.
-export GITHUB_TOKEN= <<token>>
-export SLACK_WEBHOOK_URL= <<url>>
-export TRACKER_TOKEN= <<token>>
-```
-```
-#run the flow task, pointing to the version of flow locally with the task of choice.  Below runs the github version task but this could be any flow task
-flow github version -v v0.1.0 development
-```
+  ```
+  #change to work on your local python virtualenv
+  workon flow
+  ```
+  ```
+  #these tokens may be required for your github task to run.  Set the environment variable, similar to concourse parameters/secrets.
+  export GITHUB_TOKEN= <<token>>
+  export SLACK_WEBHOOK_URL= <<url>>
+  export TRACKER_TOKEN= <<token>>
+  ```
+  ```
+  #run the flow task, pointing to the version of flow locally with the task of choice.  Below runs the github version task but this could be any flow task
+  flow github version -v v0.1.0 development
+  ```
 
 ## Configuring iTerm on Mac to Color Code Warnings & Errors
 ![Triggers](images/iTerm-Flow_Output.png)
