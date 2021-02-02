@@ -399,7 +399,8 @@ def test_determine_push_location_called_by_cf_push():
     with patch('flow.utils.commons.print_msg') as mock_printmsg_fn:
         with patch('os.listdir', return_value=['file1.jar', 'file2.war', 'file3.abc']):
             with patch('os.path.isfile', return_value=True):
-                with pytest.raises(SystemExit):
+                with patch.object(subprocess, 'Popen') as mocked_popen:
+                    mocked_popen.return_value.returncode = 0
                     _b = MagicMock(BuildConfig)
                     _b.artifact_extension = 'war'
                     _b.push_location = 'fake_push_dir'
