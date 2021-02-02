@@ -241,23 +241,33 @@ class CloudFoundry(Cloud):
 
         return manifest
 
+    def _determine_push_location(self):
+        method = '_determine_push_location'
+        commons.print_msg(CloudFoundry.clazz, method, 'begin')
+
+        if self.config.artifact_extension is None or self.config.artifact_extension in ('zip', 'tar', 'tar.gz'):
+            # deployed from github directly or it's a zip, tar, tar.gz file
+            return "-p " + self.config.push_location
+        elif self.config.artifact_extension == 'docker':
+            # -p flag not supported for Docker deployments
+            return ""
+        else:
+            return "-p {dir}/{file}".format(dir=self.config.push_location, file=self.find_deployable(
+                self.config.artifact_extension, self.config.push_location))
+
+
     def _cf_push(self, manifest):
         method = '_cf_push'
         commons.print_msg(CloudFoundry.clazz, method, 'begin')
 
         commons.print_msg(CloudFoundry.clazz, method, "Using manifest {}".format(manifest))
 
-        if self.config.artifact_extension is None or self.config.artifact_extension in ('zip', 'tar', 'tar.gz'):
-            # deployed from github directly or it's a zip, tar, tar.gz file
-            file_to_push = self.config.push_location
-        else:
-            file_to_push = "{dir}/{file}".format(dir=self.config.push_location, file=self.find_deployable(
-                self.config.artifact_extension, self.config.push_location))
+        file_to_push = self._determine_push_location()
 
         buildpack = "-b {}".format(os.getenv('CF_BUILDPACK')) if os.getenv('CF_BUILDPACK') else ""
         varsfile = "--vars-file {}".format(os.getenv('CF_VARS')) if os.getenv('CF_VARS') else ""
 
-        cmd = CloudFoundry.path_to_cf + "cf push {project_name}-{version} -p {pushlocation} -f {manifest} {buildpack} {varsfile}".format(project_name=self.config.project_name,
+        cmd = CloudFoundry.path_to_cf + "cf push {project_name}-{version} {pushlocation} -f {manifest} {buildpack} {varsfile}".format(project_name=self.config.project_name,
                                             version=self.config.version_number,
                                             pushlocation=file_to_push,
                                             manifest=manifest,

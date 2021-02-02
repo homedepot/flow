@@ -315,3 +315,97 @@ def test_find_deployable_one_file():
 
     mock_printmsg_fn.assert_any_call('Cloud', 'find_deployable', 'Looking for a jar in fake_push_dir')
 
+
+def test_push_location_returns_empty_for_docker_artifact_type():
+    with patch('flow.utils.commons.print_msg') as mock_printmsg_fn:
+        _b = MagicMock(BuildConfig)
+        _b.artifact_extension = 'docker'
+        _cf = CloudFoundry(_b)
+
+        result = _cf._determine_push_location()
+
+    assert result == ""
+
+
+def test_push_location_for_zip_artifact_type():
+    with patch('flow.utils.commons.print_msg') as mock_printmsg_fn:
+        _b = MagicMock(BuildConfig)
+        _b.artifact_extension = 'zip'
+        _b.push_location = 'fordeployment'
+        _cf = CloudFoundry(_b)
+
+        result = _cf._determine_push_location()
+
+    assert result == "-p fordeployment"
+
+
+def test_push_location_for_tar_artifact_type():
+    with patch('flow.utils.commons.print_msg') as mock_printmsg_fn:
+        _b = MagicMock(BuildConfig)
+        _b.artifact_extension = 'tar'
+        _b.push_location = 'fordeployment'
+        _cf = CloudFoundry(_b)
+
+        result = _cf._determine_push_location()
+
+    assert result == "-p fordeployment"
+
+
+def test_push_location_for_tar_gz_artifact_type():
+    with patch('flow.utils.commons.print_msg') as mock_printmsg_fn:
+        _b = MagicMock(BuildConfig)
+        _b.artifact_extension = 'tar.gz'
+        _b.push_location = 'fordeployment'
+        _cf = CloudFoundry(_b)
+
+        result = _cf._determine_push_location()
+
+    assert result == "-p fordeployment"
+
+
+def test_push_location_for_jar_artifact_type():
+    with patch('flow.utils.commons.print_msg') as mock_printmsg_fn:
+        with patch('os.listdir', return_value=['file1.jar', 'file2.war', 'file3.abc']):
+            with patch('os.path.isfile', return_value=True):
+                _b = MagicMock(BuildConfig)
+                _b.artifact_extension = 'jar'
+                _b.push_location = 'fake_push_dir'
+                _cf = CloudFoundry(_b)
+                result = _cf._determine_push_location()
+
+
+    mock_printmsg_fn.assert_any_call('Cloud', 'find_deployable', 'Looking for a jar in fake_push_dir')
+
+    assert result == "-p fake_push_dir/file1.jar"
+
+
+def test_push_location_for_war_artifact_type():
+    with patch('flow.utils.commons.print_msg') as mock_printmsg_fn:
+        with patch('os.listdir', return_value=['file1.jar', 'file2.war', 'file3.abc']):
+            with patch('os.path.isfile', return_value=True):
+                _b = MagicMock(BuildConfig)
+                _b.artifact_extension = 'war'
+                _b.push_location = 'fake_push_dir'
+                _cf = CloudFoundry(_b)
+                result = _cf._determine_push_location()
+
+
+    mock_printmsg_fn.assert_any_call('Cloud', 'find_deployable', 'Looking for a war in fake_push_dir')
+
+    assert result == "-p fake_push_dir/file2.war"
+
+
+def test_determine_push_location_called_by_cf_push():
+    with patch('flow.utils.commons.print_msg') as mock_printmsg_fn:
+        with patch('os.listdir', return_value=['file1.jar', 'file2.war', 'file3.abc']):
+            with patch('os.path.isfile', return_value=True):
+                with patch.object(subprocess, 'Popen') as mocked_popen:
+                    mocked_popen.return_value.returncode = 0
+                    _b = MagicMock(BuildConfig)
+                    _b.artifact_extension = 'war'
+                    _b.push_location = 'fake_push_dir'
+                    _cf = CloudFoundry(_b)
+                
+                    _cf._cf_push('fake_manifest.yml')
+
+    mock_printmsg_fn.assert_any_call('Cloud', 'find_deployable', 'Looking for a war in fake_push_dir')
