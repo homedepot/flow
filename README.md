@@ -20,6 +20,7 @@ A CLI tool for common Continuous Integration/Continuous Delivery Tasks
 
 * **Agile Process Management**
   * Pivotal Tracker
+  * Jira
   * Snowfield
 * **Deployment Management**
   * Pivotal Cloud Foundry
@@ -78,9 +79,11 @@ Generates version numbers (using semantic versioning), attaches release notes an
 
 **Environment Variables:**
 
-| Variable Name    | Reqiured/Optional | Description |
+| Variable Name    | Required/Optional | Description |
 |------------------|-------------------|------------------------------------------------------------------------|
-|TRACKER_TOKEN     | Required          | to access Pivotal Tracker story information when building release notes|
+|TRACKER_TOKEN     | Required          | to access Pivotal Tracker story information when building release notes (don't use if you have a JIRA_TOKEN instead)|
+|JIRA_USER         | Required          | to access Jira story information when building release notes (don't use if you have a TRACKER_TOKEN instead) |
+|JIRA_TOKEN        | Required          | to access Jira story information when building release notes (don't use if you have a TRACKER_TOKEN instead) |
 |GITHUB_TOKEN      | Required          | for access to your project API _NOTE: Requires repo access only._      |
 |SLACK_WEBHOOK_URL | Optional          | for sending error messages from Flow to your slack channel             |
 
@@ -103,7 +106,7 @@ Label stories with the version number.
 
 **Environment Variables:**
 
-| Variable Name    | Reqiured/Optional | Description                                                            |
+| Variable Name    | Required/Optional | Description                                                            |
 |------------------|-------------------|------------------------------------------------------------------------|
 |TRACKER_TOKEN     | Required          | for accessing story information and labeling stories                   |
 |GITHUB_TOKEN      | Required          | for access to your project API _NOTE: Requires repo access only._      |
@@ -114,6 +117,38 @@ Label stories with the version number.
 - url (required) to the tracker server. Priority is given if a value in buildConfig.json is specified.
 
 For the help documentation, please check `flow tracker -h`
+
+***
+
+### JIRA
+Label stories with the version number.
+
+**Actions:**
+
+`label-release` - lookup stories in commit history and tag each story with the current version number
+
+**Usage:** `flow jira [Flags] [Action] [Environment]`
+
+**Flags:**
+
+-v VERSION, --version VERSION (optional) If manually versioning, this is passed in by the user.  Note: versionStrategy in buildConfig should be set to "manual"
+
+**Environment Variables:**
+
+| Variable Name    | Required/Optional | Description                                                            |
+|------------------|-------------------|------------------------------------------------------------------------|
+|JIRA_USER         | Required          | for accessing story information and labeling stories |
+|JIRA_TOKEN        | Required          | for accessing story information and labeling stories |
+|GITHUB_TOKEN      | Required          | for access to your project API _NOTE: Requires repo access only._      |
+|SLACK_WEBHOOK_URL | Optional          | for sending error messages from Flow to your slack channel             |
+
+> NOTE: JIRA_TOKEN env variable needs to be the already base64 encoded authorization header. Instructions to provision a new token can be found here: https://support.atlassian.com/atlassian-account/docs/manage-api-tokens-for-your-atlassian-account/
+
+**Settings.ini (Global Settings):**
+
+- url (required) to the jira server. Priority is given if a value in buildConfig.json is specified.
+
+For the help documentation, please check `flow jira -h`
 
 ***
 
@@ -151,9 +186,11 @@ If no channel is defined in buildConfig.json, this will publish to the default c
 
 **Environment Variables:**
 
-| Variable Name    | Reqiured/Optional | Description                                                            |
+| Variable Name    | Required/Optional | Description                                                            |
 |------------------|-------------------|------------------------------------------------------------------------|
-|TRACKER_TOKEN     | Required          | for accessing story information and labeling stories                   |
+|TRACKER_TOKEN     | Required          | for accessing story information and labeling stories (don't use if you have a JIRA_TOKEN instead)|
+|JIRA_USER         | Required          | for accessing story information and labeling stories (don't use if you have a TRACKER_TOKEN instead) |
+|JIRA_TOKEN        | Required          | for accessing story information and labeling stories (don't use if you have a TRACKER_TOKEN instead)|
 |GITHUB_TOKEN      | Required          | for access to your project API _NOTE: Requires repo access only._      |
 |SLACK_WEBHOOK_URL | Required          | for sending release notes to slack             |
 
@@ -196,7 +233,7 @@ The sonar task requires an environment variable, called SONAR_HOME that points t
 
 **Environment Variables:**
 
-| Variable Name    | Reqiured/Optional | Description                                                            |
+| Variable Name    | Required/Optional | Description                                                            |
 |------------------|-------------------|------------------------------------------------------------------------|
 |SLACK_WEBHOOK_URL | Required          | for sending error messages from Flow to your slack channel             |
 
@@ -229,7 +266,7 @@ _NOTE:_ To include a POM in the upload, set `includePom` in your buildConfig.jso
 
 **Environment Variables:**
 
-| Variable Name           | Reqiured/Optional | Description                                                                                          |
+| Variable Name           | Required/Optional | Description                                                                                          |
 |-------------------------|-------------------|------------------------------------------------------------------------------------------------------|
 |SLACK_WEBHOOK_URL        | Optional          | for sending error messages from Flow to your slack channel                                           |
 |ARTIFACTORY_TOKEN        | Required          | api token to artifactory OR encrypted password for user if used in conjunction with ARTIFACTORY_USER |
@@ -262,7 +299,7 @@ Performs a zero-downtime deployment to cloud foundry expecting a manifest named 
 --no-download (optional) Skips downloading and extraction of artifact. Useful if the artifact was downloaded and extracted previously.
 **Environment Variables:**
 
-| Variable Name    | Reqiured/Optional | Description                                                                                                                                 |
+| Variable Name    | Required/Optional | Description                                                                                                                                 |
 |------------------|-------------------|---------------------------------------------------------------------------------------------------------------------------------------------|
 |SLACK_WEBHOOK_URL | Required          | for sending error messages from Flow to your slack channel                                                                                  |
 |GITHUB_TOKEN      | Required          | for access to your project API _NOTE: Requires repo access only._                                                                           |
@@ -308,7 +345,7 @@ Performs a deployment to Google App Engine expecting an application yaml named a
 
 **Environment Variables:**
 
-| Variable Name        | Reqiured/Optional | Description                                                                                                                                |
+| Variable Name        | Required/Optional | Description                                                                                                                                |
 |----------------------|-------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 |GCAPPENGINE_USER_JSON | Required          | the contents of a service account json created from Google's Instructions [here](https://cloud.google.com/iam/docs/service-accounts)  NOTE: this is json content, not a uri to a file. |
 |CLOUDSDK_CORE_PROJECT | Required          | project name as displayed in google cloud                                                                                                  |

@@ -1,0 +1,252 @@
+{
+    "expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations",
+    "id": "88248",
+    "self": "https://thd.atlassian.net/rest/api/3/issue/88248",
+    "key": "DAP-166",
+    "fields": {
+        "statuscategorychangedate": "2021-04-22T14:23:09.698-0400",
+        "issuetype": {
+            "self": "https://thd.atlassian.net/rest/api/3/issuetype/10009",
+            "id": "10009",
+            "description": "Stories track functionality or features expressed as user goals.",
+            "iconUrl": "https://thd.atlassian.net/secure/viewavatar?size=medium&avatarId=10315&avatarType=issuetype",
+            "name": "Story",
+            "subtask": false,
+            "avatarId": 10315
+        },
+        "timespent": null,
+        "customfield_10030": null,
+        "project": {
+            "self": "https://thd.atlassian.net/rest/api/3/project/10188",
+            "id": "10188",
+            "key": "DAP",
+            "name": "Device Application Platforms",
+            "projectTypeKey": "software",
+            "simplified": false,
+            "avatarUrls": {
+                "48x48": "https://thd.atlassian.net/secure/projectavatar?pid=10188&avatarId=10629",
+                "24x24": "https://thd.atlassian.net/secure/projectavatar?size=small&s=small&pid=10188&avatarId=10629",
+                "16x16": "https://thd.atlassian.net/secure/projectavatar?size=xsmall&s=xsmall&pid=10188&avatarId=10629",
+                "32x32": "https://thd.atlassian.net/secure/projectavatar?size=medium&s=medium&pid=10188&avatarId=10629"
+            },
+            "projectCategory": {
+                "self": "https://thd.atlassian.net/rest/api/3/projectCategory/10037",
+                "id": "10037",
+                "description": "",
+                "name": "Store Application Platforms"
+            }
+        },
+        "customfield_10031": null,
+        "customfield_10032": null,
+        "customfield_10033": null,
+        "fixVersions": [],
+        "aggregatetimespent": null,
+        "customfield_10034": null,
+        "customfield_10035": null,
+        "resolution": null,
+        "customfield_10036": null,
+        "customfield_10037": null,
+        "customfield_10027": null,
+        "customfield_10029": null,
+        "resolutiondate": null,
+        "workratio": -1,
+        "watches": {
+            "self": "https://thd.atlassian.net/rest/api/3/issue/DAP-166/watchers",
+            "watchCount": 0,
+            "isWatching": false
+        },
+        "lastViewed": "2021-04-23T12:16:15.035-0400",
+        "issuerestriction": {
+            "issuerestrictions": {},
+            "shouldDisplay": false
+        },
+        "created": "2021-04-22T14:11:43.007-0400",
+        "customfield_10020": null,
+        "customfield_10021": null,
+        "customfield_10022": "2|hzzvnn:",
+        "priority": {
+            "self": "https://thd.atlassian.net/rest/api/3/priority/3",
+            "iconUrl": "https://thd.atlassian.net/images/icons/priorities/medium.svg",
+            "name": "Medium",
+            "id": "3"
+        },
+        "customfield_10025": 3.0,
+        "labels": [],
+        "customfield_10026": null,
+        "customfield_10016": null,
+        "customfield_10017": null,
+        "customfield_10018": {
+            "hasEpicLinkFieldDependency": false,
+            "showField": false,
+            "nonEditableReason": {
+                "reason": "EPIC_LINK_SHOULD_BE_USED",
+                "message": "To set an epic as the parent, use the epic link instead"
+            }
+        },
+        "customfield_10019": null,
+        "timeestimate": null,
+        "aggregatetimeoriginalestimate": null,
+        "versions": [],
+        "issuelinks": [],
+        "assignee": {
+            "self": "https://thd.atlassian.net/rest/api/3/user?accountId=70121%3A30ad52c8-d677-477c-8b55-09904af614fb",
+            "accountId": "70121:30ad52c8-d677-477c-8b55-09904af614fb",
+            "emailAddress": "raymond_brown1@homedepot.com",
+            "avatarUrls": {
+                "48x48": "https://secure.gravatar.com/avatar/017c29038ecc4b93d284cb912e89dfab?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FRB-4.png",
+                "24x24": "https://secure.gravatar.com/avatar/017c29038ecc4b93d284cb912e89dfab?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FRB-4.png",
+                "16x16": "https://secure.gravatar.com/avatar/017c29038ecc4b93d284cb912e89dfab?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FRB-4.png",
+                "32x32": "https://secure.gravatar.com/avatar/017c29038ecc4b93d284cb912e89dfab?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FRB-4.png"
+            },
+            "displayName": "RAYMOND BROWN",
+            "active": true,
+            "timeZone": "America/New_York",
+            "accountType": "atlassian"
+        },
+        "updated": "2021-04-22T14:41:09.530-0400",
+        "status": {
+            "self": "https://thd.atlassian.net/rest/api/3/status/3",
+            "description": "This issue is being actively worked on at the moment by the assignee.",
+            "iconUrl": "https://thd.atlassian.net/images/icons/statuses/inprogress.png",
+            "name": "In Progress",
+            "id": "3",
+            "statusCategory": {
+                "self": "https://thd.atlassian.net/rest/api/3/statuscategory/4",
+                "id": 4,
+                "key": "indeterminate",
+                "colorName": "yellow",
+                "name": "In Progress"
+            }
+        },
+        "components": [
+            {
+                "self": "https://thd.atlassian.net/rest/api/3/component/10286",
+                "id": "10286",
+                "name": "Launcher SDK",
+                "description": "aka. Launcher Support Services - provides functionality required by multiple apps"
+            }
+        ],
+        "customfield_10050": [
+            {
+                "self": "https://thd.atlassian.net/rest/api/3/user?accountId=608036dbde34400071a37cdd",
+                "accountId": "608036dbde34400071a37cdd",
+                "emailAddress": "andres_avendano@homedepot.com",
+                "avatarUrls": {
+                    "48x48": "https://secure.gravatar.com/avatar/c775bda0bdfd63f9dcce1b193125dfe1?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FA-2.png",
+                    "24x24": "https://secure.gravatar.com/avatar/c775bda0bdfd63f9dcce1b193125dfe1?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FA-2.png",
+                    "16x16": "https://secure.gravatar.com/avatar/c775bda0bdfd63f9dcce1b193125dfe1?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FA-2.png",
+                    "32x32": "https://secure.gravatar.com/avatar/c775bda0bdfd63f9dcce1b193125dfe1?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FA-2.png"
+                },
+                "displayName": "ANDRES_AVENDANO",
+                "active": true,
+                "timeZone": "America/New_York",
+                "accountType": "atlassian"
+            }
+        ],
+        "timeoriginalestimate": null,
+        "description": {
+            "version": 1,
+            "type": "doc",
+            "content": [
+                {
+                    "type": "paragraph",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Resolving issues in the regression testing for the new Launcher Support Services "
+                        },
+                        {
+                            "type": "hardBreak"
+                        },
+                        {
+                            "type": "hardBreak"
+                        },
+                        {
+                            "type": "text",
+                            "text": "These were discovered running through the confluence regression testing across all of our platforms"
+                        }
+                    ]
+                }
+            ]
+        },
+        "customfield_10010": null,
+        "customfield_10014": "DAP-147",
+        "customfield_10015": null,
+        "timetracking": {},
+        "customfield_10049": null,
+        "customfield_10005": null,
+        "customfield_10006": null,
+        "security": null,
+        "customfield_10007": null,
+        "customfield_10008": null,
+        "aggregatetimeestimate": null,
+        "customfield_10009": null,
+        "attachment": [],
+        "summary": "Launcher SDK - Full lifecycle testing",
+        "creator": {
+            "self": "https://thd.atlassian.net/rest/api/3/user?accountId=5b4eddd95f430b2c1c4f0146",
+            "accountId": "5b4eddd95f430b2c1c4f0146",
+            "emailAddress": "steven_v_sorensen@homedepot.com",
+            "avatarUrls": {
+                "48x48": "https://secure.gravatar.com/avatar/b99d68869ebe756b667d3d295cea9518?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FSS-5.png",
+                "24x24": "https://secure.gravatar.com/avatar/b99d68869ebe756b667d3d295cea9518?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FSS-5.png",
+                "16x16": "https://secure.gravatar.com/avatar/b99d68869ebe756b667d3d295cea9518?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FSS-5.png",
+                "32x32": "https://secure.gravatar.com/avatar/b99d68869ebe756b667d3d295cea9518?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FSS-5.png"
+            },
+            "displayName": "STEVEN SORENSEN",
+            "active": true,
+            "timeZone": "America/New_York",
+            "accountType": "atlassian"
+        },
+        "subtasks": [],
+        "reporter": {
+            "self": "https://thd.atlassian.net/rest/api/3/user?accountId=5b4eddd95f430b2c1c4f0146",
+            "accountId": "5b4eddd95f430b2c1c4f0146",
+            "emailAddress": "steven_v_sorensen@homedepot.com",
+            "avatarUrls": {
+                "48x48": "https://secure.gravatar.com/avatar/b99d68869ebe756b667d3d295cea9518?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FSS-5.png",
+                "24x24": "https://secure.gravatar.com/avatar/b99d68869ebe756b667d3d295cea9518?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FSS-5.png",
+                "16x16": "https://secure.gravatar.com/avatar/b99d68869ebe756b667d3d295cea9518?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FSS-5.png",
+                "32x32": "https://secure.gravatar.com/avatar/b99d68869ebe756b667d3d295cea9518?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FSS-5.png"
+            },
+            "displayName": "STEVEN SORENSEN",
+            "active": true,
+            "timeZone": "America/New_York",
+            "accountType": "atlassian"
+        },
+        "aggregateprogress": {
+            "progress": 0,
+            "total": 0
+        },
+        "customfield_10000": "{}",
+        "customfield_10001": null,
+        "customfield_10002": null,
+        "customfield_10003": null,
+        "customfield_10004": null,
+        "customfield_10048": null,
+        "environment": null,
+        "duedate": null,
+        "progress": {
+            "progress": 0,
+            "total": 0
+        },
+        "votes": {
+            "self": "https://thd.atlassian.net/rest/api/3/issue/DAP-166/votes",
+            "votes": 0,
+            "hasVoted": false
+        },
+        "comment": {
+            "comments": [],
+            "self": "https://thd.atlassian.net/rest/api/3/issue/88248/comment",
+            "maxResults": 0,
+            "total": 0,
+            "startAt": 0
+        },
+        "worklog": {
+            "startAt": 0,
+            "maxResults": 20,
+            "total": 0,
+            "worklogs": []
+        }
+    }
+}

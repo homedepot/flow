@@ -60,7 +60,7 @@ class BuildConfig:
             BuildConfig.version_strategy = BuildConfig.json_config['projectInfo']['versionStrategy']
         except KeyError:
             commons.print_msg(BuildConfig.clazz, method, "The build config json does not contain projectInfo => "
-                                                        "versionStrategy.  'manual' or 'tracker' values can be "
+                                                        "versionStrategy.  'manual', 'tracker' or 'jira' values can be "
                                                         "used.", 'ERROR')
             exit(1)
 

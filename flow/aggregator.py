@@ -310,7 +310,13 @@ def load_task_parsers(subparsers):
     tracker_parser.add_argument('-v', '--version', help='(optional) If manually versioning, this is passed in by the '
                                                         'user.  Note: versionStrategy in buildConfig should be set to '
                                                         '"manual"')
-
+    jira_parser = subparsers.add_parser("jira", help="Jira task", formatter_class=RawTextHelpFormatter)
+    jira_parser.add_argument('action', help="Jira task to execute. Possible Values: "
+                                            "\n label-release - lookup stories in commit history and tag each story "
+                                            "with current version number")
+    jira_parser.add_argument('-v', '--version', help='(optional) If manually versioning, this is passed in by the '
+                                                     'user.  Note: versionStrategy in buildConfig should be set to '
+                                                     '"manual"')
     slack_parser = subparsers.add_parser("slack", help="Slack task", formatter_class=RawTextHelpFormatter)
     slack_parser.add_argument('action', help='Slack task to execute. Possible values: \n '
                                              'release - ship release notes to slack after a deployment has completed \n'
