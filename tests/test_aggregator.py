@@ -110,6 +110,7 @@ def test_aggregator_github_version_tracker_snapshot():
 
     _tracker = MagicMock(Tracker)
     _tracker.get_details_for_all_stories = MagicMock(return_value=[])
+    _tracker.extract_story_id_from_commit_messages = MagicMock(return_value=['12345678', '987654321'])
 
     _config = MagicMock(BuildConfig)
     # _b.build_env_info = mock_build_config_dict['environments']['develop']
@@ -135,6 +136,7 @@ def test_aggregator_github_version_tracker_release():
 
     _tracker = MagicMock(Tracker)
     _tracker.get_details_for_all_stories = MagicMock(return_value=[])
+    _tracker.extract_story_id_from_commit_messages = MagicMock(return_value=['12345678', '987654321'])
 
     _config = MagicMock(BuildConfig)
     # _b.build_env_info = mock_build_config_dict['environments']['develop']
@@ -211,6 +213,7 @@ def test_aggregator_github_version_tracker_snapshot_no_publish():
 
     _tracker = MagicMock(Tracker)
     _tracker.get_details_for_all_stories = MagicMock(return_value=[])
+    _tracker.extract_story_id_from_commit_messages = MagicMock(return_value=['12345678', '987654321'])
 
     _config = MagicMock(BuildConfig)
     # _b.build_env_info = mock_build_config_dict['environments']['develop']
@@ -240,6 +243,7 @@ def test_aggregator_github_version_tracker_release_no_publish():
 
     _tracker = MagicMock(Tracker)
     _tracker.get_details_for_all_stories = MagicMock(return_value=[])
+    _tracker.extract_story_id_from_commit_messages = MagicMock(return_value=['12345678', '987654321'])
 
     _config = MagicMock(BuildConfig)
     # _b.build_env_info = mock_build_config_dict['environments']['develop']
@@ -321,6 +325,7 @@ def test_aggregator_github_version_tracker_snapshot_release_notes_output():
 
     _tracker = MagicMock(Tracker)
     _tracker.get_details_for_all_stories = MagicMock(return_value=[])
+    _tracker.extract_story_id_from_commit_messages = MagicMock(return_value=['12345678', '987654321'])
 
     _config = MagicMock(BuildConfig)
     # _b.build_env_info = mock_build_config_dict['environments']['develop']
@@ -352,6 +357,7 @@ def test_aggregator_github_version_tracker_release_release_notes_output():
 
     _tracker = MagicMock(Tracker)
     _tracker.get_details_for_all_stories = MagicMock(return_value=[])
+    _tracker.extract_story_id_from_commit_messages = MagicMock(return_value=['12345678', '987654321'])
 
     _config = MagicMock(BuildConfig)
     # _b.build_env_info = mock_build_config_dict['environments']['develop']
@@ -442,6 +448,7 @@ def test_aggregator_github_version_tracker_snapshot_no_publish_release_notes_out
 
     _tracker = MagicMock(Tracker)
     _tracker.get_details_for_all_stories = MagicMock(return_value=[])
+    _tracker.extract_story_id_from_commit_messages = MagicMock(return_value=['12345678', '987654321'])
 
     _config = MagicMock(BuildConfig)
     # _b.build_env_info = mock_build_config_dict['environments']['develop']
@@ -473,6 +480,7 @@ def test_aggregator_github_version_tracker_release_no_publish_release_notes_outp
 
     _tracker = MagicMock(Tracker)
     _tracker.get_details_for_all_stories = MagicMock(return_value=[])
+    _tracker.extract_story_id_from_commit_messages = MagicMock(return_value=['12345678', '987654321'])
 
     _config = MagicMock(BuildConfig)
     # _b.build_env_info = mock_build_config_dict['environments']['develop']
@@ -574,10 +582,10 @@ def test_aggregator_tracker_version_manual_release(mocker):
         GitHub.get_git_last_tag.return_value = '1.0.0.0'
         mocker.patch.object(Tracker, '__init__')
         Tracker.__init__.return_value = None
+        mocker.patch.object(Tracker, 'extract_story_id_from_commit_messages')
+        Tracker.extract_story_id_from_commit_messages.return_value = None
         mocker.patch.object(flow.aggregator, 'get_git_commit_history')
         flow.aggregator.get_git_commit_history.return_value = None
-        mocker.patch.object(flow.utils.commons, 'extract_story_id_from_commit_messages')
-        flow.utils.commons.extract_story_id_from_commit_messages.return_value = None
         mocker.patch.object(Tracker, 'tag_stories_in_commit')
         Tracker.tag_stories_in_commit.return_value = None
         
@@ -616,6 +624,7 @@ def test_aggregator_github_outputs_version():
 
     _tracker = MagicMock(Tracker)
     _tracker.get_details_for_all_stories = MagicMock(return_value=[])
+    _tracker.extract_story_id_from_commit_messages = MagicMock(return_value=['12345678', '987654321'])
 
     _config = MagicMock(BuildConfig)
 

@@ -1,5 +1,6 @@
 import json
 import os
+import re
 
 import requests
 from flow.buildconfig import BuildConfig
@@ -207,3 +208,31 @@ class Tracker(Project_Tracking):
         commons.print_msg(Tracker.clazz, method, 'end')
 
         return bump_type
+
+    def extract_story_id_from_commit_messages(self, commit_messages):
+        method = 'extract_story_id_from_commit_messages'
+        story_list = []
+
+        for commit_string in commit_messages:
+            # check if there is a starting bracket and if there are balanced brackets
+            if commit_string.count('[') > 0 and commit_string.count('[') == commit_string.count(']'):
+                # for each starting bracket
+                for m in re.finditer('\[', commit_string):
+                    # find the next subsequent ending bracket
+                    ending_bracket = commit_string.find(']', m.start())
+                    # find the contents between the brackets
+                    stories = commit_string[m.start()+1:ending_bracket]
+
+                    # verify there isn't a embedded bracket, if so just skip this one and keep marching.
+                    if stories.find('[') == -1:  # there is a nested starting bracket
+                        # now dig out the tracker number or jira key in single number format or multiple separated by commas.
+                        r = re.compile('[0-9,]+(,[0-9]+)*,?')
+                        stories = ''.join(filter(r.match, stories))
+
+                        for story in [_f for _f in stories.split(',') if _f]:
+                            # split out by comma.
+                            if story not in story_list:
+                                story_list.append(story)
+
+        commons.print_msg(Tracker.clazz, method, "Story list: {}".format(story_list))
+        return story_list

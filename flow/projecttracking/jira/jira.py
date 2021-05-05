@@ -1,6 +1,7 @@
 import base64
 import json
 import os
+import re
 
 import requests
 from flow.buildconfig import BuildConfig
@@ -14,7 +15,7 @@ class Jira(Project_Tracking):
     clazz = 'Jira'
     token = None
     user = None
-    project_ids = None
+    project_keys = None
     jira_url = None
     jira_basic_auth = None
     config = BuildConfig
@@ -43,33 +44,52 @@ class Jira(Project_Tracking):
                                                      'environment variable \'JIRA_USER\'?', 'ERROR')
             exit(1)
 
-        Jira.jira_basic_auth = base64.b64encode("{0}:{1}".format(Jira.user, Jira.token).encode('ascii')).decode('ascii')
+        # Check for jira url first in buildConfig, second try settings.ini
 
         try:
             jira_json_config = self.config.json_config['projectTracking']['jira']
-
-            # if projectId is actually project key and not id then need to fetch id.
-            # since api call to get project data uses key or id just always call to fetch id.
-            if jira_json_config.get('projectId') is not None and jira_json_config.get('projectIds') is not None:
-                    raise KeyError('projectIds')
-            elif jira_json_config.get('projectId') is not None:
-                project_data = self._retrieve_project_info(str(jira_json_config['projectId']))
-                Jira.project_ids = [(project_data['id'], project_data['key'])]
-            elif jira_json_config.get('projectIds') is not None:
-                Jira.project_ids = []
-                for project_id in jira_json_config.get('projectIds'):
-                    project_data = self._retrieve_project_info(str(jira_json_config['projectId']))
-                    Jira.project_ids.append((project_data['id'], project_data['key']))
-            else:
-                raise KeyError('projectId')
-            
-            commons.print_msg(Jira.clazz, method, Jira.project_ids)
+            commons.print_msg(Jira.clazz, method, jira_json_config)
+            # noinspection PyUnboundLocalVariable
+            Jira.jira_url = jira_json_config['url']
         except KeyError as e:
-            if e.args[0] == 'projectIds':
+            if e.args[0] == 'url':
+                if self.config.settings.has_section('jira') and self.config.settings.has_option('jira', 'url'):
+                    Jira.jira_url = self.config.settings.get('jira', 'url')
+                else:
+                    commons.print_msg(Jira.clazz, method, 'No jira url found in buildConfig or settings.ini.',
+                                  'ERROR')
+                    exit(1)
+            else:
                 commons.print_msg(Jira.clazz,
                                   method,
-                                  "The build config may only contain 'projectId' for single project id"
-                                  "or 'projectIds' containing an array of project ids",
+                                  "The build config associated with projectTracking is missing key {}".format(str(e)),
+                                  'ERROR')
+                exit(1)
+
+        Jira.jira_basic_auth = base64.b64encode("{0}:{1}".format(Jira.user, Jira.token).encode('ascii')).decode('ascii')
+
+        try:
+            # since api call to get project data uses key or id just always call to fetch id.
+            if jira_json_config.get('projectKey') is not None and jira_json_config.get('projectKeys') is not None:
+                raise KeyError('projectKeys')
+            elif jira_json_config.get('projectKey') is not None:
+                project_data = self._retrieve_project_info(str(jira_json_config['projectKey']))
+                Jira.project_keys = [(project_data['id'], project_data['key'])]
+            elif jira_json_config.get('projectKeys') is not None:
+                Jira.project_keys = []
+                for project_id in jira_json_config.get('projectKeys'):
+                    project_data = self._retrieve_project_info(str(project_id))
+                    Jira.project_keys.append((project_data['id'], project_data['key']))
+            else:
+                raise KeyError('projectKey')
+            
+            commons.print_msg(Jira.clazz, method, Jira.project_keys)
+        except KeyError as e:
+            if e.args[0] == 'projectKeys':
+                commons.print_msg(Jira.clazz,
+                                  method,
+                                  "The build config may only contain 'projectKey' for single project key"
+                                  " or 'projectKeys' containing an array of project keys",
                                   'ERROR')
             else:
                 commons.print_msg(Jira.clazz,
@@ -77,19 +97,6 @@ class Jira(Project_Tracking):
                                   "The build config associated with projectTracking is missing key {}".format(str(e)),
                                   'ERROR')
             exit(1)
-
-        # Check for jira url first in buildConfig, second try settings.ini
-
-        try:
-            # noinspection PyUnboundLocalVariable
-            Jira.jira_url = jira_json_config['url']
-        except KeyError:
-            if self.config.settings.has_section('jira') and self.config.settings.has_option('jira', 'url'):
-                Jira.jira_url = self.config.settings.get('jira', 'url')
-            else:
-                commons.print_msg(Jira.clazz, method, 'No jira url found in buildConfig or settings.ini.',
-                                  'ERROR')
-                exit(1)
 
         commons.print_msg(Jira.clazz, method, 'end')
 
@@ -188,7 +195,7 @@ class Jira(Project_Tracking):
         method = '_add_version_to_project'
         commons.print_msg(Jira.clazz, method, 'begin')
 
-        for idx, project_id in enumerate(self.project_ids):
+        for idx, project_id in enumerate(self.project_keys):
             version_to_post = Object()
             version_to_post.projectId = project_id[0]
             version_to_post.name = version.lower()
@@ -226,21 +233,23 @@ class Jira(Project_Tracking):
         headers = {'Content-type': 'application/json', 'Accept': 'application/json',
                        'Authorization': 'Basic {0}'.format(Jira.jira_basic_auth)}
 
-        version_to_put = Object()
-        version_to_put.name = version.lower()
-        update_method = Object()
-        update_method.set = [version_to_put, ]
-        update = Object()
-        update.fixVersions = [update_method, ]
-        version_to_put = Object()
-        version_to_put.update = update
+        put_data = {
+            "update": {
+                "fixVersions": [
+                    {
+                        "add": {
+                            "name": version.lower()
+                        }
+                    }
+                ]
+            }
+        }
 
         commons.print_msg(Jira.clazz, method, jira_url)
-        commons.print_msg(Jira.clazz, method, version_to_put)
 
         try:
-            resp = requests.put(jira_url, version_to_put, headers=headers, timeout=self.http_timeout)
-        
+            resp = requests.put(jira_url, put_data, headers=headers, timeout=self.http_timeout)
+
             if resp.status_code != 204:
                 commons.print_msg(Jira.clazz, method, "Unable to add version {version} to issue {story} \r\n "
                                                           "Response: {response}".format(version=version, story=story_id, response=resp.text), 'WARN')
@@ -274,7 +283,7 @@ class Jira(Project_Tracking):
 
             story_type = story.get('fields').get('issuetype').get('name').lower()
 
-            if story_type == 'feature' or story_type == 'chore' or story_type == 'release':
+            if story_type == 'story' or story_type == 'chore' or story_type == 'release':
                 bump_type = 'minor'
             elif story_type == 'bug' and bump_type is None:
                 bump_type = 'bug'
@@ -290,3 +299,32 @@ class Jira(Project_Tracking):
         commons.print_msg(Jira.clazz, method, 'end')
 
         return bump_type
+
+    def extract_story_id_from_commit_messages(self, commit_messages):
+        method = 'extract_story_id_from_commit_messages'
+        story_list = []
+
+        for commit_string in commit_messages:
+            
+            # check if there is a starting bracket and if there are balanced brackets
+            if commit_string.count('[') > 0 and commit_string.count('[') == commit_string.count(']'):
+                # for each starting bracket
+                for m in re.finditer('\[', commit_string):
+                    # find the next subsequent ending bracket
+                    ending_bracket = commit_string.find(']', m.start())
+                    # find the contents between the brackets
+                    stories = commit_string[m.start()+1:ending_bracket]
+
+                    # verify there isn't a embedded bracket, if so just skip this one and keep marching.
+                    if stories.find('[') == -1:  # there is a nested starting bracket
+                        # now dig out the tracker number or jira key in single number format or multiple separated by commas.
+                        r = re.compile('(?:[a-zA-Z]+\-[0-9]+,?)+(,([a-zA-Z]+\-[0-9]+,?))*,?')
+                        stories_array = stories.split(',')
+                        stories = list(filter(r.match, stories_array))
+                        for story in stories:
+                            # split out by comma.
+                            if story not in story_list:
+                                story_list.append(story)
+
+        commons.print_msg(Jira.clazz, method, "Story list: {}".format(story_list))
+        return story_list

@@ -137,7 +137,7 @@ def main():
 
         commits = get_git_commit_history(github, args)
 
-        story_list = commons.extract_story_id_from_commit_messages(commits)
+        story_list = tracker.extract_story_id_from_commit_messages(commits)
 
         tracker.tag_stories_in_commit(story_list)
         metrics.write_metric(task, args.action)
@@ -150,7 +150,7 @@ def main():
 
             commits = get_git_commit_history(github, args)
 
-            story_list = commons.extract_story_id_from_commit_messages(commits)
+            story_list = tracker.extract_story_id_from_commit_messages(commits)
             story_details = tracker.get_details_for_all_stories(story_list)
 
             slack.publish_deployment(story_details)
@@ -523,13 +523,12 @@ def call_github_version(github_instance, tracker_instance, config=None, file_pat
 
             next_semver_tag_array = base_semver_tag_array
 
-        # - Dig through commits to find story list.
-        story_list = commons.extract_story_id_from_commit_messages(commits)
-
         # - Dig through the story list to fetch some meta data about each story.
         if tracker_instance is None:
             story_details = None
         else:
+            # - Dig through commits to find story list.
+            story_list = tracker_instance.extract_story_id_from_commit_messages(commits)
             story_details = tracker_instance.get_details_for_all_stories(story_list)
 
         # - Tag the version
@@ -562,11 +561,11 @@ def call_github_version(github_instance, tracker_instance, config=None, file_pat
 
         # - Fetch all commit history from that tag to now
         commits = github_instance.get_all_git_commit_history_between_provided_tags(highest_semver_tag_array_history)
-        # - Dig through commits to find story list.
-        story_list = commons.extract_story_id_from_commit_messages(commits)
 
         story_details = None
         if config.json_config['tracker']:
+            # - Dig through commits to find story list.
+            story_list = tracker_instance.extract_story_id_from_commit_messages(commits)
             # - Dig through the story list to fetch some meta data about each story.
             story_details = tracker_instance.get_details_for_all_stories(story_list)
 
