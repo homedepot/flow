@@ -116,6 +116,36 @@ Label stories with the version number.
 
 - url (required) to the tracker server. Priority is given if a value in buildConfig.json is specified.
 
+**Build Config Setup:**
+
+```
+"projectTracking" : {
+    "tracker" : {
+        "projectId" : 1234567
+    }
+}
+```
+or
+```
+"projectTracking" : {
+    "tracker" : {
+        "projectIds" : [ 1234567, 7654321 ]
+    }
+}
+```
+The following are deprecated, prefer one of the previous options
+```
+"tracker" : {
+    "projectId" : 1234567
+}
+```
+or
+```
+"tracker" : {
+    "projectIds" : [ 1234567, 7654321 ]
+}
+```
+
 For the help documentation, please check `flow tracker -h`
 
 ***
@@ -137,16 +167,32 @@ Label stories with the version number.
 
 | Variable Name    | Required/Optional | Description                                                            |
 |------------------|-------------------|------------------------------------------------------------------------|
-|JIRA_USER         | Required          | for accessing story information and labeling stories |
-|JIRA_TOKEN        | Required          | for accessing story information and labeling stories |
+|JIRA_USER         | Required          | user account email for accessing story information and labeling stories |
+|JIRA_TOKEN        | Required          | user account token for accessing story information and labeling stories |
 |GITHUB_TOKEN      | Required          | for access to your project API _NOTE: Requires repo access only._      |
 |SLACK_WEBHOOK_URL | Optional          | for sending error messages from Flow to your slack channel             |
-
-> NOTE: JIRA_TOKEN env variable needs to be the already base64 encoded authorization header. Instructions to provision a new token can be found here: https://support.atlassian.com/atlassian-account/docs/manage-api-tokens-for-your-atlassian-account/
 
 **Settings.ini (Global Settings):**
 
 - url (required) to the jira server. Priority is given if a value in buildConfig.json is specified.
+
+
+**Build Config Setup:**
+```
+"projectTracking" : {
+    "jira" : {
+        "projectKey" : "SAMPLEKEY"
+    }
+}
+```
+or
+```
+"projectTracking" : {
+    "jira" : {
+        "projectKeys" : [ "SAMPLEKEY", "OTHERKEY" ]
+    }
+}
+```
 
 For the help documentation, please check `flow jira -h`
 

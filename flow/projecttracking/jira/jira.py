@@ -77,8 +77,8 @@ class Jira(Project_Tracking):
                 Jira.project_keys = [(project_data['id'], project_data['key'])]
             elif jira_json_config.get('projectKeys') is not None:
                 Jira.project_keys = []
-                for project_id in jira_json_config.get('projectKeys'):
-                    project_data = self._retrieve_project_info(str(project_id))
+                for project_key in jira_json_config.get('projectKeys'):
+                    project_data = self._retrieve_project_info(str(project_key))
                     Jira.project_keys.append((project_data['id'], project_data['key']))
             else:
                 raise KeyError('projectKey')
@@ -338,6 +338,8 @@ class Jira(Project_Tracking):
             id
             name
             description
+            url
+            current_state
     """
     def flatten_story_details(self, story_details):
         method = 'flatten_story_details'
@@ -345,7 +347,6 @@ class Jira(Project_Tracking):
 
         if story_details is None:
             return None
-
         story_release_notes = []
         for story in story_details:
             story_release_note_summary = {}
