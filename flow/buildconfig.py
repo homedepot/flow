@@ -64,7 +64,6 @@ class BuildConfig:
             if 'tracker' in BuildConfig.json_config['projectTracking']:
                 if 'tracker' not in projectTrackers:
                     projectTrackers.append('tracker')
-                projectTrackers.append('tracker')
             if 'jira' in BuildConfig.json_config['projectTracking']:
                 if 'jira' not in projectTrackers:
                     projectTrackers.append('jira')
