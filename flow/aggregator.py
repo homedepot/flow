@@ -15,6 +15,7 @@ from flow.coderepo.github.github import GitHub
 from flow.communications.slack.slack import Slack
 from flow.metrics.graphite.graphite import Graphite
 from flow.projecttracking.tracker.tracker import Tracker
+from flow.projecttracking.jira.jira import Jira
 from pydispatch import dispatcher
 from flow.staticqualityanalysis.sonar.sonarmodule import SonarQube
 from flow.utils.commons import Commons
@@ -85,7 +86,11 @@ def main():
 
     commons.print_msg(clazz, method, "Task {}".format(task))
 
-    tasks_requiring_github.extend(['sonar', 'tracker', 'slack', 'artifactory', 'cf', 'zipit', 'gcappengine'])
+    tasks_requiring_github.extend(['sonar', 'slack', 'artifactory', 'cf', 'zipit', 'gcappengine'])
+    if BuildConfig.project_tracker == 'tracker':
+        tasks_requiring_github.append('tracker')
+    elif BuildConfig.project_tracker == 'jira':
+        tasks_requiring_github.append('jira')
 
     if task != 'github' and task in tasks_requiring_github:
         github = GitHub()
@@ -120,9 +125,12 @@ def main():
     if task == 'github':
         github = GitHub()
         if args.action == 'version':
-            if 'tracker' in BuildConfig.json_config:
+            if BuildConfig.project_tracker == 'tracker':
                 _tracker = Tracker()
                 call_github_version(github, _tracker, file_path=args.output, args=args)
+            elif BuildConfig.project_tracker == 'jira':
+                _jira = Jira()
+                call_github_version(github, _jira, file_path=args.output, args=args)
             else:
                 call_github_version(github, None, file_path=args.output, args=args)
             metrics.write_metric(task, args.action)
@@ -141,17 +149,28 @@ def main():
 
         tracker.tag_stories_in_commit(story_list)
         metrics.write_metric(task, args.action)
+    elif task == 'jira':
+        jira = Jira()
+
+        commits = get_git_commit_history(github, args)
+
+        story_list = jira.extract_story_id_from_commit_messages(commits)
+
+        jira.tag_stories_in_commit(story_list)
+        metrics.write_metric(task, args.action)
     elif task == 'slack':
         slack = Slack()
 
         if args.action == 'release':
-            # TODO Check to see if they are using tracker first.
-            tracker = Tracker()
-
+            if BuildConfig.project_tracker == 'tracker':
+                _project_tracker_instance = Tracker()
+            elif BuildConfig.project_tracker == 'jira':
+                _project_tracker_instance = Jira()
             commits = get_git_commit_history(github, args)
 
-            story_list = tracker.extract_story_id_from_commit_messages(commits)
-            story_details = tracker.get_details_for_all_stories(story_list)
+            story_list = _project_tracker_instance.extract_story_id_from_commit_messages(commits)
+            story_details = _project_tracker_instance.get_details_for_all_stories(story_list)
+            story_details = _project_tracker_instance.flatten_story_details(story_details)
 
             slack.publish_deployment(story_details)
         elif args.action == 'message':
@@ -473,7 +492,7 @@ def call_github_getversion(git_hub_instance, file_path=None, open_func=open):
 
 
 # noinspection PyUnboundLocalVariable
-def call_github_version(github_instance, tracker_instance, config=None, file_path=None, open_func=open, args=None):
+def call_github_version(github_instance, project_tracker_instance, config=None, file_path=None, open_func=open, args=None):
     clazz = 'aggregator'
     method = 'call_github_version'
     commons.print_msg(clazz, method, 'begin')
@@ -524,23 +543,25 @@ def call_github_version(github_instance, tracker_instance, config=None, file_pat
             next_semver_tag_array = base_semver_tag_array
 
         # - Dig through the story list to fetch some meta data about each story.
-        if tracker_instance is None:
+        if project_tracker_instance is None:
             story_details = None
         else:
             # - Dig through commits to find story list.
-            story_list = tracker_instance.extract_story_id_from_commit_messages(commits)
-            story_details = tracker_instance.get_details_for_all_stories(story_list)
+            story_list = project_tracker_instance.extract_story_id_from_commit_messages(commits)
+            story_details = project_tracker_instance.get_details_for_all_stories(story_list)
+            # need to ensure expected keys exist on story details for release notes formatting
+            story_details = project_tracker_instance.flatten_story_details(story_details)
 
         # - Tag the version
         # - Update the release notes on the new version number with the stories meta data.
-        release_notes = github_instance.format_github_specific_release_notes_from_tracker_story_details(story_details)
+        release_notes = github_instance.format_github_specific_release_notes_from_project_tracker_story_details(story_details)
 
         my_version = github_instance.convert_semver_tag_array_to_semver_string(next_semver_tag_array)
         if file_path:
             commons.write_to_file(file_path, my_version, open_func=open_func)
         commons.print_msg(clazz, method, 'end')
 
-    elif config.version_strategy == 'tracker':
+    elif config.version_strategy == 'tracker' or config.version_strategy == 'jira':
         if args and 'version' in args and args.version is not None:
             commons.print_msg(clazz, method, 'Version strategy set to automated in buildConfig but version flag was '
                                              'passed in.  Either change version strategy to manual or remove -v flag.',
@@ -563,11 +584,11 @@ def call_github_version(github_instance, tracker_instance, config=None, file_pat
         commits = github_instance.get_all_git_commit_history_between_provided_tags(highest_semver_tag_array_history)
 
         story_details = None
-        if config.json_config['tracker']:
+        if  config.project_tracker == 'tracker' or config.project_tracker == 'jira':
             # - Dig through commits to find story list.
-            story_list = tracker_instance.extract_story_id_from_commit_messages(commits)
+            story_list = project_tracker_instance.extract_story_id_from_commit_messages(commits)
             # - Dig through the story list to fetch some meta data about each story.
-            story_details = tracker_instance.get_details_for_all_stories(story_list)
+            story_details = project_tracker_instance.get_details_for_all_stories(story_list)
 
         # default the bump strategy to None.
         if config.artifact_category == 'snapshot':
@@ -578,7 +599,7 @@ def call_github_version(github_instance, tracker_instance, config=None, file_pat
             # New Release build
             # - Find the last semantic version release tag or beginning of time
             # - Based upon the story meta data, decided on the bump strategy.
-            bump_strategy = tracker_instance.determine_semantic_version_bump(story_details)
+            bump_strategy = project_tracker_instance.determine_semantic_version_bump(story_details)
 
             # - Increment the build number + 1
             next_semver_tag_array = github_instance.calculate_next_semver(tag_type=config.artifact_category,
@@ -587,7 +608,8 @@ def call_github_version(github_instance, tracker_instance, config=None, file_pat
 
         # - Tag the version
         # - Update the release notes on the new version number with the stories meta data.
-        release_notes = github_instance.format_github_specific_release_notes_from_tracker_story_details(story_details)
+        story_details = project_tracker_instance.flatten_story_details(story_details)
+        release_notes = github_instance.format_github_specific_release_notes_from_project_tracker_story_details(story_details)
         my_version = github_instance.convert_semver_tag_array_to_semver_string(next_semver_tag_array)
 
         if file_path:

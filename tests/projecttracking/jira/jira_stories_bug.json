@@ -48,7 +48,7 @@
         },
         {
             "id": "12345678",
-            "self": "https://thd.atlassian.net/rest/api/3/issue/fake",
+            "self": "https://thd.atlassian.net/rest/api/3/issue/fake2",
             "key": "TEST-456",
             "fields": {
                 "issuetype": {
@@ -88,7 +88,7 @@
                     "TEST"
                 ],
                 "status": {
-                    "name": "In Progress"
+                    "name": "Code Review"
                 }
             }
         }

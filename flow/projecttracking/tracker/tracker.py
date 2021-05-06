@@ -211,6 +211,8 @@ class Tracker(Project_Tracking):
 
     def extract_story_id_from_commit_messages(self, commit_messages):
         method = 'extract_story_id_from_commit_messages'
+        commons.print_msg(Tracker.clazz, method, 'begin')
+
         story_list = []
 
         for commit_string in commit_messages:
@@ -235,4 +237,40 @@ class Tracker(Project_Tracking):
                                 story_list.append(story)
 
         commons.print_msg(Tracker.clazz, method, "Story list: {}".format(story_list))
+        commons.print_msg(Tracker.clazz, method, 'end')
         return story_list
+
+    """
+        This methods needs to flatten an array of stories to ensure 6 specific
+        fields exist at the top level of the dictionary for each story:
+            story_type
+            id
+            name
+            description
+            url
+            current_state
+    """
+    def flatten_story_details(self, story_details):
+        method = 'flatten_story_details'
+        commons.print_msg(Tracker.clazz, method, 'begin')
+
+        if story_details is None:
+            return None
+
+        story_release_notes = []
+        for story in story_details:
+            story_release_note_summary = {}
+            story_release_note_summary['story_type'] = story.get('story_type')
+            story_release_note_summary['id'] = story.get('id')
+            story_release_note_summary['name'] = story.get('name')
+            story_release_note_summary['description'] = story.get('description')
+            story_release_note_summary['url'] = story.get('url')
+            story_release_note_summary['current_state'] = story.get('current_state')
+            story_release_notes.append(story_release_note_summary)
+        
+        if len(story_release_notes) == 0:
+            story_release_notes = None
+
+        commons.print_msg(Tracker.clazz, method, story_release_notes)
+        commons.print_msg(Tracker.clazz, method, 'end')
+        return story_release_notes

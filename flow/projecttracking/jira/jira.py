@@ -302,6 +302,8 @@ class Jira(Project_Tracking):
 
     def extract_story_id_from_commit_messages(self, commit_messages):
         method = 'extract_story_id_from_commit_messages'
+        commons.print_msg(Jira.clazz, method, 'begin')
+
         story_list = []
 
         for commit_string in commit_messages:
@@ -327,4 +329,47 @@ class Jira(Project_Tracking):
                                 story_list.append(story)
 
         commons.print_msg(Jira.clazz, method, "Story list: {}".format(story_list))
+        commons.print_msg(Jira.clazz, method, 'end')
         return story_list
+
+    """
+        This methods needs to return an array of stories with 4 specific fields for each story:
+            story_type
+            id
+            name
+            description
+    """
+    def flatten_story_details(self, story_details):
+        method = 'flatten_story_details'
+        commons.print_msg(Jira.clazz, method, 'begin')
+
+        if story_details is None:
+            return None
+
+        story_release_notes = []
+        for story in story_details:
+            story_release_note_summary = {}
+            story_release_note_summary['story_type'] = story.get('fields').get('issuetype').get('name').lower()
+            story_release_note_summary['id'] = story.get('key').upper()
+            story_release_note_summary['name'] = story.get('fields').get('summary')
+            story_release_note_summary['url'] = story.get('self')
+            story_release_note_summary['current_state'] = story.get('fields').get('status').get('name')
+            description_text = []
+            for i, description_content in enumerate(story.get('fields').get('description').get('content')):
+                if description_content.get('type') == 'paragraph':
+                    for j, paragraph_content in enumerate(description_content.get('content')):
+                        if paragraph_content.get('type') == 'text':
+                            description_text.append(paragraph_content.get('text'))
+            if len(description_text) > 0:
+                description_text = ' '.join(description_text)
+            else:
+                description_text = None
+            story_release_note_summary['description'] = description_text
+            story_release_notes.append(story_release_note_summary)
+
+        if len(story_release_notes) == 0:
+            story_release_notes = None
+
+        commons.print_msg(Jira.clazz, method, story_release_notes)
+        commons.print_msg(Jira.clazz, method, 'end')
+        return story_release_notes

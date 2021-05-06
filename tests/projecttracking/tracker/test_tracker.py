@@ -521,3 +521,70 @@ def test_extract_story_id_with_dedup(monkeypatch):
     story_list = _tracker.extract_story_id_from_commit_messages(commit_example_dedup)
     print(str(story_list))
     assert len(story_list) == 1
+
+def test_flatten_story_details_with_None_story_details(monkeypatch):
+    monkeypatch.setenv('TRACKER_TOKEN', 'fake_token')
+
+    _b = MagicMock(BuildConfig)
+    _b.build_env_info = mock_build_config_dict['environments']['unittest']
+    _b.json_config = mock_build_config_dict
+
+    _tracker = Tracker(config_override=_b)
+
+    flat_story_details = _tracker.flatten_story_details(None)
+    assert flat_story_details is None
+
+def test_flatten_story_details_with_empty_story_details(monkeypatch):
+    monkeypatch.setenv('TRACKER_TOKEN', 'fake_token')
+
+    _b = MagicMock(BuildConfig)
+    _b.build_env_info = mock_build_config_dict['environments']['unittest']
+    _b.json_config = mock_build_config_dict
+
+    _tracker = Tracker(config_override=_b)
+
+    flat_story_details = _tracker.flatten_story_details([])
+    assert flat_story_details is None
+
+def test_flatten_story_details_with_story_details(monkeypatch):
+    monkeypatch.setenv('TRACKER_TOKEN', 'fake_token')
+
+    _b = MagicMock(BuildConfig)
+    _b.build_env_info = mock_build_config_dict['environments']['unittest']
+    _b.json_config = mock_build_config_dict
+
+    flat_story_expected = [
+        {
+            "story_type" : "bug",
+            "id" : 123456,
+            "name" : "Test Bug",
+            "url" : "https://www.pivotaltracker.com/story/show/fake",
+            "current_state" : "started",
+            "description" : "This is a test bug description"
+        },
+        {
+            "story_type" : "bug",
+            "id" : 12345678,
+            "name" : "Another test bug",
+            "url" : "https://www.pivotaltracker.com/story/show/fake",
+            "current_state" : "started",
+            "description" : "Another test bug"
+        }
+    ]
+
+    _tracker = Tracker(config_override=_b)
+
+    current_test_directory = os.path.dirname(os.path.realpath(__file__))
+    with open(current_test_directory + "/tracker_stories_bug.json", 'r') as myfile:
+        tracker_data = myfile.read()
+    story_details = json.loads(tracker_data).get('stories')
+
+    flat_story_details = _tracker.flatten_story_details(story_details)
+    assert flat_story_expected == flat_story_details
+    for story in flat_story_details:
+        assert 'story_type' in story
+        assert 'id' in story
+        assert 'name' in story
+        assert 'description' in story
+        assert 'url' in story
+        assert 'current_state' in story

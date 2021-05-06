@@ -23,6 +23,7 @@ class BuildConfig:
     artifact_extensions = None
     push_location = 'fordeployment'
     sonar_project_key = None
+    project_tracker = None
 
     def __init__(self, args):
         method = '__init__'
@@ -56,12 +57,40 @@ class BuildConfig:
             BuildConfig.artifact_extension = BuildConfig.json_config['artifact'].get("artifactType", None)
             BuildConfig.artifact_extensions = BuildConfig.json_config['artifact'].get("artifactTypes", None)
 
+        projectTrackers = []
+        if 'tracker' in BuildConfig.json_config:
+            projectTrackers.append('tracker')
+        if 'projectTracking' in BuildConfig.json_config:
+            if 'tracker' in BuildConfig.json_config['projectTracking']:
+                if 'tracker' not in projectTrackers:
+                    projectTrackers.append('tracker')
+                projectTrackers.append('tracker')
+            if 'jira' in BuildConfig.json_config['projectTracking']:
+                if 'jira' not in projectTrackers:
+                    projectTrackers.append('jira')
+
+        if len(projectTrackers) > 1:
+            trackers = ','.join(projectTrackers)
+            commons.print_msg(BuildConfig.clazz, method, "The build config json contains configuration for "
+                                                         "multiple project tracking tools: {}"
+                                                         "Please remove all but one project tracker from the "
+                                                         "configuration".format(trackers), 'ERROR')
+            exit(1)
+        elif len(projectTrackers) == 1:
+            BuildConfig.project_tracker = projectTrackers[0]
+
         try:
             BuildConfig.version_strategy = BuildConfig.json_config['projectInfo']['versionStrategy']
         except KeyError:
             commons.print_msg(BuildConfig.clazz, method, "The build config json does not contain projectInfo => "
                                                         "versionStrategy.  'manual', 'tracker' or 'jira' values can be "
                                                         "used.", 'ERROR')
+            exit(1)
+
+        if BuildConfig.version_strategy != 'manual' and BuildConfig.version_strategy != projectTrackers[0]:
+            commons.print_msg(BuildConfig.clazz, method, "The versionStrategy in build config json is not "
+                                                         "manual and does not match the defined project "
+                                                         "tracking tool: {}.".format(projectTrackers[0]), 'ERROR')
             exit(1)
 
         commons.print_msg(BuildConfig.clazz, method, 'end')

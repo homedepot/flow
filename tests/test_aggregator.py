@@ -9,6 +9,7 @@ from argparse import ArgumentParser
 from argparse import Namespace
 from flow.coderepo.github.github import GitHub
 from flow.projecttracking.tracker.tracker import Tracker
+from flow.projecttracking.jira.jira import Jira
 from flow.staticqualityanalysis.sonar.sonarmodule import SonarQube
 from flow.artifactstorage.artifactory.artifactory import Artifactory
 import flow.utils.commons
@@ -106,7 +107,7 @@ def test_aggregator_github_version_tracker_snapshot():
     _github.get_highest_semver_snapshot_tag = MagicMock(return_value=[0, 1, 4, 8])
     _github.get_all_git_commit_history_between_provided_tags = MagicMock(return_value=['blah1 [#12345678]', 'blah2 [#987654321]'])
     _github.calculate_next_semver = MagicMock(return_value=[0, 2, 0, 1])
-    _github.format_github_specific_release_notes_from_tracker_story_details = MagicMock(return_value='No Release Notes')
+    _github.format_github_specific_release_notes_from_project_tracker_story_details = MagicMock(return_value='No Release Notes')
 
     _tracker = MagicMock(Tracker)
     _tracker.get_details_for_all_stories = MagicMock(return_value=[])
@@ -117,7 +118,9 @@ def test_aggregator_github_version_tracker_snapshot():
     _config.json_config = mock_build_config_dict
     # _b.project_name = mock_build_config_dict['projectInfo']['name']
     _config.version_strategy = 'tracker'
+    _config.project_tracker = 'tracker'
     _config.artifact_category = 'snapshot'
+    
 
     flow.aggregator.call_github_version(_github, _tracker, _config)
 
@@ -132,7 +135,7 @@ def test_aggregator_github_version_tracker_release():
     _github.get_highest_semver_tag = MagicMock(return_value=[1, 0, 0, 0])
     _github.get_all_git_commit_history_between_provided_tags = MagicMock(return_value=['blah1 [#12345678]', 'blah2 [#987654321]'])
     _github.calculate_next_semver = MagicMock(return_value=[1, 1, 0, 0])
-    _github.format_github_specific_release_notes_from_tracker_story_details = MagicMock(return_value='No Release Notes')
+    _github.format_github_specific_release_notes_from_project_tracker_story_details = MagicMock(return_value='No Release Notes')
 
     _tracker = MagicMock(Tracker)
     _tracker.get_details_for_all_stories = MagicMock(return_value=[])
@@ -143,6 +146,7 @@ def test_aggregator_github_version_tracker_release():
     _config.json_config = mock_build_config_dict
     # _b.project_name = mock_build_config_dict['projectInfo']['name']
     _config.version_strategy = 'tracker'
+    _config.project_tracker = 'tracker'
     _config.artifact_category = 'release'
 
     flow.aggregator.call_github_version(_github, _tracker, _config)
@@ -152,17 +156,74 @@ def test_aggregator_github_version_tracker_release():
     _tracker.get_details_for_all_stories.assert_called_with(['12345678', '987654321'])
     _github.add_tag_and_release_notes_to_github.assert_called_with([1, 1, 0, 0], 'No Release Notes')
 
+def test_aggregator_github_version_jira_snapshot():
+
+    _github = MagicMock(GitHub)
+    _github.get_highest_semver_tag = MagicMock(return_value=[0, 2, 0, 0])
+    _github.get_highest_semver_snapshot_tag = MagicMock(return_value=[0, 1, 4, 8])
+    _github.get_all_git_commit_history_between_provided_tags = MagicMock(return_value=['blah1 [TEST-123]', 'blah2 [TEST-456]'])
+    _github.calculate_next_semver = MagicMock(return_value=[0, 2, 0, 1])
+    _github.format_github_specific_release_notes_from_project_tracker_story_details = MagicMock(return_value='No Release Notes')
+
+    _jira = MagicMock(Jira)
+    _jira.get_details_for_all_stories = MagicMock(return_value=[])
+    _jira.extract_story_id_from_commit_messages = MagicMock(return_value=['TEST-123', 'TEST-456'])
+
+    _config = MagicMock(BuildConfig)
+    # _b.build_env_info = mock_build_config_dict['environments']['develop']
+    _config.json_config = mock_build_config_dict
+    # _b.project_name = mock_build_config_dict['projectInfo']['name']
+    _config.version_strategy = 'jira'
+    _config.project_tracker = 'jira'
+    _config.artifact_category = 'snapshot'
+    
+
+    flow.aggregator.call_github_version(_github, _jira, _config)
+
+    _github.get_all_git_commit_history_between_provided_tags.assert_called_with([0, 1, 4, 8])
+    _jira.get_details_for_all_stories.assert_called_with(['TEST-123', 'TEST-456'])
+    _github.add_tag_and_release_notes_to_github.assert_called_with([0, 2, 0, 1], 'No Release Notes')
+
+
+def test_aggregator_github_version_jira_release():
+
+    _github = MagicMock(GitHub)
+    _github.get_highest_semver_tag = MagicMock(return_value=[1, 0, 0, 0])
+    _github.get_all_git_commit_history_between_provided_tags = MagicMock(return_value=['blah1 [TEST-123]', 'blah2 [TEST-456]'])
+    _github.calculate_next_semver = MagicMock(return_value=[1, 1, 0, 0])
+    _github.format_github_specific_release_notes_from_project_tracker_story_details = MagicMock(return_value='No Release Notes')
+
+    _jira = MagicMock(Jira)
+    _jira.get_details_for_all_stories = MagicMock(return_value=[])
+    _jira.extract_story_id_from_commit_messages = MagicMock(return_value=['TEST-123', 'TEST-456'])
+
+    _config = MagicMock(BuildConfig)
+    # _b.build_env_info = mock_build_config_dict['environments']['develop']
+    _config.json_config = mock_build_config_dict
+    # _b.project_name = mock_build_config_dict['projectInfo']['name']
+    _config.version_strategy = 'jira'
+    _config.project_tracker = 'jira'
+    _config.artifact_category = 'release'
+
+    flow.aggregator.call_github_version(_github, _jira, _config)
+
+    print(str(_github.method_calls))
+
+    _jira.get_details_for_all_stories.assert_called_with(['TEST-123', 'TEST-456'])
+    _github.add_tag_and_release_notes_to_github.assert_called_with([1, 1, 0, 0], 'No Release Notes')
+
 def test_aggregator_github_version_manual_release():
 
     _github = MagicMock(GitHub)
     _github.convert_semver_string_to_semver_tag_array = MagicMock(return_value=[1, 1, 0, 0])
     _github.get_all_git_commit_history_between_provided_tags = MagicMock(return_value=['blah1 [#12345678]', 'blah2 [#987654321]'])
     _github.get_highest_semver_array_snapshot_tag_from_base = MagicMock(return_value=[1, 1, 0, 0])
-    _github.format_github_specific_release_notes_from_tracker_story_details = MagicMock(return_value='No Release Notes')
+    _github.format_github_specific_release_notes_from_project_tracker_story_details = MagicMock(return_value='No Release Notes')
 
     _config = MagicMock(BuildConfig)
     _config.json_config = mock_build_config_minimal
     _config.version_strategy = 'manual'
+    _config.project_tracker = None
     _config.artifact_category = 'release'
 
     _parser = ArgumentParser()
@@ -183,12 +244,13 @@ def test_aggregator_github_version_manual_snapshot():
     _github.convert_semver_string_to_semver_tag_array = MagicMock(return_value=[1, 1, 0, 0])
     _github.get_all_git_commit_history_between_provided_tags = MagicMock(return_value=['blah1 [#12345678]', 'blah2 [#987654321]'])
     _github.get_highest_semver_array_snapshot_tag_from_base = MagicMock(return_value=[1, 1, 0, 0])
-    _github.format_github_specific_release_notes_from_tracker_story_details = MagicMock(return_value='No Release Notes')
+    _github.format_github_specific_release_notes_from_project_tracker_story_details = MagicMock(return_value='No Release Notes')
     _github.calculate_next_semver = MagicMock(return_value=[1,1,0,1])
 
     _config = MagicMock(BuildConfig)
     _config.json_config = mock_build_config_minimal
     _config.version_strategy = 'manual'
+    _config.project_tracker = None
     _config.artifact_category = 'snapshot'
 
     _parser = ArgumentParser()
@@ -209,7 +271,7 @@ def test_aggregator_github_version_tracker_snapshot_no_publish():
     _github.get_highest_semver_tag = MagicMock(return_value=[1, 0, 0, 0])
     _github.get_all_git_commit_history_between_provided_tags = MagicMock(return_value=['blah1 [#12345678]', 'blah2 [#987654321]'])
     _github.calculate_next_semver = MagicMock(return_value=[1, 0, 0, 1])
-    _github.format_github_specific_release_notes_from_tracker_story_details = MagicMock(return_value='No Release Notes')
+    _github.format_github_specific_release_notes_from_project_tracker_story_details = MagicMock(return_value='No Release Notes')
 
     _tracker = MagicMock(Tracker)
     _tracker.get_details_for_all_stories = MagicMock(return_value=[])
@@ -220,6 +282,7 @@ def test_aggregator_github_version_tracker_snapshot_no_publish():
     _config.json_config = mock_build_config_dict
     # _b.project_name = mock_build_config_dict['projectInfo']['name']
     _config.version_strategy = 'tracker'
+    _config.project_tracker = 'tracker'
     _config.artifact_category = 'snapshot'
 
     _parser = ArgumentParser()
@@ -239,7 +302,7 @@ def test_aggregator_github_version_tracker_release_no_publish():
     _github.get_highest_semver_tag = MagicMock(return_value=[1, 0, 0, 0])
     _github.get_all_git_commit_history_between_provided_tags = MagicMock(return_value=['blah1 [#12345678]', 'blah2 [#987654321]'])
     _github.calculate_next_semver = MagicMock(return_value=[1, 1, 0, 0])
-    _github.format_github_specific_release_notes_from_tracker_story_details = MagicMock(return_value='No Release Notes')
+    _github.format_github_specific_release_notes_from_project_tracker_story_details = MagicMock(return_value='No Release Notes')
 
     _tracker = MagicMock(Tracker)
     _tracker.get_details_for_all_stories = MagicMock(return_value=[])
@@ -250,6 +313,7 @@ def test_aggregator_github_version_tracker_release_no_publish():
     _config.json_config = mock_build_config_dict
     # _b.project_name = mock_build_config_dict['projectInfo']['name']
     _config.version_strategy = 'tracker'
+    _config.project_tracker = 'tracker'
     _config.artifact_category = 'release'
 
     _parser = ArgumentParser()
@@ -264,17 +328,81 @@ def test_aggregator_github_version_tracker_release_no_publish():
     _tracker.get_details_for_all_stories.assert_called_with(['12345678', '987654321'])
     _github.add_tag_and_release_notes_to_github.assert_not_called()
 
+def test_aggregator_github_version_jira_snapshot_no_publish():
+
+    _github = MagicMock(GitHub)
+    _github.get_highest_semver_tag = MagicMock(return_value=[1, 0, 0, 0])
+    _github.get_all_git_commit_history_between_provided_tags = MagicMock(return_value=['blah1 [#12345678]', 'blah2 [#987654321]'])
+    _github.calculate_next_semver = MagicMock(return_value=[1, 0, 0, 1])
+    _github.format_github_specific_release_notes_from_project_tracker_story_details = MagicMock(return_value='No Release Notes')
+
+    _jira = MagicMock(Jira)
+    _jira.get_details_for_all_stories = MagicMock(return_value=[])
+    _jira.extract_story_id_from_commit_messages = MagicMock(return_value=['12345678', '987654321'])
+
+    _config = MagicMock(BuildConfig)
+    # _b.build_env_info = mock_build_config_dict['environments']['develop']
+    _config.json_config = mock_build_config_dict
+    # _b.project_name = mock_build_config_dict['projectInfo']['name']
+    _config.version_strategy = 'jira'
+    _config.project_tracker = 'jira'
+    _config.artifact_category = 'snapshot'
+
+    _parser = ArgumentParser()
+    _parser.add_argument('--no-publish', action='store_true')
+    _parser.add_argument('--release-notes-output-path', type=open)
+    _args = _parser.parse_args(['--no-publish'])
+
+    flow.aggregator.call_github_version(_github, _jira, _config, args=_args)
+
+    _jira.get_details_for_all_stories.assert_called_with(['12345678', '987654321'])
+    _github.add_tag_and_release_notes_to_github.assert_not_called()
+
+
+def test_aggregator_github_version_jira_release_no_publish():
+
+    _github = MagicMock(GitHub)
+    _github.get_highest_semver_tag = MagicMock(return_value=[1, 0, 0, 0])
+    _github.get_all_git_commit_history_between_provided_tags = MagicMock(return_value=['blah1 [TEST-123]', 'blah2 [TEST-456]'])
+    _github.calculate_next_semver = MagicMock(return_value=[1, 1, 0, 0])
+    _github.format_github_specific_release_notes_from_project_tracker_story_details = MagicMock(return_value='No Release Notes')
+
+    _jira = MagicMock(Jira)
+    _jira.get_details_for_all_stories = MagicMock(return_value=[])
+    _jira.extract_story_id_from_commit_messages = MagicMock(return_value=['TEST-123', 'TEST-456'])
+
+    _config = MagicMock(BuildConfig)
+    # _b.build_env_info = mock_build_config_dict['environments']['develop']
+    _config.json_config = mock_build_config_dict
+    # _b.project_name = mock_build_config_dict['projectInfo']['name']
+    _config.version_strategy = 'jira'
+    _config.project_tracker = 'jira'
+    _config.artifact_category = 'release'
+
+    _parser = ArgumentParser()
+    _parser.add_argument('--no-publish', action='store_true')
+    _parser.add_argument('--release-notes-output-path', type=open)
+    _args = _parser.parse_args(['--no-publish'])
+
+    flow.aggregator.call_github_version(_github, _jira, _config, args=_args)
+
+    print(str(_github.method_calls))
+
+    _jira.get_details_for_all_stories.assert_called_with(['TEST-123', 'TEST-456'])
+    _github.add_tag_and_release_notes_to_github.assert_not_called()
+
 def test_aggregator_github_version_manual_release_no_publish():
 
     _github = MagicMock(GitHub)
     _github.convert_semver_string_to_semver_tag_array = MagicMock(return_value=[1, 1, 0, 0])
     _github.get_all_git_commit_history_between_provided_tags = MagicMock(return_value=['blah1 [#12345678]', 'blah2 [#987654321]'])
     _github.get_highest_semver_array_snapshot_tag_from_base = MagicMock(return_value=[1, 1, 0, 0])
-    _github.format_github_specific_release_notes_from_tracker_story_details = MagicMock(return_value='No Release Notes')
+    _github.format_github_specific_release_notes_from_project_tracker_story_details = MagicMock(return_value='No Release Notes')
 
     _config = MagicMock(BuildConfig)
     _config.json_config = mock_build_config_minimal
     _config.version_strategy = 'manual'
+    _config.project_tracker = None
     _config.artifact_category = 'release'
 
     _parser = ArgumentParser()
@@ -295,12 +423,13 @@ def test_aggregator_github_version_manual_snapshot_no_publish():
     _github.convert_semver_string_to_semver_tag_array = MagicMock(return_value=[1, 1, 0, 0])
     _github.get_all_git_commit_history_between_provided_tags = MagicMock(return_value=['blah1 [#12345678]', 'blah2 [#987654321]'])
     _github.get_highest_semver_array_snapshot_tag_from_base = MagicMock(return_value=[1, 1, 0, 0])
-    _github.format_github_specific_release_notes_from_tracker_story_details = MagicMock(return_value='No Release Notes')
+    _github.format_github_specific_release_notes_from_project_tracker_story_details = MagicMock(return_value='No Release Notes')
     _github.calculate_next_semver = MagicMock(return_value=[1,1,0,1])
 
     _config = MagicMock(BuildConfig)
     _config.json_config = mock_build_config_minimal
     _config.version_strategy = 'manual'
+    _config.project_tracker = None
     _config.artifact_category = 'snapshot'
 
     _parser = ArgumentParser()
@@ -321,7 +450,7 @@ def test_aggregator_github_version_tracker_snapshot_release_notes_output():
     _github.get_highest_semver_tag = MagicMock(return_value=[1, 0, 0, 0])
     _github.get_all_git_commit_history_between_provided_tags = MagicMock(return_value=['blah1 [#12345678]', 'blah2 [#987654321]'])
     _github.calculate_next_semver = MagicMock(return_value=[1, 0, 0, 1])
-    _github.format_github_specific_release_notes_from_tracker_story_details = MagicMock(return_value='No Release Notes')
+    _github.format_github_specific_release_notes_from_project_tracker_story_details = MagicMock(return_value='No Release Notes')
 
     _tracker = MagicMock(Tracker)
     _tracker.get_details_for_all_stories = MagicMock(return_value=[])
@@ -332,6 +461,7 @@ def test_aggregator_github_version_tracker_snapshot_release_notes_output():
     _config.json_config = mock_build_config_dict
     # _b.project_name = mock_build_config_dict['projectInfo']['name']
     _config.version_strategy = 'tracker'
+    _config.project_tracker = 'tracker'
     _config.artifact_category = 'snapshot'
 
     _args = MagicMock(
@@ -353,7 +483,7 @@ def test_aggregator_github_version_tracker_release_release_notes_output():
     _github.get_highest_semver_tag = MagicMock(return_value=[1, 0, 0, 0])
     _github.get_all_git_commit_history_between_provided_tags = MagicMock(return_value=['blah1 [#12345678]', 'blah2 [#987654321]'])
     _github.calculate_next_semver = MagicMock(return_value=[1, 1, 0, 0])
-    _github.format_github_specific_release_notes_from_tracker_story_details = MagicMock(return_value='No Release Notes')
+    _github.format_github_specific_release_notes_from_project_tracker_story_details = MagicMock(return_value='No Release Notes')
 
     _tracker = MagicMock(Tracker)
     _tracker.get_details_for_all_stories = MagicMock(return_value=[])
@@ -364,6 +494,7 @@ def test_aggregator_github_version_tracker_release_release_notes_output():
     _config.json_config = mock_build_config_dict
     # _b.project_name = mock_build_config_dict['projectInfo']['name']
     _config.version_strategy = 'tracker'
+    _config.project_tracker = 'tracker'
     _config.artifact_category = 'release'
 
     _args = Namespace(
@@ -380,6 +511,72 @@ def test_aggregator_github_version_tracker_release_release_notes_output():
     _github.add_tag_and_release_notes_to_github.assert_called_with([1, 1, 0, 0], 'No Release Notes')
     _args.release_notes_output_path.write.assert_called_once_with('No Release Notes')
 
+def test_aggregator_github_version_jira_snapshot_release_notes_output():
+
+    _github = MagicMock(GitHub)
+    _github.get_highest_semver_tag = MagicMock(return_value=[1, 0, 0, 0])
+    _github.get_all_git_commit_history_between_provided_tags = MagicMock(return_value=['blah1 [TEST-123]', 'blah2 [TEST-456]'])
+    _github.calculate_next_semver = MagicMock(return_value=[1, 0, 0, 1])
+    _github.format_github_specific_release_notes_from_project_tracker_story_details = MagicMock(return_value='No Release Notes')
+
+    _jira = MagicMock(Jira)
+    _jira.get_details_for_all_stories = MagicMock(return_value=[])
+    _jira.extract_story_id_from_commit_messages = MagicMock(return_value=['TEST-123', 'TEST-456'])
+
+    _config = MagicMock(BuildConfig)
+    # _b.build_env_info = mock_build_config_dict['environments']['develop']
+    _config.json_config = mock_build_config_dict
+    # _b.project_name = mock_build_config_dict['projectInfo']['name']
+    _config.version_strategy = 'jira'
+    _config.project_tracker = 'jira'
+    _config.artifact_category = 'snapshot'
+
+    _args = MagicMock(
+        release_notes_output_path=MagicMock(TextIOWrapper),
+        no_publish=False
+    )
+    _args.release_notes_output_path.write = MagicMock(return_value=None)
+
+    flow.aggregator.call_github_version(_github, _jira, _config, args=_args)
+
+    _jira.get_details_for_all_stories.assert_called_with(['TEST-123', 'TEST-456'])
+    _github.add_tag_and_release_notes_to_github.assert_called_with([1, 0, 0, 1], 'No Release Notes')
+    _args.release_notes_output_path.write.assert_called_once_with('No Release Notes')
+
+
+def test_aggregator_github_version_jira_release_release_notes_output():
+
+    _github = MagicMock(GitHub)
+    _github.get_highest_semver_tag = MagicMock(return_value=[1, 0, 0, 0])
+    _github.get_all_git_commit_history_between_provided_tags = MagicMock(return_value=['blah1 [TEST-123]', 'blah2 [TEST-456]'])
+    _github.calculate_next_semver = MagicMock(return_value=[1, 1, 0, 0])
+    _github.format_github_specific_release_notes_from_project_tracker_story_details = MagicMock(return_value='No Release Notes')
+
+    _jira = MagicMock(Jira)
+    _jira.get_details_for_all_stories = MagicMock(return_value=[])
+    _jira.extract_story_id_from_commit_messages = MagicMock(return_value=['TEST-123', 'TEST-456'])
+
+    _config = MagicMock(BuildConfig)
+    # _b.build_env_info = mock_build_config_dict['environments']['develop']
+    _config.json_config = mock_build_config_dict
+    # _b.project_name = mock_build_config_dict['projectInfo']['name']
+    _config.version_strategy = 'jira'
+    _config.project_tracker = 'jira'
+    _config.artifact_category = 'release'
+
+    _args = Namespace(
+        release_notes_output_path=MagicMock(TextIOWrapper),
+        no_publish=False
+    )
+    _args.release_notes_output_path.write = MagicMock(return_value=None)
+
+    flow.aggregator.call_github_version(_github, _jira, _config, args=_args)
+
+    print(str(_github.method_calls))
+
+    _jira.get_details_for_all_stories.assert_called_with(['TEST-123', 'TEST-456'])
+    _github.add_tag_and_release_notes_to_github.assert_called_with([1, 1, 0, 0], 'No Release Notes')
+    _args.release_notes_output_path.write.assert_called_once_with('No Release Notes')
 
 def test_aggregator_github_version_manual_release_release_notes_output():
 
@@ -387,11 +584,12 @@ def test_aggregator_github_version_manual_release_release_notes_output():
     _github.convert_semver_string_to_semver_tag_array = MagicMock(return_value=[1, 1, 0, 0])
     _github.get_all_git_commit_history_between_provided_tags = MagicMock(return_value=['blah1 [#12345678]', 'blah2 [#987654321]'])
     _github.get_highest_semver_array_snapshot_tag_from_base = MagicMock(return_value=[1, 1, 0, 0])
-    _github.format_github_specific_release_notes_from_tracker_story_details = MagicMock(return_value='No Release Notes')
+    _github.format_github_specific_release_notes_from_project_tracker_story_details = MagicMock(return_value='No Release Notes')
 
     _config = MagicMock(BuildConfig)
     _config.json_config = mock_build_config_minimal
     _config.version_strategy = 'manual'
+    _config.project_tracker = None
     _config.artifact_category = 'release'
 
     _args = Namespace(
@@ -415,12 +613,13 @@ def test_aggregator_github_version_manual_snapshot_release_notes_output():
     _github.convert_semver_string_to_semver_tag_array = MagicMock(return_value=[1, 1, 0, 0])
     _github.get_all_git_commit_history_between_provided_tags = MagicMock(return_value=['blah1 [#12345678]', 'blah2 [#987654321]'])
     _github.get_highest_semver_array_snapshot_tag_from_base = MagicMock(return_value=[1, 1, 0, 0])
-    _github.format_github_specific_release_notes_from_tracker_story_details = MagicMock(return_value='No Release Notes')
+    _github.format_github_specific_release_notes_from_project_tracker_story_details = MagicMock(return_value='No Release Notes')
     _github.calculate_next_semver = MagicMock(return_value=[1,1,0,1])
 
     _config = MagicMock(BuildConfig)
     _config.json_config = mock_build_config_minimal
     _config.version_strategy = 'manual'
+    _config.project_tracker = None
     _config.artifact_category = 'snapshot'
 
     _args = Namespace(
@@ -444,7 +643,7 @@ def test_aggregator_github_version_tracker_snapshot_no_publish_release_notes_out
     _github.get_highest_semver_tag = MagicMock(return_value=[1, 0, 0, 0])
     _github.get_all_git_commit_history_between_provided_tags = MagicMock(return_value=['blah1 [#12345678]', 'blah2 [#987654321]'])
     _github.calculate_next_semver = MagicMock(return_value=[1, 0, 0, 1])
-    _github.format_github_specific_release_notes_from_tracker_story_details = MagicMock(return_value='No Release Notes')
+    _github.format_github_specific_release_notes_from_project_tracker_story_details = MagicMock(return_value='No Release Notes')
 
     _tracker = MagicMock(Tracker)
     _tracker.get_details_for_all_stories = MagicMock(return_value=[])
@@ -455,6 +654,7 @@ def test_aggregator_github_version_tracker_snapshot_no_publish_release_notes_out
     _config.json_config = mock_build_config_dict
     # _b.project_name = mock_build_config_dict['projectInfo']['name']
     _config.version_strategy = 'tracker'
+    _config.project_tracker = 'tracker'
     _config.artifact_category = 'snapshot'
 
     _args = Namespace(
@@ -476,7 +676,7 @@ def test_aggregator_github_version_tracker_release_no_publish_release_notes_outp
     _github.get_highest_semver_tag = MagicMock(return_value=[1, 0, 0, 0])
     _github.get_all_git_commit_history_between_provided_tags = MagicMock(return_value=['blah1 [#12345678]', 'blah2 [#987654321]'])
     _github.calculate_next_semver = MagicMock(return_value=[1, 1, 0, 0])
-    _github.format_github_specific_release_notes_from_tracker_story_details = MagicMock(return_value='No Release Notes')
+    _github.format_github_specific_release_notes_from_project_tracker_story_details = MagicMock(return_value='No Release Notes')
 
     _tracker = MagicMock(Tracker)
     _tracker.get_details_for_all_stories = MagicMock(return_value=[])
@@ -487,6 +687,7 @@ def test_aggregator_github_version_tracker_release_no_publish_release_notes_outp
     _config.json_config = mock_build_config_dict
     # _b.project_name = mock_build_config_dict['projectInfo']['name']
     _config.version_strategy = 'tracker'
+    _config.project_tracker = 'tracker'
     _config.artifact_category = 'release'
 
     _args = Namespace(
@@ -503,6 +704,72 @@ def test_aggregator_github_version_tracker_release_no_publish_release_notes_outp
     _github.add_tag_and_release_notes_to_github.assert_not_called()
     _args.release_notes_output_path.write.assert_called_once_with('No Release Notes')
 
+def test_aggregator_github_version_jira_snapshot_no_publish_release_notes_output():
+
+    _github = MagicMock(GitHub)
+    _github.get_highest_semver_tag = MagicMock(return_value=[1, 0, 0, 0])
+    _github.get_all_git_commit_history_between_provided_tags = MagicMock(return_value=['blah1 [TEST-123]', 'blah2 [TEST-456]'])
+    _github.calculate_next_semver = MagicMock(return_value=[1, 0, 0, 1])
+    _github.format_github_specific_release_notes_from_project_tracker_story_details = MagicMock(return_value='No Release Notes')
+
+    _jira = MagicMock(Jira)
+    _jira.get_details_for_all_stories = MagicMock(return_value=[])
+    _jira.extract_story_id_from_commit_messages = MagicMock(return_value=['TEST-123', 'TEST-456'])
+
+    _config = MagicMock(BuildConfig)
+    # _b.build_env_info = mock_build_config_dict['environments']['develop']
+    _config.json_config = mock_build_config_dict
+    # _b.project_name = mock_build_config_dict['projectInfo']['name']
+    _config.version_strategy = 'jira'
+    _config.project_tracker = 'jira'
+    _config.artifact_category = 'snapshot'
+
+    _args = Namespace(
+        release_notes_output_path=MagicMock(TextIOWrapper),
+        no_publish=True
+    )
+    _args.release_notes_output_path.write = MagicMock(return_value=None)
+
+    flow.aggregator.call_github_version(_github, _jira, _config, args=_args)
+
+    _jira.get_details_for_all_stories.assert_called_with(['TEST-123', 'TEST-456'])
+    _github.add_tag_and_release_notes_to_github.assert_not_called()
+    _args.release_notes_output_path.write.assert_called_once_with('No Release Notes')
+
+
+def test_aggregator_github_version_jira_release_no_publish_release_notes_output():
+
+    _github = MagicMock(GitHub)
+    _github.get_highest_semver_tag = MagicMock(return_value=[1, 0, 0, 0])
+    _github.get_all_git_commit_history_between_provided_tags = MagicMock(return_value=['blah1 [TEST-123]', 'blah2 [TEST-456]'])
+    _github.calculate_next_semver = MagicMock(return_value=[1, 1, 0, 0])
+    _github.format_github_specific_release_notes_from_project_tracker_story_details = MagicMock(return_value='No Release Notes')
+
+    _jira = MagicMock(Jira)
+    _jira.get_details_for_all_stories = MagicMock(return_value=[])
+    _jira.extract_story_id_from_commit_messages = MagicMock(return_value=['TEST-123', 'TEST-456'])
+
+    _config = MagicMock(BuildConfig)
+    # _b.build_env_info = mock_build_config_dict['environments']['develop']
+    _config.json_config = mock_build_config_dict
+    # _b.project_name = mock_build_config_dict['projectInfo']['name']
+    _config.version_strategy = 'jira'
+    _config.project_tracker = 'jira'
+    _config.artifact_category = 'release'
+
+    _args = Namespace(
+        release_notes_output_path=MagicMock(TextIOWrapper),
+        no_publish=True
+    )
+    _args.release_notes_output_path.write = MagicMock(return_value=None)
+
+    flow.aggregator.call_github_version(_github, _jira, _config, args=_args)
+
+    print(str(_github.method_calls))
+
+    _jira.get_details_for_all_stories.assert_called_with(['TEST-123', 'TEST-456'])
+    _github.add_tag_and_release_notes_to_github.assert_not_called()
+    _args.release_notes_output_path.write.assert_called_once_with('No Release Notes')
 
 def test_aggregator_github_version_manual_release_no_publish_release_notes_output():
 
@@ -510,11 +777,12 @@ def test_aggregator_github_version_manual_release_no_publish_release_notes_outpu
     _github.convert_semver_string_to_semver_tag_array = MagicMock(return_value=[1, 1, 0, 0])
     _github.get_all_git_commit_history_between_provided_tags = MagicMock(return_value=['blah1 [#12345678]', 'blah2 [#987654321]'])
     _github.get_highest_semver_array_snapshot_tag_from_base = MagicMock(return_value=[1, 1, 0, 0])
-    _github.format_github_specific_release_notes_from_tracker_story_details = MagicMock(return_value='No Release Notes')
+    _github.format_github_specific_release_notes_from_project_tracker_story_details = MagicMock(return_value='No Release Notes')
 
     _config = MagicMock(BuildConfig)
     _config.json_config = mock_build_config_minimal
     _config.version_strategy = 'manual'
+    _config.project_tracker = None
     _config.artifact_category = 'release'
 
     _args = Namespace(
@@ -538,12 +806,13 @@ def test_aggregator_github_version_manual_snapshot_no_publish_release_notes_outp
     _github.convert_semver_string_to_semver_tag_array = MagicMock(return_value=[1, 1, 0, 0])
     _github.get_all_git_commit_history_between_provided_tags = MagicMock(return_value=['blah1 [#12345678]', 'blah2 [#987654321]'])
     _github.get_highest_semver_array_snapshot_tag_from_base = MagicMock(return_value=[1, 1, 0, 0])
-    _github.format_github_specific_release_notes_from_tracker_story_details = MagicMock(return_value='No Release Notes')
+    _github.format_github_specific_release_notes_from_project_tracker_story_details = MagicMock(return_value='No Release Notes')
     _github.calculate_next_semver = MagicMock(return_value=[1,1,0,1])
 
     _config = MagicMock(BuildConfig)
     _config.json_config = mock_build_config_minimal
     _config.version_strategy = 'manual'
+    _config.project_tracker = None
     _config.artifact_category = 'snapshot'
 
     _args = Namespace(
@@ -588,8 +857,26 @@ def test_aggregator_tracker_version_manual_release(mocker):
         flow.aggregator.get_git_commit_history.return_value = None
         mocker.patch.object(Tracker, 'tag_stories_in_commit')
         Tracker.tag_stories_in_commit.return_value = None
-        
+
         flow.aggregator.main()
+
+def test_aggregator_jira_version_manual_release(mocker):
+    with patch('sys.argv', ['flow', 'jira', '--version', '1.0.0.0', 'label-release', 'development']):
+        mocker.patch.object(GitHub, '__init__')
+        GitHub.__init__.return_value = None
+        mocker.patch.object(GitHub, 'get_git_last_tag')
+        GitHub.get_git_last_tag.return_value = '1.0.0.0'
+        mocker.patch.object(Jira, '__init__')
+        Jira.__init__.return_value = None
+        mocker.patch.object(Jira, 'extract_story_id_from_commit_messages')
+        Jira.extract_story_id_from_commit_messages.return_value = None
+        mocker.patch.object(flow.aggregator, 'get_git_commit_history')
+        flow.aggregator.get_git_commit_history.return_value = None
+        mocker.patch.object(Jira, 'tag_stories_in_commit')
+        Jira.tag_stories_in_commit.return_value = None
+
+        flow.aggregator.main()
+
 def test_aggregator_artifactory_version_manual_release(mocker):
     with patch('sys.argv', ['flow', 'artifactory', '--version', '1.0.0.0', 'upload', 'development']):
         mocker.patch.object(GitHub, '__init__')
@@ -600,9 +887,9 @@ def test_aggregator_artifactory_version_manual_release(mocker):
         Artifactory.__init__.return_value = None
         mocker.patch.object(Artifactory, 'publish_build_artifact')
         Artifactory.publish_build_artifact.return_value = None
-        
+
         flow.aggregator.main()
-        
+
 def test_aggregator_zipit_version_manual_release(mocker):
     with patch('sys.argv', ['flow', 'zipit', '--version', '1.0.0.0', '-z', 'somefile', '-c', 'somedir', 'development']):
         mocker.patch.object(GitHub, '__init__')
@@ -612,7 +899,7 @@ def test_aggregator_zipit_version_manual_release(mocker):
         mocker.patch.object(flow.aggregator, 'ZipIt')
         flow.aggregator.ZipIt.return_value = None
 
-        flow.aggregator.main()        
+        flow.aggregator.main()
 
 def test_aggregator_github_outputs_version():
     _github = MagicMock(GitHub)
@@ -620,7 +907,7 @@ def test_aggregator_github_outputs_version():
     _github.get_all_git_commit_history_between_provided_tags = MagicMock(return_value=['blah1 [#12345678]', 'blah2 [#987654321]'])
     _github.calculate_next_semver = MagicMock(return_value=[1, 1, 0, 0])
     _github.convert_semver_tag_array_to_semver_string = MagicMock(return_value='v1.1.0')
-    _github.format_github_specific_release_notes_from_tracker_story_details = MagicMock(return_value='No Release Notes')
+    _github.format_github_specific_release_notes_from_project_tracker_story_details = MagicMock(return_value='No Release Notes')
 
     _tracker = MagicMock(Tracker)
     _tracker.get_details_for_all_stories = MagicMock(return_value=[])
@@ -629,6 +916,7 @@ def test_aggregator_github_outputs_version():
     _config = MagicMock(BuildConfig)
 
     _config.version_strategy = 'tracker'
+    _config.project_tracker = 'tracker'
     _config.artifact_category = 'release'
 
     _open_mock = mock_open()
