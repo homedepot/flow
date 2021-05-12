@@ -5,6 +5,7 @@ import os
 from unittest.mock import MagicMock
 from unittest.mock import Mock
 from unittest.mock import patch
+from unittest.mock import call
 import pytest
 
 from flow.projecttracking.jira.jira import Jira
@@ -162,7 +163,7 @@ def mock_get_multiple_project_ids_response(*args, **kwargs):
     if args[0] == 'http://happy.happy.joy.joy/rest/api/3/project/TEST':
         project_data = {
             "id": "123456",
-            "self": "https://thd.atlassian.net/rest/api/3/project/fake",
+            "self": "http://happy.happy.joy.joy/rest/api/3/project/fake",
             "key": "TEST"
         }
         _response_mock.text = json.dumps(project_data, default=lambda o: o.__dict__, sort_keys=False, indent=4)
@@ -170,7 +171,7 @@ def mock_get_multiple_project_ids_response(*args, **kwargs):
     elif args[0] == 'http://happy.happy.joy.joy/rest/api/3/project/123456':
         project_data = {
             "id": "123456",
-            "self": "https://thd.atlassian.net/rest/api/3/project/fake",
+            "self": "http://happy.happy.joy.joy/rest/api/3/project/fake",
             "key": "TEST"
         }
         _response_mock.text = json.dumps(project_data, default=lambda o: o.__dict__, sort_keys=False, indent=4)
@@ -178,7 +179,7 @@ def mock_get_multiple_project_ids_response(*args, **kwargs):
     elif args[0] == 'http://happy.happy.joy.joy/rest/api/3/project/TEST2':
         project_data = {
             "id": "1234567",
-            "self": "https://thd.atlassian.net/rest/api/3/project/fake",
+            "self": "http://happy.happy.joy.joy/rest/api/3/project/fake",
             "key": "TEST2"
         }
         _response_mock.text = json.dumps(project_data, default=lambda o: o.__dict__, sort_keys=False, indent=4)
@@ -186,7 +187,7 @@ def mock_get_multiple_project_ids_response(*args, **kwargs):
     elif args[0] == 'http://happy.happy.joy.joy/rest/api/3/project/1234567':
         project_data = {
             "id": "1234567",
-            "self": "https://thd.atlassian.net/rest/api/3/project/fake",
+            "self": "http://happy.happy.joy.joy/rest/api/3/project/fake",
             "key": "TEST2"
         }
         _response_mock.text = json.dumps(project_data, default=lambda o: o.__dict__, sort_keys=False, indent=4)
@@ -203,6 +204,80 @@ def mock_get_multiple_project_ids_response(*args, **kwargs):
     print(_response_mock)
     return _response_mock
 
+def mock_get_project_versions(*args, **kwargs):
+    _response_mock = Mock()
+    _response_mock.text = ''
+    if args[0] == 'http://happy.happy.joy.joy/rest/api/3/project/TEST/versions':
+        project_data = [
+            {
+                "id": "11123",
+                "self": "http://happy.happy.joy.joy/rest/api/3/version/11123",
+                "name": "testproject-v0.1"
+            },
+            {
+                "id": "11124",
+                "self": "http://happy.happy.joy.joy/rest/api/3/version/11124",
+                "name": "testproject-v0.2"
+            }
+        ]
+        _response_mock.text = json.dumps(project_data, default=lambda o: o.__dict__, sort_keys=False, indent=4)
+        _response_mock.status_code = 200
+    elif args[0] == 'http://happy.happy.joy.joy/rest/api/3/project/123456/versions':
+        project_data = [
+            {
+                "id": "11123",
+                "self": "http://happy.happy.joy.joy/rest/api/3/version/11123",
+                "name": "testproject-v0.1"
+            },
+            {
+                "id": "11124",
+                "self": "http://happy.happy.joy.joy/rest/api/3/version/11124",
+                "name": "testproject-v0.2"
+            }
+        ]
+        _response_mock.text = json.dumps(project_data, default=lambda o: o.__dict__, sort_keys=False, indent=4)
+        _response_mock.status_code = 200
+    elif args[0] == 'http://happy.happy.joy.joy/rest/api/3/project/TEST2/versions':
+        project_data = [
+            {
+                "id": "11223",
+                "self": "http://happy.happy.joy.joy/rest/api/3/version/11223",
+                "name": "testproject-v0.9"
+            },
+            {
+                "id": "11224",
+                "self": "http://happy.happy.joy.joy/rest/api/3/version/11224",
+                "name": "testproject-v1.0"
+            }
+        ]
+        _response_mock.text = json.dumps(project_data, default=lambda o: o.__dict__, sort_keys=False, indent=4)
+        _response_mock.status_code = 200
+    elif args[0] == 'http://happy.happy.joy.joy/rest/api/3/project/1234567/versions':
+        project_data = [
+            {
+                "id": "11223",
+                "self": "http://happy.happy.joy.joy/rest/api/3/version/11223",
+                "name": "testproject-v0.9"
+            },
+            {
+                "id": "11224",
+                "self": "http://happy.happy.joy.joy/rest/api/3/version/11224",
+                "name": "testproject-v1.0"
+            }
+        ]
+        _response_mock.text = json.dumps(project_data, default=lambda o: o.__dict__, sort_keys=False, indent=4)
+        _response_mock.status_code = 200
+    else:
+        project_data = {
+            "errorMessage": [
+                "No project could be found with key/id"
+            ],
+            "errors": {}
+        }
+        _response_mock.text = json.dumps(project_data, default=lambda o: o.__dict__, sort_keys=False, indent=4)
+        _response_mock.status_code = 404
+    print(_response_mock)
+    return _response_mock
 
 def test_no_initialize_object(monkeypatch):
     monkeypatch.setenv('JIRA_USER', 'flow_tester@homedepot.com')
@@ -339,26 +414,173 @@ def test_tag_stories_in_commit(monkeypatch):
                 ]
             }
         }
+        json_version = json.dumps(version, default=lambda o: o.__dict__, sort_keys=False, indent=4)
         mock_get_request.side_effect = mock_get_multiple_project_ids_response
         _jira = Jira(config_override=_b)
-        mock_get_request.side_effect = None
+        mock_get_request.side_effect = mock_get_project_versions
         mock_post_request.return_value.text = ''
         mock_post_request.return_value.status_code = 201
         mock_put_request.return_value.text = ''
         mock_put_request.return_value.status_code = 204
-        
+
+        mock_get_calls = [
+            call('http://happy.happy.joy.joy/rest/api/3/project/TEST',
+                                     headers=headers, timeout=timeout),
+            call('http://happy.happy.joy.joy/rest/api/3/project/123456/versions',
+                                     headers=headers, timeout=timeout)
+        ]
+
         _jira.tag_stories_in_commit(story_list=['TEST-123', 'TEST-456'])
-        mock_post_request.assert_any_call('http://happy.happy.joy.joy/rest/api/3/version',
+        mock_get_request.assert_has_calls(mock_get_calls)
+        mock_post_request.assert_called_once_with('http://happy.happy.joy.joy/rest/api/3/version',
                                      json_project, headers=headers, timeout=timeout)
         mock_put_request.assert_any_call('http://happy.happy.joy.joy/rest/api/3/issue/TEST-123',
-                                     version, headers=headers, timeout=timeout)
-        mock_post_request.assert_any_call('http://happy.happy.joy.joy/rest/api/3/version',
-                                     json_project, headers=headers, timeout=timeout)
+                                     json_version, headers=headers, timeout=timeout)
         mock_put_request.assert_any_call('http://happy.happy.joy.joy/rest/api/3/issue/TEST-456',
-                                     version, headers=headers, timeout=timeout)
+                                     json_version, headers=headers, timeout=timeout)
+
+def test_tag_stories_in_commit_with_existing_version(monkeypatch):
+    monkeypatch.setenv('JIRA_USER', 'flow_tester@homedepot.com')
+    monkeypatch.setenv('JIRA_TOKEN', 'fake_token')
+
+    _b = MagicMock(BuildConfig)
+    _b.build_env_info = mock_build_config_dict['environments']['unittest']
+    _b.project_name = mock_build_config_dict['projectInfo']['name']
+    _b.version_number = 'v0.1'
+    _b.json_config = mock_build_config_dict
+
+    parser = configparser.ConfigParser()
+    parser.add_section('jira')
+    parser.set('jira', 'url', 'http://happy.happy.joy.joy')
+    _b.settings = parser
+    with patch('requests.get') as mock_get_request, patch('requests.post') as mock_post_request, patch('requests.put') as mock_put_request:
+        basic_auth = base64.b64encode("{0}:{1}".format('flow_tester@homedepot.com', 'fake_token').encode('ascii')).decode('ascii')
+        headers = {'Content-type': 'application/json', 'Accept': 'application/json', 'Authorization': 'Basic {0}'.format(basic_auth)}
+        timeout = 30
+        project = {
+                    "projectId" : "123456",
+                    "name": "testproject-v0.1"
+                }
+        json_project = json.dumps(project, default=lambda o: o.__dict__, sort_keys=False, indent=4)
+        version = {
+            "update": {
+                "fixVersions": [
+                    {
+                        "add": {
+                            "name": "testproject-v0.1"
+                        }
+                    }
+                ]
+            }
+        }
+        json_version = json.dumps(version, default=lambda o: o.__dict__, sort_keys=False, indent=4)
+        mock_get_request.side_effect = mock_get_multiple_project_ids_response
+        _jira = Jira(config_override=_b)
+        mock_get_request.side_effect = mock_get_project_versions
+        mock_post_request.return_value.text = ''
+        mock_post_request.return_value.status_code = 201
+        mock_put_request.return_value.text = ''
+        mock_put_request.return_value.status_code = 204
+
+        mock_get_calls = [
+            call('http://happy.happy.joy.joy/rest/api/3/project/TEST',
+                                     headers=headers, timeout=timeout),
+            call('http://happy.happy.joy.joy/rest/api/3/project/123456/versions',
+                                     headers=headers, timeout=timeout)
+        ]
+
+        _jira.tag_stories_in_commit(story_list=['TEST-123', 'TEST-456'])
+        mock_get_request.assert_has_calls(mock_get_calls)
+        mock_post_request.assert_not_called()
+        # ('http://happy.happy.joy.joy/rest/api/3/version',
+        #                              json_project, headers=headers, timeout=timeout)
+        mock_put_request.assert_any_call('http://happy.happy.joy.joy/rest/api/3/issue/TEST-123',
+                                     json_version, headers=headers, timeout=timeout)
+        mock_put_request.assert_any_call('http://happy.happy.joy.joy/rest/api/3/issue/TEST-456',
+                                     json_version, headers=headers, timeout=timeout)
 
 
 def test_tag_stories_in_commit_for_multiple_projects(monkeypatch):
+    monkeypatch.setenv('JIRA_USER', 'flow_tester@homedepot.com')
+    monkeypatch.setenv('JIRA_TOKEN', 'fake_token')
+
+    _b = MagicMock(BuildConfig)
+    _b.build_env_info = mock_build_config_dict_multi_projects['environments']['unittest']
+    _b.project_name = mock_build_config_dict_multi_projects['projectInfo']['name']
+    _b.version_number = 'v1.1'
+    _b.json_config = mock_build_config_dict_multi_projects
+
+    parser = configparser.ConfigParser()
+    parser.add_section('jira')
+    parser.set('jira', 'url', 'http://happy.happy.joy.joy')
+    _b.settings = parser
+    with patch('requests.get') as mock_get_request, patch('requests.post') as mock_post_request, patch('requests.put') as mock_put_request:
+        basic_auth = base64.b64encode("{0}:{1}".format('flow_tester@homedepot.com', 'fake_token').encode('ascii')).decode('ascii')
+        headers = {'Content-type': 'application/json', 'Accept': 'application/json', 'Authorization': 'Basic {0}'.format(basic_auth)}
+        timeout = 30
+        project = {
+                    "projectId" : "123456",
+                    "name": "testproject-v1.1"
+                }
+        json_project = json.dumps(project, default=lambda o: o.__dict__, sort_keys=False, indent=4)
+        project2 = {
+                    "projectId" : "1234567",
+                    "name": "testproject-v1.1"
+                }
+        json_project2 = json.dumps(project2, default=lambda o: o.__dict__, sort_keys=False, indent=4)
+        version = {
+            "update": {
+                "fixVersions": [
+                    {
+                        "add": {
+                            "name": "testproject-v1.1"
+                        }
+                    }
+                ]
+            }
+        }
+        json_version = json.dumps(version, default=lambda o: o.__dict__, sort_keys=False, indent=4)
+
+        mock_get_request.side_effect = mock_get_multiple_project_ids_response
+        _jira = Jira(config_override=_b)
+        mock_get_request.side_effect = mock_get_project_versions
+        mock_post_request.return_value.text = ''
+        mock_post_request.return_value.status_code = 201
+        mock_put_request.return_value.text = ''
+        mock_put_request.return_value.status_code = 204
+        mock_put_request.side_effect = mock_get_multiple_project_labels_response
+
+        mock_get_calls = [
+            call('http://happy.happy.joy.joy/rest/api/3/project/TEST',
+                                     headers=headers, timeout=timeout),
+            call('http://happy.happy.joy.joy/rest/api/3/project/TEST2',
+                                     headers=headers, timeout=timeout),
+            call('http://happy.happy.joy.joy/rest/api/3/project/123456/versions',
+                                     headers=headers, timeout=timeout),
+            call('http://happy.happy.joy.joy/rest/api/3/project/1234567/versions',
+                                     headers=headers, timeout=timeout)
+        ]
+
+        mock_post_calls = [
+            call('http://happy.happy.joy.joy/rest/api/3/version',
+                                     json_project, headers=headers, timeout=timeout),
+            call('http://happy.happy.joy.joy/rest/api/3/version',
+                                     json_project2, headers=headers, timeout=timeout)
+        ]
+        
+        mock_put_calls = [
+            call('http://happy.happy.joy.joy/rest/api/3/issue/TEST-123',
+                                     json_version, headers=headers, timeout=timeout),
+            call('http://happy.happy.joy.joy/rest/api/3/issue/TEST2-456',
+                                     json_version, headers=headers, timeout=timeout)
+        ]
+
+        _jira.tag_stories_in_commit(story_list=['TEST-123', 'TEST2-456'])
+        mock_get_request.assert_has_calls(mock_get_calls, any_order=True)
+        mock_post_request.assert_has_calls(mock_post_calls)
+        mock_put_request.assert_has_calls(mock_put_calls)
+
+def test_tag_stories_in_commit_for_multiple_projects_when_version_exists_on_one_project(monkeypatch):
     monkeypatch.setenv('JIRA_USER', 'flow_tester@homedepot.com')
     monkeypatch.setenv('JIRA_TOKEN', 'fake_token')
 
@@ -397,27 +619,45 @@ def test_tag_stories_in_commit_for_multiple_projects(monkeypatch):
                 ]
             }
         }
-        # json_version = json.dumps(version, default=lambda o: o.__dict__, sort_keys=False, indent=4)
+        json_version = json.dumps(version, default=lambda o: o.__dict__, sort_keys=False, indent=4)
 
         mock_get_request.side_effect = mock_get_multiple_project_ids_response
         _jira = Jira(config_override=_b)
-        mock_get_request.side_effect = None
+        mock_get_request.side_effect = mock_get_project_versions
         mock_post_request.return_value.text = ''
         mock_post_request.return_value.status_code = 201
         mock_put_request.return_value.text = ''
         mock_put_request.return_value.status_code = 204
         mock_put_request.side_effect = mock_get_multiple_project_labels_response
 
-        _jira.tag_stories_in_commit(story_list=['TEST-123', 'TEST2-456'])
-        mock_post_request.assert_any_call('http://happy.happy.joy.joy/rest/api/3/version',
-                                     json_project, headers=headers, timeout=timeout)
-        mock_put_request.assert_any_call('http://happy.happy.joy.joy/rest/api/3/issue/TEST-123',
-                                     version, headers=headers, timeout=timeout)
-        mock_post_request.assert_any_call('http://happy.happy.joy.joy/rest/api/3/version',
-                                     json_project2, headers=headers, timeout=timeout)
-        mock_put_request.assert_any_call('http://happy.happy.joy.joy/rest/api/3/issue/TEST2-456',
-                                     version, headers=headers, timeout=timeout)
+        mock_get_calls = [
+            call('http://happy.happy.joy.joy/rest/api/3/project/TEST',
+                                     headers=headers, timeout=timeout),
+            call('http://happy.happy.joy.joy/rest/api/3/project/TEST2',
+                                     headers=headers, timeout=timeout),
+            call('http://happy.happy.joy.joy/rest/api/3/project/123456/versions',
+                                     headers=headers, timeout=timeout),
+            call('http://happy.happy.joy.joy/rest/api/3/project/1234567/versions',
+                                     headers=headers, timeout=timeout)
+        ]
 
+        mock_post_calls = [
+            call('http://happy.happy.joy.joy/rest/api/3/version',
+                                     json_project, headers=headers, timeout=timeout)
+        ]
+
+        mock_put_calls = [
+            call('http://happy.happy.joy.joy/rest/api/3/issue/TEST-123',
+                                     json_version, headers=headers, timeout=timeout),
+            call('http://happy.happy.joy.joy/rest/api/3/issue/TEST2-456',
+                                     json_version, headers=headers, timeout=timeout)
+        ]
+
+        _jira.tag_stories_in_commit(story_list=['TEST-123', 'TEST2-456'])
+        mock_get_request.assert_has_calls(mock_get_calls, any_order=True)
+        mock_post_request.assert_has_calls(mock_post_calls)
+        assert mock_post_request.call_count == 1
+        mock_put_request.assert_has_calls(mock_put_calls)
 
 def test_story_bump_bug(monkeypatch):
     monkeypatch.setenv('JIRA_USER', 'flow_tester@homedepot.com')
@@ -798,7 +1038,7 @@ def test_flatten_story_details_with_story_details(monkeypatch):
             "story_type" : "bug",
             "id" : "TEST-123",
             "name" : "Test Bug",
-            "url" : "https://thd.atlassian.net/rest/api/3/issue/fake",
+            "url" : "http://happy.happy.joy.joy/browse/TEST-123",
             "current_state" : "In Progress",
             "description" : "This is a test bug description"
         },
@@ -806,7 +1046,7 @@ def test_flatten_story_details_with_story_details(monkeypatch):
             "story_type" : "bug",
             "id" : "TEST-456",
             "name" : "Another test Bug",
-            "url" : "https://thd.atlassian.net/rest/api/3/issue/fake2",
+            "url" : "http://happy.happy.joy.joy/browse/TEST-456",
             "current_state" : "Code Review",
             "description" : "Another test bug"
         }

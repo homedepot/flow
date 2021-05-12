@@ -184,9 +184,10 @@ class Jira(Project_Tracking):
         method = 'tag_stories_in_commit'
         commons.print_msg(Jira.clazz, method, 'begin')
 
+        version = '{0}-{1}'.format(self.config.project_name, self.config.version_number)
+        self._add_version_to_project(version)
+
         for story in story_list:
-            version = '{0}-{1}'.format(self.config.project_name, self.config.version_number)
-            self._add_version_to_project(version)
             self._add_version_to_story(story, version)
 
         commons.print_msg(Jira.clazz, method, 'end')
@@ -196,33 +197,70 @@ class Jira(Project_Tracking):
         commons.print_msg(Jira.clazz, method, 'begin')
 
         for idx, project_id in enumerate(self.project_keys):
-            version_to_post = Object()
-            version_to_post.projectId = project_id[0]
-            version_to_post.name = version.lower()
+            does_version_exist = self._determine_if_project_version_exists(project_id[0], version.lower())
+            print(does_version_exist)
+            if does_version_exist:
+                commons.print_msg(Jira.clazz, method, 'Version {version} already exists for project {project}, skipping.'.format(version=version.lower(), project=project_id[1]))
+            else:
+                version_to_post = Object()
+                version_to_post.projectId = project_id[0]
+                version_to_post.name = version.lower()
+                
+                jira_url = "{url}/rest/api/3/version".format(url=Jira.jira_url)
 
-            jira_url = "{url}/rest/api/3/version".format(url=Jira.jira_url)
+                headers = {'Content-type': 'application/json', 'Accept': 'application/json',
+                        'Authorization': 'Basic {0}'.format(Jira.jira_basic_auth)}
 
-            headers = {'Content-type': 'application/json', 'Accept': 'application/json',
-                       'Authorization': 'Basic {0}'.format(Jira.jira_basic_auth)}
+                commons.print_msg(Jira.clazz, method, 'Post body for create project version:\n{}'.format(version_to_post.to_JSON()))
 
-            commons.print_msg(Jira.clazz, method, version_to_post.to_JSON())
+                try:
+                    resp = requests.post(jira_url, version_to_post.to_JSON(), headers=headers, timeout=self.http_timeout)
 
-            try:
-                resp = requests.post(jira_url, version_to_post.to_JSON(), headers=headers, timeout=self.http_timeout)
-
-                if resp.status_code != 201:
-                    commons.print_msg(Jira.clazz, method, "Unable to create version {version} for project {project} \r\n "
-                                                          "Response: {response}".format(version=version, project=project_id[1], response=resp.text), 'WARN')
-                else: 
-                    commons.print_msg(Jira.clazz, method, resp.text)
-            except requests.ConnectionError as e:
-                commons.print_msg(Jira.clazz, method, 'Connection error. ' + str(e), 'WARN')
-            except Exception as e:
-                commons.print_msg(Jira.clazz, method, "Unable to create version {version} for project {project}".format(
-                    version=version, project=project_id[1]), 'WARN')
-                commons.print_msg(Jira.clazz, method, e, 'WARN')
+                    if resp.status_code != 201:
+                        commons.print_msg(Jira.clazz, method, "Unable to create version {version} for project {project} \r\n "
+                                                            "Response: {response}".format(version=version, project=project_id[1], response=resp.text), 'WARN')
+                    else: 
+                        commons.print_msg(Jira.clazz, method, resp.text)
+                except requests.ConnectionError as e:
+                    commons.print_msg(Jira.clazz, method, 'Connection error. ' + str(e), 'WARN')
+                except Exception as e:
+                    commons.print_msg(Jira.clazz, method, "Unable to create version {version} for project {project}".format(
+                        version=version, project=project_id[1]), 'WARN')
+                    commons.print_msg(Jira.clazz, method, e, 'WARN')
 
         commons.print_msg(Jira.clazz, method, 'end')
+
+    def _determine_if_project_version_exists(self, project_id, version):
+        method = '_determine_if_project_version_exists'
+        commons.print_msg(Jira.clazz, method, 'begin')
+
+        jira_url = "{url}/rest/api/3/project/{project}/versions".format(url=Jira.jira_url, project=project_id)
+
+        headers = {'Content-type': 'application/json', 'Accept': 'application/json',
+                    'Authorization': 'Basic {0}'.format(Jira.jira_basic_auth)}
+
+        version_exists = False
+
+        try:
+            resp = requests.get(jira_url, headers=headers, timeout=self.http_timeout)
+            if resp.status_code != 200:
+                    commons.print_msg(Jira.clazz, method, "Unable to fetch versions for project {project} \r\n "
+                                                          "Response: {response}".format(project=project_id, response=resp.text), 'WARN')
+                    return False
+            else:
+                project_versions = json.loads(resp.text)
+                version_exists = any(v['name'] == version for v in project_versions)
+                print(version)
+                print(project_versions)
+        except requests.ConnectionError as e:
+                commons.print_msg(Jira.clazz, method, 'Connection error. ' + str(e), 'WARN')
+        except Exception as e:
+            commons.print_msg(Jira.clazz, method, "Unable to fetch versions for project {project} \r\n "
+                                                          "Response: {response}".format(project=project_id, response=resp.text), 'WARN')
+            commons.print_msg(Jira.clazz, method, e, 'WARN')
+
+        commons.print_msg(Jira.clazz, method, 'end')
+        return version_exists
 
     def _add_version_to_story(self, story_id, version):
         method = '_add_version_to_story'
@@ -233,7 +271,7 @@ class Jira(Project_Tracking):
         headers = {'Content-type': 'application/json', 'Accept': 'application/json',
                        'Authorization': 'Basic {0}'.format(Jira.jira_basic_auth)}
 
-        put_data = {
+        data = {
             "update": {
                 "fixVersions": [
                     {
@@ -244,6 +282,8 @@ class Jira(Project_Tracking):
                 ]
             }
         }
+
+        put_data = json.dumps(data, default=lambda o: o.__dict__, sort_keys=False, indent=4)
 
         commons.print_msg(Jira.clazz, method, jira_url)
 
@@ -353,7 +393,7 @@ class Jira(Project_Tracking):
             story_release_note_summary['story_type'] = story.get('fields').get('issuetype').get('name').lower()
             story_release_note_summary['id'] = story.get('key').upper()
             story_release_note_summary['name'] = story.get('fields').get('summary')
-            story_release_note_summary['url'] = story.get('self')
+            story_release_note_summary['url'] = '{0}/browse/{1}'.format(Jira.jira_url, story.get('key').upper())
             story_release_note_summary['current_state'] = story.get('fields').get('status').get('name')
             description_text = []
             for i, description_content in enumerate(story.get('fields').get('description').get('content')):
