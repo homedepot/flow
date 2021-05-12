@@ -1041,7 +1041,7 @@ def test_flatten_story_details_with_empty_story_details(monkeypatch):
         _jira = Jira(config_override=_b)
 
         flat_story_details = _jira.flatten_story_details([])
-        assert flat_story_details is None
+        assert len(flat_story_details) == 0
 
 def test_flatten_story_details_with_story_details(monkeypatch):
     monkeypatch.setenv('JIRA_USER', 'flow_tester@homedepot.com')
