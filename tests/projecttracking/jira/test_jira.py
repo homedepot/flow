@@ -6,6 +6,7 @@ from unittest.mock import MagicMock
 from unittest.mock import Mock
 from unittest.mock import patch
 from unittest.mock import call
+from unittest.mock import ANY
 import pytest
 
 from flow.projecttracking.jira.jira import Jira
@@ -399,10 +400,9 @@ def test_tag_stories_in_commit(monkeypatch):
         headers = {'Content-type': 'application/json', 'Accept': 'application/json', 'Authorization': 'Basic {0}'.format(basic_auth)}
         timeout = 30
         project = {
-                    "projectId" : "123456",
-                    "name": "testproject-v1.0"
-                }
-        json_project = json.dumps(project, default=lambda o: o.__dict__, sort_keys=False, indent=4)
+            "projectId" : "123456",
+            "name": "testproject-v1.0"
+        }
         version = {
             "update": {
                 "fixVersions": [
@@ -414,7 +414,6 @@ def test_tag_stories_in_commit(monkeypatch):
                 ]
             }
         }
-        json_version = json.dumps(version, default=lambda o: o.__dict__, sort_keys=False, indent=4)
         mock_get_request.side_effect = mock_get_multiple_project_ids_response
         _jira = Jira(config_override=_b)
         mock_get_request.side_effect = mock_get_project_versions
@@ -433,11 +432,20 @@ def test_tag_stories_in_commit(monkeypatch):
         _jira.tag_stories_in_commit(story_list=['TEST-123', 'TEST-456'])
         mock_get_request.assert_has_calls(mock_get_calls)
         mock_post_request.assert_called_once_with('http://happy.happy.joy.joy/rest/api/3/version',
-                                     json_project, headers=headers, timeout=timeout)
+                                     ANY, headers=headers, timeout=timeout)
+        mock_post_request_calls = mock_post_request.call_args_list
+        call_args, call_kwargs = mock_post_request_calls[0]
+        post_data_arg = call_args[1]
+        assert project == json.loads(post_data_arg)
         mock_put_request.assert_any_call('http://happy.happy.joy.joy/rest/api/3/issue/TEST-123',
-                                     json_version, headers=headers, timeout=timeout)
+                                     ANY, headers=headers, timeout=timeout)
         mock_put_request.assert_any_call('http://happy.happy.joy.joy/rest/api/3/issue/TEST-456',
-                                     json_version, headers=headers, timeout=timeout)
+                                     ANY, headers=headers, timeout=timeout)
+        mock_put_request_calls = mock_put_request.call_args_list
+        for i, put_call in enumerate(mock_put_request_calls):
+            call_args, call_kwargs = put_call
+            put_data_arg = call_args[1]
+            assert version == json.loads(put_data_arg)
 
 def test_tag_stories_in_commit_with_existing_version(monkeypatch):
     monkeypatch.setenv('JIRA_USER', 'flow_tester@homedepot.com')
@@ -458,10 +466,9 @@ def test_tag_stories_in_commit_with_existing_version(monkeypatch):
         headers = {'Content-type': 'application/json', 'Accept': 'application/json', 'Authorization': 'Basic {0}'.format(basic_auth)}
         timeout = 30
         project = {
-                    "projectId" : "123456",
-                    "name": "testproject-v0.1"
-                }
-        json_project = json.dumps(project, default=lambda o: o.__dict__, sort_keys=False, indent=4)
+            "projectId" : "123456",
+            "name": "testproject-v0.1"
+        }
         version = {
             "update": {
                 "fixVersions": [
@@ -473,7 +480,6 @@ def test_tag_stories_in_commit_with_existing_version(monkeypatch):
                 ]
             }
         }
-        json_version = json.dumps(version, default=lambda o: o.__dict__, sort_keys=False, indent=4)
         mock_get_request.side_effect = mock_get_multiple_project_ids_response
         _jira = Jira(config_override=_b)
         mock_get_request.side_effect = mock_get_project_versions
@@ -492,12 +498,15 @@ def test_tag_stories_in_commit_with_existing_version(monkeypatch):
         _jira.tag_stories_in_commit(story_list=['TEST-123', 'TEST-456'])
         mock_get_request.assert_has_calls(mock_get_calls)
         mock_post_request.assert_not_called()
-        # ('http://happy.happy.joy.joy/rest/api/3/version',
-        #                              json_project, headers=headers, timeout=timeout)
         mock_put_request.assert_any_call('http://happy.happy.joy.joy/rest/api/3/issue/TEST-123',
-                                     json_version, headers=headers, timeout=timeout)
+                                     ANY, headers=headers, timeout=timeout)
         mock_put_request.assert_any_call('http://happy.happy.joy.joy/rest/api/3/issue/TEST-456',
-                                     json_version, headers=headers, timeout=timeout)
+                                     ANY, headers=headers, timeout=timeout)
+        mock_put_request_calls = mock_put_request.call_args_list
+        for i, put_call in enumerate(mock_put_request_calls):
+            call_args, call_kwargs = put_call
+            put_data_arg = call_args[1]
+            assert version == json.loads(put_data_arg)
 
 
 def test_tag_stories_in_commit_for_multiple_projects(monkeypatch):
@@ -522,12 +531,10 @@ def test_tag_stories_in_commit_for_multiple_projects(monkeypatch):
                     "projectId" : "123456",
                     "name": "testproject-v1.1"
                 }
-        json_project = json.dumps(project, default=lambda o: o.__dict__, sort_keys=False, indent=4)
         project2 = {
                     "projectId" : "1234567",
                     "name": "testproject-v1.1"
                 }
-        json_project2 = json.dumps(project2, default=lambda o: o.__dict__, sort_keys=False, indent=4)
         version = {
             "update": {
                 "fixVersions": [
@@ -539,8 +546,6 @@ def test_tag_stories_in_commit_for_multiple_projects(monkeypatch):
                 ]
             }
         }
-        json_version = json.dumps(version, default=lambda o: o.__dict__, sort_keys=False, indent=4)
-
         mock_get_request.side_effect = mock_get_multiple_project_ids_response
         _jira = Jira(config_override=_b)
         mock_get_request.side_effect = mock_get_project_versions
@@ -563,22 +568,34 @@ def test_tag_stories_in_commit_for_multiple_projects(monkeypatch):
 
         mock_post_calls = [
             call('http://happy.happy.joy.joy/rest/api/3/version',
-                                     json_project, headers=headers, timeout=timeout),
+                                     ANY, headers=headers, timeout=timeout),
             call('http://happy.happy.joy.joy/rest/api/3/version',
-                                     json_project2, headers=headers, timeout=timeout)
+                                     ANY, headers=headers, timeout=timeout)
         ]
         
         mock_put_calls = [
             call('http://happy.happy.joy.joy/rest/api/3/issue/TEST-123',
-                                     json_version, headers=headers, timeout=timeout),
+                                     ANY, headers=headers, timeout=timeout),
             call('http://happy.happy.joy.joy/rest/api/3/issue/TEST2-456',
-                                     json_version, headers=headers, timeout=timeout)
+                                     ANY, headers=headers, timeout=timeout)
         ]
 
         _jira.tag_stories_in_commit(story_list=['TEST-123', 'TEST2-456'])
         mock_get_request.assert_has_calls(mock_get_calls, any_order=True)
         mock_post_request.assert_has_calls(mock_post_calls)
+        mock_post_request_calls = mock_post_request.call_args_list
+        call_args, call_kwargs = mock_post_request_calls[0]
+        post_data_arg = call_args[1]
+        assert project == json.loads(post_data_arg)
+        call_args2, call_kwargs2 = mock_post_request_calls[1]
+        post_data_arg2 = call_args2[1]
+        assert project2 == json.loads(post_data_arg2)
         mock_put_request.assert_has_calls(mock_put_calls)
+        mock_put_request_calls = mock_put_request.call_args_list
+        for i, put_call in enumerate(mock_put_request_calls):
+            call_args, call_kwargs = put_call
+            put_data_arg = call_args[1]
+            assert version == json.loads(put_data_arg)
 
 def test_tag_stories_in_commit_for_multiple_projects_when_version_exists_on_one_project(monkeypatch):
     monkeypatch.setenv('JIRA_USER', 'flow_tester@homedepot.com')
@@ -602,12 +619,10 @@ def test_tag_stories_in_commit_for_multiple_projects_when_version_exists_on_one_
                     "projectId" : "123456",
                     "name": "testproject-v1.0"
                 }
-        json_project = json.dumps(project, default=lambda o: o.__dict__, sort_keys=False, indent=4)
         project2 = {
                     "projectId" : "1234567",
                     "name": "testproject-v1.0"
                 }
-        json_project2 = json.dumps(project2, default=lambda o: o.__dict__, sort_keys=False, indent=4)
         version = {
             "update": {
                 "fixVersions": [
@@ -619,8 +634,6 @@ def test_tag_stories_in_commit_for_multiple_projects_when_version_exists_on_one_
                 ]
             }
         }
-        json_version = json.dumps(version, default=lambda o: o.__dict__, sort_keys=False, indent=4)
-
         mock_get_request.side_effect = mock_get_multiple_project_ids_response
         _jira = Jira(config_override=_b)
         mock_get_request.side_effect = mock_get_project_versions
@@ -643,21 +656,30 @@ def test_tag_stories_in_commit_for_multiple_projects_when_version_exists_on_one_
 
         mock_post_calls = [
             call('http://happy.happy.joy.joy/rest/api/3/version',
-                                     json_project, headers=headers, timeout=timeout)
+                                     ANY, headers=headers, timeout=timeout)
         ]
 
         mock_put_calls = [
             call('http://happy.happy.joy.joy/rest/api/3/issue/TEST-123',
-                                     json_version, headers=headers, timeout=timeout),
+                                     ANY, headers=headers, timeout=timeout),
             call('http://happy.happy.joy.joy/rest/api/3/issue/TEST2-456',
-                                     json_version, headers=headers, timeout=timeout)
+                                     ANY, headers=headers, timeout=timeout)
         ]
 
         _jira.tag_stories_in_commit(story_list=['TEST-123', 'TEST2-456'])
         mock_get_request.assert_has_calls(mock_get_calls, any_order=True)
         mock_post_request.assert_has_calls(mock_post_calls)
         assert mock_post_request.call_count == 1
+        mock_post_request_calls = mock_post_request.call_args_list
+        call_args, call_kwargs = mock_post_request_calls[0]
+        post_data_arg = call_args[1]
+        assert project == json.loads(post_data_arg)
         mock_put_request.assert_has_calls(mock_put_calls)
+        mock_put_request_calls = mock_put_request.call_args_list
+        for i, put_call in enumerate(mock_put_request_calls):
+            call_args, call_kwargs = put_call
+            put_data_arg = call_args[1]
+            assert version == json.loads(put_data_arg)
 
 def test_story_bump_bug(monkeypatch):
     monkeypatch.setenv('JIRA_USER', 'flow_tester@homedepot.com')
