@@ -205,8 +205,7 @@ class GitHub(Code_Repo):
 
         commons.print_msg(GitHub.clazz, method, 'end')
 
-    # TODO story details format shouldn't be specific to tracker.  Need to make a common story detail object instead.
-    def format_github_specific_release_notes_from_tracker_story_details(self, story_details):
+    def format_github_specific_release_notes_from_project_tracker_story_details(self, story_details):
 
         formatted_release_notes = None
 

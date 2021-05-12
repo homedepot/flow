@@ -1,0 +1,96 @@
+{
+    "stories":[
+        {
+            "id": "123456",
+            "self": "https://thd.atlassian.net/rest/api/3/issue/fake",
+            "key": "TEST-123",
+            "fields": {
+                "issuetype": {
+                    "name": "Bug"
+                },
+                "project": {
+                    "id": "123456",
+                    "key": "TEST"
+                },
+                "created": "2021-05-04T15:45:03Z",
+                "updated": "2021-05-04T16:23:33Z",
+                "creator": {
+                    "accountId": "12345:AAAAAAAA-AAAA-AA11-1111-111111111111"
+                },
+                "assignee": {
+                    "accountId": "12345:AAAA1111-BBBB-2222-CCCC-3333DDDD4444"
+                },
+                "summary": "Test Bug",
+                "description": {
+                    "content": [
+                        {
+                            "type": "paragraph",
+                            "content": [
+                                {
+                                    "type": "text",
+                                    "text": "This is a test bug description"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "components": [
+                    { "name": "TEST Component" },
+                    { "name": "TEST Component 2"}
+                ],
+                "labels": [
+                    "TEST"
+                ],
+                "status": {
+                    "name": "In Progress"
+                }
+            }
+        },
+        {
+            "id": "12345678",
+            "self": "https://thd.atlassian.net/rest/api/3/issue/fake2",
+            "key": "TEST-456",
+            "fields": {
+                "issuetype": {
+                    "name": "Bug"
+                },
+                "project": {
+                    "id": "123456",
+                    "key": "TEST"
+                },
+                "created": "2021-05-04T15:45:03Z",
+                "updated": "2021-05-04T16:23:33Z",
+                "creator": {
+                    "accountId": "12345:AAAAAAAA-AAAA-AA11-1111-111111111111"
+                },
+                "assignee": {
+                    "accountId": "12345:AAAA1111-BBBB-2222-CCCC-3333DDDD4444"
+                },
+                "summary": "Another test Bug",
+                "description": {
+                    "content": [
+                        {
+                            "type": "paragraph",
+                            "content": [
+                                {
+                                    "type": "text",
+                                    "text": "Another test bug"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "components": [
+                    { "name": "TEST Component" },
+                    { "name": "TEST Component 2"}
+                ],
+                "labels": [
+                    "TEST"
+                ],
+                "status": {
+                    "name": "Code Review"
+                }
+            }
+        }
+    ]
+}

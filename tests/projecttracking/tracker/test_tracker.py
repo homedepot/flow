@@ -432,3 +432,159 @@ def test_init_missing_env_variable(monkeypatch):
         mock_printmsg_fn.assert_called_with('Tracker', '__init__',
                                             "No tracker token found in environment.  Did you define environment variable 'TRACKER_TOKEN'?",
                                             'ERROR')
+
+def test_extract_story_id_with_empty_list(monkeypatch):
+    monkeypatch.setenv('TRACKER_TOKEN', 'fake_token')
+
+    _b = MagicMock(BuildConfig)
+    _b.build_env_info = mock_build_config_dict['environments']['unittest']
+    _b.json_config = mock_build_config_dict
+
+    _tracker = Tracker(config_override=_b)
+    story_list = _tracker.extract_story_id_from_commit_messages([])
+    assert len(story_list) == 0
+
+commit_example = [
+"223342f Adding ability to specify artifactory user [#134082057]",
+"4326d00 Adding slack channel option for errors [#130798449]",
+"09c1983 Merge pull request #25 from ci-cd/revert-18-github-version-fix",
+"445fd02 Revert \"GitHub version fix\""
+]
+
+def test_extract_story_id_with_two_stories(monkeypatch):
+    monkeypatch.setenv('TRACKER_TOKEN', 'fake_token')
+
+    _b = MagicMock(BuildConfig)
+    _b.build_env_info = mock_build_config_dict['environments']['unittest']
+    _b.json_config = mock_build_config_dict
+
+    _tracker = Tracker(config_override=_b)
+    story_list = _tracker.extract_story_id_from_commit_messages(commit_example)
+    assert len(story_list) == 2
+
+commit_example_nested_brackets = [
+"223342f Adding ability to specify artifactory user [#134082057, [bubba]]",
+"4326d00 Adding slack channel option for errors [#130798449]",
+"09c1983 Merge pull request #25 from ci-cd/revert-18-github-version-fix",
+"445fd02 Revert \"GitHub version fix\""
+]
+
+def test_extract_story_id_with_nested_brackets(monkeypatch):
+    monkeypatch.setenv('TRACKER_TOKEN', 'fake_token')
+
+    _b = MagicMock(BuildConfig)
+    _b.build_env_info = mock_build_config_dict['environments']['unittest']
+    _b.json_config = mock_build_config_dict
+
+    _tracker = Tracker(config_override=_b)
+    story_list = _tracker.extract_story_id_from_commit_messages(commit_example_nested_brackets)
+    print(str(story_list))
+    assert len(story_list) == 1
+
+
+commit_example_multiple_per_brackets = [
+"223342f Adding ability to specify artifactory user [#134082057,#134082058]",
+"4326d00 Adding slack channel option for errors [#130798449,123456]",
+"09c1983 Merge pull request #25 from ci-cd/revert-18-github-version-fix",
+"445fd02 Revert \"GitHub version fix\""
+]
+
+def test_extract_story_id_with_multiple_per_brackets(monkeypatch):
+    monkeypatch.setenv('TRACKER_TOKEN', 'fake_token')
+
+    _b = MagicMock(BuildConfig)
+    _b.build_env_info = mock_build_config_dict['environments']['unittest']
+    _b.json_config = mock_build_config_dict
+
+    _tracker = Tracker(config_override=_b)
+    story_list = _tracker.extract_story_id_from_commit_messages(commit_example_multiple_per_brackets)
+    print(str(story_list))
+    assert len(story_list) == 4
+
+
+
+commit_example_dedup = [
+"223342f Adding ability to specify artifactory user [#134082057,#134082057]",
+"4326d00 Adding slack channel option for errors [#134082057,134082057]",
+"09c1983 Merge pull request #25 from ci-cd/revert-18-github-version-fix",
+"445fd02 Revert \"GitHub version fix\""
+]
+
+def test_extract_story_id_with_dedup(monkeypatch):
+    monkeypatch.setenv('TRACKER_TOKEN', 'fake_token')
+
+    _b = MagicMock(BuildConfig)
+    _b.build_env_info = mock_build_config_dict['environments']['unittest']
+    _b.json_config = mock_build_config_dict
+
+    _tracker = Tracker(config_override=_b)
+    story_list = _tracker.extract_story_id_from_commit_messages(commit_example_dedup)
+    print(str(story_list))
+    assert len(story_list) == 1
+
+def test_flatten_story_details_with_None_story_details(monkeypatch):
+    monkeypatch.setenv('TRACKER_TOKEN', 'fake_token')
+
+    _b = MagicMock(BuildConfig)
+    _b.build_env_info = mock_build_config_dict['environments']['unittest']
+    _b.json_config = mock_build_config_dict
+
+    _tracker = Tracker(config_override=_b)
+
+    flat_story_details = _tracker.flatten_story_details(None)
+    assert flat_story_details is None
+
+def test_flatten_story_details_with_empty_story_details(monkeypatch):
+    monkeypatch.setenv('TRACKER_TOKEN', 'fake_token')
+
+    _b = MagicMock(BuildConfig)
+    _b.build_env_info = mock_build_config_dict['environments']['unittest']
+    _b.json_config = mock_build_config_dict
+
+    _tracker = Tracker(config_override=_b)
+
+    flat_story_details = _tracker.flatten_story_details([])
+    assert flat_story_details is None
+
+def test_flatten_story_details_with_story_details(monkeypatch):
+    monkeypatch.setenv('TRACKER_TOKEN', 'fake_token')
+
+    _b = MagicMock(BuildConfig)
+    _b.build_env_info = mock_build_config_dict['environments']['unittest']
+    _b.json_config = mock_build_config_dict
+
+    flat_story_expected = [
+        {
+            "story_type" : "bug",
+            "id" : 123456,
+            "name" : "Test Bug",
+            "url" : "https://www.pivotaltracker.com/story/show/fake",
+            "current_state" : "started",
+            "description" : "This is a test bug description"
+        },
+        {
+            "story_type" : "bug",
+            "id" : 12345678,
+            "name" : "Another test bug",
+            "url" : "https://www.pivotaltracker.com/story/show/fake",
+            "current_state" : "started",
+            "description" : "Another test bug"
+        }
+    ]
+
+    _tracker = Tracker(config_override=_b)
+
+    current_test_directory = os.path.dirname(os.path.realpath(__file__))
+    with open(current_test_directory + "/tracker_stories_bug.json", 'r') as myfile:
+        tracker_data = myfile.read()
+    story_details = json.loads(tracker_data).get('stories')
+
+    flat_story_details = _tracker.flatten_story_details(story_details)
+    assert flat_story_expected == flat_story_details
+    for story in flat_story_details:
+        assert 'story_type' in story
+        assert 'id' in story
+        assert 'name' in story
+        assert 'description' in story
+        assert 'url' in story
+        assert 'current_state' in story

@@ -1,0 +1,14 @@
+{
+    "projects":[
+        {
+            "id": "123456",
+            "self": "https://thd.atlassian.net/rest/api/3/project/fake",
+            "key": "TEST"
+        },
+        {
+            "id": "1234567",
+            "self": "https://thd.atlassian.net/rest/api/3/project/fake",
+            "key": "TEST2"
+        }
+    ]
+}

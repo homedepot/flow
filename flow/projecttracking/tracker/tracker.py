@@ -1,5 +1,6 @@
 import json
 import os
+import re
 
 import requests
 from flow.buildconfig import BuildConfig
@@ -207,3 +208,69 @@ class Tracker(Project_Tracking):
         commons.print_msg(Tracker.clazz, method, 'end')
 
         return bump_type
+
+    def extract_story_id_from_commit_messages(self, commit_messages):
+        method = 'extract_story_id_from_commit_messages'
+        commons.print_msg(Tracker.clazz, method, 'begin')
+
+        story_list = []
+
+        for commit_string in commit_messages:
+            # check if there is a starting bracket and if there are balanced brackets
+            if commit_string.count('[') > 0 and commit_string.count('[') == commit_string.count(']'):
+                # for each starting bracket
+                for m in re.finditer('\[', commit_string):
+                    # find the next subsequent ending bracket
+                    ending_bracket = commit_string.find(']', m.start())
+                    # find the contents between the brackets
+                    stories = commit_string[m.start()+1:ending_bracket]
+
+                    # verify there isn't a embedded bracket, if so just skip this one and keep marching.
+                    if stories.find('[') == -1:  # there is a nested starting bracket
+                        # now dig out the tracker number or jira key in single number format or multiple separated by commas.
+                        r = re.compile('[0-9,]+(,[0-9]+)*,?')
+                        stories = ''.join(filter(r.match, stories))
+
+                        for story in [_f for _f in stories.split(',') if _f]:
+                            # split out by comma.
+                            if story not in story_list:
+                                story_list.append(story)
+
+        commons.print_msg(Tracker.clazz, method, "Story list: {}".format(story_list))
+        commons.print_msg(Tracker.clazz, method, 'end')
+        return story_list
+
+    """
+        This methods needs to flatten an array of stories to ensure 6 specific
+        fields exist at the top level of the dictionary for each story:
+            story_type
+            id
+            name
+            description
+            url
+            current_state
+    """
+    def flatten_story_details(self, story_details):
+        method = 'flatten_story_details'
+        commons.print_msg(Tracker.clazz, method, 'begin')
+
+        if story_details is None:
+            return None
+
+        story_release_notes = []
+        for story in story_details:
+            story_release_note_summary = {}
+            story_release_note_summary['story_type'] = story.get('story_type')
+            story_release_note_summary['id'] = story.get('id')
+            story_release_note_summary['name'] = story.get('name')
+            story_release_note_summary['description'] = story.get('description')
+            story_release_note_summary['url'] = story.get('url')
+            story_release_note_summary['current_state'] = story.get('current_state')
+            story_release_notes.append(story_release_note_summary)
+        
+        if len(story_release_notes) == 0:
+            story_release_notes = None
+
+        commons.print_msg(Tracker.clazz, method, story_release_notes)
+        commons.print_msg(Tracker.clazz, method, 'end')
+        return story_release_notes
