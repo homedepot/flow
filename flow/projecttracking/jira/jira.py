@@ -198,7 +198,6 @@ class Jira(Project_Tracking):
 
         for idx, project_id in enumerate(self.project_keys):
             does_version_exist = self._determine_if_project_version_exists(project_id[0], version.lower())
-            print(does_version_exist)
             if does_version_exist:
                 commons.print_msg(Jira.clazz, method, 'Version {version} already exists for project {project}, skipping.'.format(version=version.lower(), project=project_id[1]))
             else:
@@ -250,8 +249,6 @@ class Jira(Project_Tracking):
             else:
                 project_versions = json.loads(resp.text)
                 version_exists = any(v['name'] == version for v in project_versions)
-                print(version)
-                print(project_versions)
         except requests.ConnectionError as e:
                 commons.print_msg(Jira.clazz, method, 'Connection error. ' + str(e), 'WARN')
         except Exception as e:
