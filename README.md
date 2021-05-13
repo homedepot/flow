@@ -133,7 +133,7 @@ or
     }
 }
 ```
-The following are deprecated, prefer one of the previous options
+The following are deprecated, please use one of the previous options
 ```
 "tracker" : {
     "projectId" : 1234567
