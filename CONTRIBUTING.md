@@ -109,10 +109,10 @@ This will allow you to make code changes locally on your machine, but run unit t
 
 1. Install [docker](https://docs.docker.com/install/)
 2. Clone this repo
-3. Create a local docker container and mount it to your freshly cloned thd-flow repo.
+3. Create a local docker container and mount it to your freshly cloned flow repo.
 
 ```shell
-docker run -d --name flow-dev -ti -v [path-to-thd-flow-repo]:/flow [container image with flow installed, e.g. `flow:latest`]
+docker run -d --name flow-dev -ti -v [path-to-flow-repo]:/flow [container image with flow installed, e.g. `flow:latest`]
 ```
 
 4. Jump into that docker container
