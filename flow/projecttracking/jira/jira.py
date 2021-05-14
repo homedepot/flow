@@ -118,7 +118,7 @@ class Jira(Project_Tracking):
         return story_details
 
     def _retrieve_project_info(self, project_id):
-        method = '_retrieve_project_id'
+        method = '_retrieve_project_info'
         commons.print_msg(Jira.clazz, method, 'begin')
 
         json_data = None
@@ -142,7 +142,7 @@ class Jira(Project_Tracking):
                                                                                                 id=json_data['id']))
         else:
             commons.print_msg(Jira.clazz, method, "Failed retrieving project detail from call to {url}. \r\n "
-                                                "Response: {response}".format(url=story_detail.get('url', ''),
+                                                "Response: {response}".format(url=project_detail.get('url', ''),
                                                                             response=resp.text), 'WARN')
 
         commons.print_msg(Jira.clazz, method, 'end')
