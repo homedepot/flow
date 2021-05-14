@@ -405,9 +405,6 @@ class Jira(Project_Tracking):
             story_release_note_summary['description'] = description_text
             story_release_notes.append(story_release_note_summary)
 
-        if len(story_release_notes) == 0:
-            story_release_notes = None
-
         commons.print_msg(Jira.clazz, method, story_release_notes)
         commons.print_msg(Jira.clazz, method, 'end')
         return story_release_notes
