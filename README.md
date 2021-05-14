@@ -22,7 +22,6 @@ A CLI tool for common Continuous Integration/Continuous Delivery Tasks
 * **Deployment Management**
   * [Pivotal Cloud Foundry](#CF-(Pivotal-Cloud-Foundry))
   * [Google AppEngine](#Google-Cloud-App-Engine)
-  * Google Kuberentes Engine
 
 * **Notification Mangaement**
   * [Slack](#Slack)
