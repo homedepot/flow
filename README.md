@@ -26,6 +26,9 @@ A CLI tool for common Continuous Integration/Continuous Delivery Tasks
 * **Notification Mangaement**
   * [Slack](#Slack)
 
+* **Plugins**
+  * If they exist, see [plugins/README.md](plugins/README.md)
+
 ## Join Us
 
 * Backlog: [Pivotal Tracker](https://www.pivotaltracker.com/n/projects/2135573#)
