@@ -13,8 +13,10 @@
 # Adding New Modules
 
 ### Reusable Modules
+
 Most modules should be written in a manner that allows for reuse by the general public and other organizations.  These modules should be added to the flow folder.
 ### Proprietary Modules
+
 At times, teams may wish to add functionality to Flow that includes proprietary logic and not meant for use outside of their company.  This can easily be achieved by following the Flow plugin architecture.  These changes should *not* be contributed back to this project.
 
 First, ensure that your modules are created under the "plugins" directory.  An example, [foo](flow/plugins/foo/foo.py) is included in the project.
@@ -43,21 +45,26 @@ def run_action(args):
 ```
 
 #### Hooking into other module events
+
 There may be times when you need to trigger code in your module based on other system events.  i.e. after deployment, attach the flow.log.txt to a change request
 
 The preferred approach is to utilize [PyDispatch](http://pydispatcher.sourceforge.net) to emit events that require a dependency.
 
 
 # Coding standards
+
 The biggest rule is that you attempt to follow existing patterns and conventions in the code.  The authors of Flow attempted to follow [common patterns and best practices](https://www.python.org/dev/peps/pep-0008).  With that said, there are a few opinions that had to be decided on in order to be consistent.
 
 #### Single vs Double Quote
+
 In general, single quotes are used throughout this code unless the string is used for interpolation.  This is an opinion that we recommend following to maintain consistency.
 
 #### Abstract Base Classes
+
 [Abstract Base Classes](https://docs.python.org/2/library/abc.html) are used to define contracts and maintain standards across like classes - similar to interfaces in many OOP languages.  They provide Flow users the ability to add components to fit their needs.  For instance, swapping out artifact storage library Artifactory for Nexus.  
 
 #### String Concatenation
+
 Our preferred method for string concatenation is to use the format method of the [string](https://docs.python.org/2/library/string.html) class.
 
 ```
@@ -65,6 +72,7 @@ Our preferred method for string concatenation is to use the format method of the
 ```
 
 #### Logging
+
 A common logging method has been established and should utilized in new code.  This logs code in a standard fashion:
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`[ERROR] BuildConfig  checkFileExists  Cannot find buildConfig.json`
 
@@ -86,15 +94,60 @@ commons.print_msg(BuildConfig.clazz, method, 'No token was defined.  Attempting 
 ```
 
 #### Exiting on Error
+
 If an error occurs that should halt flow CLI from continuing, in addition to logging an ERROR you will need to `Exit(1)`.  
 
 #### Coupling
+
 Please ensure that we don't tightly couple our classes together.  Flow is meant to be modular, allowing teams to pick/choose/create modules that work together.
 
+## Environment Setup (Docker)
+
+Instead of installing dependencies natively on your machine use docker to ease your configuration woes!	
+
+This will allow you to make code changes locally on your machine, but run unit tests and smoke test on the officially maintained flow docker container(s).	
+
+1. Install [docker](https://docs.docker.com/install/)
+2. Clone this repo
+3. Create a local docker container and mount it to your freshly cloned flow repo.
+
+```shell
+docker run -d --name flow-dev -ti -v [path-to-flow-repo]:/flow [container image with flow installed, e.g. `flow:latest`]
+```
+
+4. Jump into that docker container
+
+```shell
+docker exec -it --rm flow-dev bash
+```
+
+5. Get the environment ready for local development.
+
+* We need to unset some proxies that allow the build servers talk to resources outside of a work network, since this container is running on your dev machine we don't need those proxies anymore.
+
+```shell
+unset http_proxy https_proxy HTTPS_PROXY HTTP_PROXY
+```
+
+* We may also need to create the virtualenv directory (a fix is out for this but if you get an error in the next step come back and run the below command).
+
+```shell
+mkdir /.virtualenvs
+```
+
+6. Jump into the source directory and start unit tests!
+
+```shell
+cd /flow
+bash ./scrips/unittest.sh
+```
+
+Once set-up any changes that you make on your local machine will be reflected within the docker container. Changes are also immediately reflected in the `flow` command that is run within the container. You can also install flow locally on your machine using `pip3 install -e ./`. This of course requires the installation of [pip](https://pip.pypa.io/en/stable/installing/).
 
 # Project Setup
 
 ## Environment Setup for Mac (Tested with 10.11.6)
+
 * Using homebrew install python 3.
   * `/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"`
   * `brew install python3`
@@ -107,6 +160,7 @@ Please ensure that we don't tightly couple our classes together.  Flow is meant 
   * `sudo -H pip install virtualenvwrapper --ignore-installed six `
   * `source /usr/local/bin/virtualenvwrapper.sh`
     * If you want this to run automatically on future terminals then put the above command at end of `~/.bash_profile`
+    * This errors out in mac OS with both Python 2 & 3. `export VIRTUALENVWRAPPER_PYTHON=/usr/local/bin/python3` and then run `source /usr/local/bin/virtualenvwrapper.sh`
   * `mkvirtualenv -p $(which python3) flow`
   * `workon flow`
 
@@ -116,6 +170,7 @@ Please ensure that we don't tightly couple our classes together.  Flow is meant 
   `pip install -e ./`
 
 ## Environment Setup for Mac (10.11.6, imaged with pivotal/workstation-setup)
+
 * Install Homebrew:
   * `/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"`
 
@@ -149,6 +204,7 @@ Please ensure that we don't tightly couple our classes together.  Flow is meant 
   `pip install -e ./`
 
 ## Environment Setup for Windows 10 Using Windows Subsystem for Linux
+
 * Install Python
   * `https://www.python.org/downloads/`
 
@@ -164,6 +220,7 @@ Please ensure that we don't tightly couple our classes together.  Flow is meant 
   * `sudo -H pip install virtualenvwrapper --ignore-installed six`
   * `source /usr/local/bin/virtualenvwrapper.sh`
   ### Troubleshooting virtualenvwrapper
+
   * Error
     ```
     virtualenvwrapper_run_hook:12: permission denied: virtualenvwrapper.sh: There was a problem running the initialization hooks. 
@@ -222,6 +279,7 @@ Please ensure that we don't tightly couple our classes together.  Flow is meant 
    * `pytest`
 
 ## Using PyCharm with Pytest
+
 * Open Project in PyCharm
 
 * Click On PyCharm > Preferences...<br>
@@ -233,6 +291,7 @@ Please ensure that we don't tightly couple our classes together.  Flow is meant 
 * Select Pytest And click OK    
      
 ## Testing Flow Changes Locally
+
 * Clone flow code
   ```
   cd ~/Documents/workspace/
@@ -265,6 +324,7 @@ Please ensure that we don't tightly couple our classes together.  Flow is meant 
   ```
 
 ## Configuring iTerm on Mac to Color Code Warnings & Errors
+
 ![Triggers](images/iTerm-Flow_Output.png)
 In iTerm, go to `profiles` => `Open Profiles`.  
 Select the profile to modify and click `Edit Profiles...`

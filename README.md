@@ -1,4 +1,5 @@
 # Flow
+
 A CLI tool for common Continuous Integration/Continuous Delivery Tasks
 
 [![Build Status](https://github.com/homedepot/flow/actions/workflows/flow.yml/badge.svg)](https://github.com/homedepot/flow/actions/workflows/flow.yml)
@@ -10,30 +11,26 @@ A CLI tool for common Continuous Integration/Continuous Delivery Tasks
 * **Source Control/Build Management**
   * [GitHub](#Github)
   * [Artifactory](#Artifactory)
-  * Google Cloud Storage
 
-* **Code Analysis**  
-  * [Sonar](#Sonar) 
-  * QualityHub
-  * QualityHub2 
-  * Fortify 
+* **Code Analysis**
+  * [Sonar](#Sonar)
 
 * **Agile Process Management**
-  * Pivotal Tracker
-  * Jira
-  * Snowfield
+  * [Pivotal Tracker](#Tracker)
+  * [Jira](#Jira)
+
 * **Deployment Management**
-  * Pivotal Cloud Foundry
-  * Google AppEngine
-  * Google Kuberentes Engine
+  * [Pivotal Cloud Foundry](#CF-(Pivotal-Cloud-Foundry))
+  * [Google AppEngine](#Google-Cloud-App-Engine)
 
 * **Notification Mangaement**
   * [Slack](#Slack)
 
-* **Metrics**
-  * Grafana
+* **Plugins**
+  * If they exist, see [plugins/README.md](plugins/README.md)
 
 ## Join Us
+
 * Backlog: [Pivotal Tracker](https://www.pivotaltracker.com/n/projects/2135573#)
 * Docker: 
 * Chat: [gitter.im](https://gitter.im/thd-flow) 
@@ -43,6 +40,7 @@ A CLI tool for common Continuous Integration/Continuous Delivery Tasks
 For instructions on contributing, please see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Install
+
 ```bash
 python3 setup.py install
 which flow
@@ -50,13 +48,13 @@ which flow
 NOTE: The installation may require sudo based on user permissions.
 
 ## Setup/Configuration
-Please configure [buildConfig.json](buildConfig.json).
 
+Please configure [buildConfig.json](buildConfig.json).
 
 ## Usage
 
-
 ### Github
+
 Generates version numbers (using semantic versioning), attaches release notes and retrieves the latest version number.
 
 **Actions:**
@@ -92,6 +90,7 @@ For the help documentation, please check `flow github -h`
 ***
 
 ### Tracker
+
 Label stories with the version number.
 
 **Actions:**
@@ -151,6 +150,7 @@ For the help documentation, please check `flow tracker -h`
 ***
 
 ### JIRA
+
 Label stories with the version number.
 
 **Actions:**
@@ -199,6 +199,7 @@ For the help documentation, please check `flow jira -h`
 ***
 
 ### Slack
+
 Publishes release notes after a deployment.
 
 **Actions:**
@@ -258,6 +259,7 @@ For the help documentation, please check `flow slack -h`
 ***
 
 ### Sonar
+
 Triggers a sonar scan of your project.
 
 **Notes:**
@@ -292,6 +294,7 @@ For the help documentation, please check `flow sonar -h`
 ***
 
 ### Artifactory
+
 Task used to upload/download artifacts to/from artifactory.
 
 **Actions:**
@@ -324,6 +327,7 @@ For the help documentation, please check `flow artifactory -h`
 ***
 
 ### CF (Pivotal Cloud Foundry)
+
 Performs a zero-downtime deployment to cloud foundry expecting a manifest named after your environment (e.g. development.manifest.yml). The version for the deployed application defaults to the latest release in GitHub but can be overwritten with the `-v` or `--version` flag. This currently (12-07-16) requires an artifact in artifactory to function.
 
 **Actions:**
@@ -356,12 +360,6 @@ Performs a zero-downtime deployment to cloud foundry expecting a manifest named 
 |CF_BUILDPACK      | Optional          | Custom build packs should typically be indicated in your manifest; however, sometimes URLs for build packs may contains sensitive information, such as a github oauth token.  You can use this environment variable to avoid exposing this in your manifest.                                                                                                                   |
 |CF_VARS           | Optional          | to specify a vars file or path to vars file to use as argument for `--vars-file`                                                            |
 
-CF_VARS (optional) to specify a vars file or path to vars file to use as argument for `--vars-file`
-
-CF_VARS (optional) to specify a vars file or path to vars file to use as argument for `--vars-file`
-
-CF_VARS (optional) to specify a vars file or path to vars file to use as argument for `--vars-file`
-
 **Settings.ini (Global Settings):**
 
 - cli_download_path (required) path to download cf cli
@@ -371,6 +369,7 @@ For the help documentation, please check `flow cf -h`
 ***
 
 ### Google Cloud App Engine
+
 Performs a deployment to Google App Engine expecting an application yaml named after your environment (e.g. app-development.yaml/yml) or a custom app-yml name to be passed in. The version for the deployed application defaults to the latest release in GitHub but can be overwritten with the `-v` or `--version` flag. This currently (12-07-16) requires an artifact in artifactory to function.
 
 **Actions:**
@@ -405,6 +404,7 @@ For the help documentation, please check `flow gcappengine -h`
 ***
 
 ## License
+
 Licensed under the [Apache License](LICENSE)
 
 ***
@@ -451,4 +451,4 @@ Nikeshbhai Patel,
 Priyesh Patel,
 Cody Stamps,
 Ian Stansbury,
-Alvaro Ramirez-del Villar   
+Alvaro Ramirez-del Villar
