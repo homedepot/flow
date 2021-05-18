@@ -393,11 +393,12 @@ class Jira(Project_Tracking):
             story_release_note_summary['url'] = '{0}/browse/{1}'.format(Jira.jira_url, story.get('key').upper())
             story_release_note_summary['current_state'] = story.get('fields').get('status').get('name')
             description_text = []
-            for i, description_content in enumerate(story.get('fields').get('description').get('content')):
-                if description_content.get('type') == 'paragraph':
-                    for j, paragraph_content in enumerate(description_content.get('content')):
-                        if paragraph_content.get('type') == 'text':
-                            description_text.append(paragraph_content.get('text'))
+            if story.get('fields').get('description') is not None:
+                for i, description_content in enumerate(story.get('fields').get('description').get('content')):
+                    if description_content.get('type') == 'paragraph':
+                        for j, paragraph_content in enumerate(description_content.get('content')):
+                            if paragraph_content.get('type') == 'text':
+                                description_text.append(paragraph_content.get('text'))
             if len(description_text) > 0:
                 description_text = ' '.join(description_text)
             else:
