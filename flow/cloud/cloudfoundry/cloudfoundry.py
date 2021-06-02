@@ -856,7 +856,7 @@ class CloudFoundry(Cloud):
         self._map_and_start_stopped_server()
         started_versions = []
         for line in CloudFoundry.started_apps.splitlines():
-            previous_version.append(line.decode("utf-8"))
+            started_versions.append(line.decode("utf-8"))
         self._unmap_modify_app_state_versions(started_versions, 'stop')
 
         commons.print_msg(CloudFoundry.clazz, method, 'DEPLOYMENT SUCCESSFUL')
