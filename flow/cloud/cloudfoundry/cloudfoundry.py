@@ -4,6 +4,7 @@ import tarfile
 import urllib.request
 from subprocess import TimeoutExpired
 import platform
+import re
 
 from flow.buildconfig import BuildConfig
 from flow.cloud.cloud_abc import Cloud
@@ -39,7 +40,6 @@ class CloudFoundry(Cloud):
             CloudFoundry.path_to_cf = ""
 
         commons.print_msg(CloudFoundry.clazz, method, 'end')
-
 
     def download_cf_cli(self):
         method = '_download_cf_cli'
@@ -134,6 +134,183 @@ class CloudFoundry(Cloud):
 
         commons.print_msg(CloudFoundry.clazz, method, 'end')
 
+    def _fetch_app_routes(self, appName):
+        method = '_fetch_app_routes'
+        commons.print_msg(CloudFoundry.clazz, method, 'begin')
+
+        cmd1 = "{}cf routes".format(CloudFoundry.path_to_cf)
+        cmd2 = "grep {}".format(appName.decode("utf-8"))
+        cmd3 = ["awk", "{{print $2,$3}}"]
+
+        cmd_string = ' '.join([cmd1, cmd2, str(cmd3)])
+        commons.print_msg(CloudFoundry.clazz, method, cmd_string)
+        run1 = subprocess.Popen(cmd1.split(), stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        run2 = subprocess.Popen(cmd2.split(), stdin=run1.stdout, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        existing_routes_domains = subprocess.Popen(cmd3, stdin=run2.stdout, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+
+        try:
+            run1.stdout.close()
+            run2.stdout.close()
+            existing_routes_domains_output, err = existing_routes_domains.communicate(timeout=120)
+
+            if existing_routes_domains.returncode != 0:
+                commons.print_msg(CloudFoundry.clazz, method, "Failed calling {command}. Return code of {rtn}"
+                                    .format(command=cmd_string,
+                                            rtn=existing_routes_domains.returncode),
+                                    'ERROR')
+                existing_routes_domains_output = None
+
+        except TimeoutExpired:
+            commons.print_msg(CloudFoundry.clazz, method, "Timed out calling {cmd}".format(cmd=cmd_string), 'ERROR')
+            existing_routes_domains_output = None
+
+        if existing_routes_domains_output is None:
+            existing_routes_domains.kill()
+            # existing_routes.communicate()
+            os.system('stty sane')
+
+        commons.print_msg(CloudFoundry.clazz, method, 'end')
+        return existing_routes_domains_output
+
+    def _split_app_routes_to_list(self, routes_domains_output):
+        method = '_split_app_routes_to_list'
+        commons.print_msg(CloudFoundry.clazz, method, 'begin')
+
+        routes = []
+        domains = []
+        if routes_domains_output is not None:
+            route_domain_lines = routes_domains_output.splitlines()
+            for route_domain_line in route_domain_lines:
+                route_line, domain_line = route_domain_line.decode("utf-8").split(' ')
+                routes.append(route_line)
+                domains.append(domain_line)
+
+                commons.print_msg(CloudFoundry.clazz, method, "Found route {route}".format(
+                    route=route_line))
+
+        commons.print_msg(CloudFoundry.clazz, method, 'end')
+        return routes, domains
+
+    def _get_routes_domains_for_latest_in_app_list(self, app_list):
+        method = '_get_routes_domains_for_latest_in_app_list'
+        commons.print_msg(CloudFoundry.clazz, method, 'begin')
+
+        routes = []
+        domains = []
+
+        if len(app_list) == 0:
+            commons.print_msg(CloudFoundry.clazz, method, 'App list is empty, cannot retrieve routes without at least one app', 'ERROR')
+            exit(1)
+
+        app_list.sort(key = lambda v: [int(n) for n in re.split(r'[\.\+]', v.decode('utf-8').split('-v')[1])])
+        latest_version = app_list[-1]
+
+        routes_domains_output = self._fetch_app_routes(latest_version)
+        routes, domains = self._split_app_routes_to_list(routes_domains_output)
+
+        commons.print_msg(CloudFoundry.clazz, method, 'end')
+
+        return latest_version, routes, domains
+
+    def _modify_route_for_app(self, route, app, domain, route_action):
+        method = '_modify_route_for_app'
+        commons.print_msg(CloudFoundry.clazz, method, 'begin')
+
+        if route_action != 'map' and route_action != 'unmap':
+            commons.print_msg(CloudFoundry.clazz, method, "Modify route action was {action} it must be either "
+                                                          "\"map\" or \"unmap\"".format(
+                                                          action=route_action),
+                                                          'ERROR')
+            exit(1)
+
+        modify_route_for_app_failed = False
+
+        commons.print_msg(CloudFoundry.clazz, method, "{action}ing route {route} to {app}".format(
+        action=route_action, route=route, app=app))
+
+        cmd = "{path}cf {action}-route {app} {cf_domain} -n {route_line}".format(
+            path=CloudFoundry.path_to_cf,
+            action=route_action,
+            app=app,
+            cf_domain=domain,
+            route_line=route)
+
+        commons.print_msg(CloudFoundry.clazz, method, cmd)
+
+        modify_route = subprocess.Popen(cmd.split(), shell=False, stdout=subprocess.PIPE,
+                                        stderr=subprocess.STDOUT)
+
+        try:
+            modify_route_output, errs = modify_route.communicate(timeout=120)
+
+            if modify_route.returncode != 0:
+                modify_route_for_app_failed = True
+                commons.print_msg(CloudFoundry.clazz, method, "Failed calling {command}. Return "
+                                                                "code of {rtn}".format(
+                                                                command=cmd,
+                                                                rtn=modify_route.returncode),
+                                    'ERROR')
+
+            for modified_route in modify_route_output.splitlines():
+                commons.print_msg(CloudFoundry.clazz, method, modified_route.decode("utf-8"))
+
+        except TimeoutExpired:
+            modify_route_for_app_failed = True
+            commons.print_msg(CloudFoundry.clazz, method, "Timed out calling {command}".format(command = cmd), 'ERROR')
+
+        if modify_route_for_app_failed:
+            modify_route.kill()
+            # existing_routes.communicate()
+            os.system('stty sane')
+
+        commons.print_msg(CloudFoundry.clazz, method, 'end')
+
+        return modify_route_for_app_failed
+
+    def _start_stop_delete_app(self, app, app_action):
+        method = '_start_stop_delete_app'
+        commons.print_msg(CloudFoundry.clazz, method, 'begin')
+
+        start_stop_delete_app_failed = False
+
+        if app_action != 'start' and app_action != 'stop' and app_action != 'delete':
+            commons.print_msg(CloudFoundry.clazz, method, "App action was {action}: it must be either "
+                                                          "\"start\", \"stop\" or \"delete\"".format(
+                                                          action=app_action),
+                                                          'ERROR')
+            exit(1)
+
+        app_cmd = "{path}cf {action} {project} -f".format(project=app,
+                                                            action=app_action,
+                                                            path=CloudFoundry.path_to_cf)
+
+        commons.print_msg(CloudFoundry.clazz, method, app_cmd)
+
+        perform_app_action = subprocess.Popen(app_cmd.split(), shell=False, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+
+        try:
+            perform_app_action_output, errs = perform_app_action.communicate(timeout=120)
+
+            if perform_app_action.returncode != 0:
+                commons.print_msg(CloudFoundry.clazz, method, "Failed calling {command}. Return code of {rtn}"
+                                    .format(command=app_cmd,
+                                            rtn=perform_app_action.returncode),
+                                    'ERROR')
+                start_stop_delete_app_failed = True
+
+
+            for affected_app in perform_app_action_output.splitlines():
+                commons.print_msg(CloudFoundry.clazz, method, affected_app.decode("utf-8"))
+
+        except TimeoutExpired:
+            commons.print_msg(CloudFoundry.clazz, method, "Timed out calling {command}".format(command = app_cmd), 'ERROR')
+            perform_app_action.kill()
+            perform_app_action.communicate()
+            os.system('stty sane')
+
+        commons.print_msg(CloudFoundry.clazz, method, 'end')
+        return start_stop_delete_app_failed
+
     def _get_stopped_apps(self):
         method = '_get_stopped_apps'
         commons.print_msg(CloudFoundry.clazz, method, 'begin')
@@ -169,7 +346,7 @@ class CloudFoundry(Cloud):
 
         commons.print_msg(CloudFoundry.clazz, method, 'end')
 
-    def _get_started_apps(self, force_deploy=False):
+    def _get_started_apps(self, force_deploy=False, rollback=False):
         method = '_get_started_apps'
         commons.print_msg(CloudFoundry.clazz, method, 'begin')
 
@@ -189,7 +366,7 @@ class CloudFoundry(Cloud):
                 version_to_look_for = "{proj}-{ver}".format(proj=self.config.project_name,
                                                             ver=self.config.version_number)
 
-                if line.decode('utf-8') == version_to_look_for and not force_deploy:
+                if line.decode('utf-8') == version_to_look_for and not force_deploy and not rollback:
                     commons.print_msg(CloudFoundry.clazz, method, "App version {} already exists and is running. "
                                                                  "Cannot perform zero-downtime deployment.  To "
                                                                  "override, set force flag = 'true'".format(
@@ -254,7 +431,6 @@ class CloudFoundry(Cloud):
         else:
             return "-p {dir}/{file}".format(dir=self.config.push_location, file=self.find_deployable(
                 self.config.artifact_extension, self.config.push_location))
-
 
     def _cf_push(self, manifest):
         method = '_cf_push'
@@ -370,112 +546,81 @@ class CloudFoundry(Cloud):
 
         commons.print_msg(CloudFoundry.clazz, method, 'end')
 
-    def _unmap_delete_previous_versions(self):
-        method = '_unmap_delete_previous_versions'
+    def _unmap_delete_versions(self, versions_to_delete):
+        method = '_unmap_delete_versions'
         commons.print_msg(CloudFoundry.clazz, method, 'begin')
 
-        unmap_delete_previous_versions_failed = False
+        unmap_delete_versions_failed = False
 
-        for line in CloudFoundry.stopped_apps.splitlines():
+        for line in enumerate(versions_to_delete):
             if "{proj}-{ver}".format(proj=self.config.project_name,
                                      ver=self.config.version_number).lower() == line.decode("utf-8").lower():
                 commons.print_msg(CloudFoundry.clazz, method, "{} exists. Not removing routes for it.".format(
                     line.decode("utf-8").lower()))
             else:
-                cmd1 = "{}cf routes".format(CloudFoundry.path_to_cf)
-                cmd2 = "grep {}".format(line.decode("utf-8"))
-                cmd3 = ["awk", "{{print $2,$3}}"]
-
-                cmd_string = ' '.join([cmd1, cmd2, str(cmd3)])
-                commons.print_msg(CloudFoundry.clazz, method, cmd_string)
-                run1 = subprocess.Popen(cmd1.split(), stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-                run2 = subprocess.Popen(cmd2.split(), stdin=run1.stdout, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-                existing_routes_domains = subprocess.Popen(cmd3, stdin=run2.stdout, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
                 if CloudFoundry.cf_domain is not None:
-                    try:
-                        run1.stdout.close()
-                        run2.stdout.close()
-                        existing_routes_domains_output, err = existing_routes_domains.communicate(timeout=120)
+                    existing_routes_domains_output = self._fetch_app_routes(line)
 
-                        if existing_routes_domains.returncode != 0:
-                            commons.print_msg(CloudFoundry.clazz, method, "Failed calling {command}. Return code of {rtn}"
-                                              .format(command=cmd_string,
-                                                     rtn=existing_routes_domains.returncode),
-                                             'ERROR')
+                    if existing_routes_domains_output is not None:
+                        routes, domains = self._split_app_routes_to_list(existing_routes_domains_output)
+                        for idx, route in enumerate(routes):
 
-                        route_domain_lines = existing_routes_domains_output.splitlines()
+                            modify_route_failed = self._modify_route_for_app(route, line.decode("utf-8"), domains[idx], 'unmap')
+                            unmap_delete_versions_failed = unmap_delete_versions_failed or modify_route_failed
 
-                        for route_domain_line in route_domain_lines:
-                            route_line, domain_line = route_domain_line.decode("utf-8").split(' ')
-                            commons.print_msg(CloudFoundry.clazz, method, "Removing route {route} from {line}".format(
-                                route=route_line, line=line.decode("utf-8")))
+                    else:
+                        unmap_delete_versions_failed = True
 
-                            cmd = "{path}cf unmap-route {old_app} {cf_domain} -n {route_line}".format(
-                                path=CloudFoundry.path_to_cf,
-                                old_app=line.decode("utf-8"),
-                                cf_domain=domain_line,
-                                route_line=route_line)
+                if unmap_delete_versions_failed is False:
+                    self._start_stop_delete_app(line.decode("utf-8"), 'delete')
 
-                            commons.print_msg(CloudFoundry.clazz, method, cmd)
-
-                            unmap_route = subprocess.Popen(cmd.split(), shell=False, stdout=subprocess.PIPE,
-                                                           stderr=subprocess.STDOUT)
-
-                            try:
-                                unmap_route_output, errs = unmap_route.communicate(timeout=120)
-
-                                for unmapped_route in unmap_route_output.splitlines():
-                                    commons.print_msg(CloudFoundry.clazz, method, unmapped_route.decode("utf-8"))
-
-                                if unmap_route.returncode != 0:
-                                    unmap_delete_previous_versions_failed = True
-                                    commons.print_msg(CloudFoundry.clazz, method, "Failed calling {command}. Return "
-                                                                                 "code of {rtn}".format(
-                                                                                    command=cmd,
-                                                                                    rtn=unmap_route.returncode),
-                                                     'ERROR')
-
-                            except TimeoutExpired:
-                                unmap_delete_previous_versions_failed = True
-                                commons.print_msg(CloudFoundry.clazz, method, "Timed out calling {}".format(cmd), 'ERROR')
-
-                    except TimeoutExpired:
-                        commons.print_msg(CloudFoundry.clazz, method, "Timed out calling {}".format(cmd), 'ERROR')
-                        unmap_delete_previous_versions_failed = True
-
-                if unmap_delete_previous_versions_failed is False:
-                    delete_cmd = "{path}cf delete {project} -f".format(project=line.decode("utf-8"),
-                                                                       path=CloudFoundry.path_to_cf)
-
-                    commons.print_msg(CloudFoundry.clazz, method, delete_cmd)
-
-                    delete_app = subprocess.Popen(delete_cmd.split(), shell=False, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-
-                    try:
-                        delete_app_output, errs = delete_app.communicate(timeout=120)
-
-                        for deleted_app in delete_app_output.splitlines():
-                            commons.print_msg(CloudFoundry.clazz, method, deleted_app.decode("utf-8"))
-
-                        if delete_app.returncode != 0:
-                            commons.print_msg(CloudFoundry.clazz, method, "Failed calling {command}. Return code of {rtn}"
-                                              .format(command=cmd,
-                                                     rtn=delete_app.returncode),
-                                             'ERROR')
-
-                    except TimeoutExpired:
-                        commons.print_msg(CloudFoundry.clazz, method, "Timed out calling".format(delete_cmd), 'ERROR')
-                        delete_app.kill()
-                        delete_app.communicate()
-                        os.system('stty sane')
-
-                if unmap_delete_previous_versions_failed:
+                if unmap_delete_versions_failed:
                     existing_routes_domains.kill()
                     # existing_routes.communicate()
                     os.system('stty sane')
                     self._cf_logout()
                     exit(1)
+
+        commons.print_msg(CloudFoundry.clazz, method, 'end')
+
+    def _map_and_start_stopped_server(self):
+        method = '_map_and_start_stopped_server'
+        commons.print_msg(CloudFoundry.clazz, method, 'begin')
+
+        map_and_start_stopped_server_failed = False
+
+        if CloudFoundry.cf_domain is not None:
+
+            #get current route and domain
+            current_app, current_routes, current_domains = self._get_routes_domains_for_latest_in_app_list(CloudFoundry.started_apps.splitlines())
+
+            #Find most recent version in stopped apps
+            previous_app, previous_routes, previous_domains = self._get_routes_domains_for_latest_in_app_list(CloudFoundry.stopped_apps.splitlines())
+
+            if previous_app is not None:
+                #if no route just map a route
+                if len(previous_routes) == 0:
+                    for idx, current_route in enumerate(current_routes):
+                        modify_route_failed = self._modify_route_for_app(current_route, previous_app, current_domains[idx], 'map')
+                        map_and_start_stopped_server_failed = map_and_start_stopped_server_failed or modify_route_failed
+                        
+                else:
+                    #There may be new routes on the current version that should be added to rollback version
+                    for idx, current_route in enumerate(current_routes):
+                        if current_route not in previous_routes:
+                            modify_route_failed = self._modify_route_for_app(current_route, previous_app, current_domains[idx], 'map')
+                            map_and_start_stopped_server_failed = map_and_start_stopped_server_failed or modify_route_failed
+            else:
+                commons.print_msg(CloudFoundry.clazz, method, 'No previous versions found, cannot roll back.', 'ERROR')
+                map_and_start_stopped_server_failed = True
+
+            if map_and_start_stopped_server_failed is False:
+                self._start_stop_delete_app(previous_version, 'start')
+
+        if map_and_start_stopped_server_failed:
+            self._cf_logout()
+            exit(1)
 
         commons.print_msg(CloudFoundry.clazz, method, 'end')
 
@@ -664,7 +809,9 @@ class CloudFoundry(Cloud):
 
         self._get_stopped_apps()
 
-        self._get_started_apps(force_deploy)
+        #rollback should always be false for deployment
+        rollback = False
+        self._get_started_apps(force_deploy, rollback)
 
         if manifest is None:
             manifest = self._determine_manifests()
@@ -678,7 +825,39 @@ class CloudFoundry(Cloud):
             # don't delete if force bc we want to ensure that there is always 1 non-started instance
             # for backup and force_deploy is used when you need to redeploy/replace an instance
             # that is currently running
-            self._unmap_delete_previous_versions()
+            previous_versions = []
+            for line in CloudFoundry.stopped_apps.splitlines():
+                previous_version.append(line.decode("utf-8"))
+            self._unmap_delete_versions(previous_versions)
+
+        commons.print_msg(CloudFoundry.clazz, method, 'DEPLOYMENT SUCCESSFUL')
+
+        commons.print_msg(CloudFoundry.clazz, method, 'end')
+
+    def rollback_to_previous(self):
+        method = 'rollback_to_previous'
+        commons.print_msg(CloudFoundry.clazz, method, 'begin')
+
+        self._verify_required_attributes()
+
+        self.download_cf_cli()
+
+        self._cf_login_check()
+
+        self._cf_login()
+
+        self._check_cf_version()
+
+        self._get_stopped_apps()
+
+        rollback=True
+        self._get_started_apps(force_deploy, rollback)
+
+        self._map_and_start_stopped_server()
+        started_versions = []
+        for line in CloudFoundry.started_apps.splitlines():
+            previous_version.append(line.decode("utf-8"))
+        self._unmap_delete_versions(started_versions)
 
         commons.print_msg(CloudFoundry.clazz, method, 'DEPLOYMENT SUCCESSFUL')
 
