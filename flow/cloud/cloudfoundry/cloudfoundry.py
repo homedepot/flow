@@ -546,11 +546,11 @@ class CloudFoundry(Cloud):
 
         commons.print_msg(CloudFoundry.clazz, method, 'end')
 
-    def _unmap_delete_versions(self, versions_to_delete):
-        method = '_unmap_delete_versions'
+    def _unmap_modify_app_state_versions(self, versions_to_update, app_action):
+        method = '_unmap_modify_app_state_versions'
         commons.print_msg(CloudFoundry.clazz, method, 'begin')
 
-        unmap_delete_versions_failed = False
+        unmap_modify_app_state_versions = False
 
         for line in enumerate(versions_to_delete):
             if "{proj}-{ver}".format(proj=self.config.project_name,
@@ -567,15 +567,15 @@ class CloudFoundry(Cloud):
                         for idx, route in enumerate(routes):
 
                             modify_route_failed = self._modify_route_for_app(route, line.decode("utf-8"), domains[idx], 'unmap')
-                            unmap_delete_versions_failed = unmap_delete_versions_failed or modify_route_failed
+                            unmap_modify_app_state_versions = unmap_modify_app_state_versions or modify_route_failed
 
                     else:
-                        unmap_delete_versions_failed = True
+                        unmap_modify_app_state_versions = True
 
-                if unmap_delete_versions_failed is False:
-                    self._start_stop_delete_app(line.decode("utf-8"), 'delete')
+                if unmap_modify_app_state_versions is False:
+                    self._start_stop_delete_app(line.decode("utf-8"), app_action)
 
-                if unmap_delete_versions_failed:
+                if unmap_modify_app_state_versions:
                     existing_routes_domains.kill()
                     # existing_routes.communicate()
                     os.system('stty sane')
@@ -828,7 +828,7 @@ class CloudFoundry(Cloud):
             previous_versions = []
             for line in CloudFoundry.stopped_apps.splitlines():
                 previous_version.append(line.decode("utf-8"))
-            self._unmap_delete_versions(previous_versions)
+            self._unmap_modify_app_state_versions(previous_versions, 'delete')
 
         commons.print_msg(CloudFoundry.clazz, method, 'DEPLOYMENT SUCCESSFUL')
 
@@ -857,7 +857,7 @@ class CloudFoundry(Cloud):
         started_versions = []
         for line in CloudFoundry.started_apps.splitlines():
             previous_version.append(line.decode("utf-8"))
-        self._unmap_delete_versions(started_versions)
+        self._unmap_modify_app_state_versions(started_versions, 'stop')
 
         commons.print_msg(CloudFoundry.clazz, method, 'DEPLOYMENT SUCCESSFUL')
 
