@@ -422,7 +422,7 @@ def test_fetch_app_routes():
             _b = MagicMock(BuildConfig)
             _cf = CloudFoundry(_b)
 
-            result = _cf._fetch_app_routes('CI-HelloWorld-v2.9.0+1'.encode())
+            result = _cf._fetch_app_routes('CI-HelloWorld-v2.9.0+1')
     mock_printmsg_fn.assert_any_call('CloudFoundry', '_fetch_app_routes', 'cf routes grep CI-HelloWorld-v2.9.0+1 [\'awk\', \'{{print $2,$3}}\']')
     assert result is not None
     assert result.decode("utf-8") == mock_routes_domains_output
@@ -436,7 +436,7 @@ def test_fetch_app_routes_with_no_routes_returned():
             _b = MagicMock(BuildConfig)
             _cf = CloudFoundry(_b)
 
-            result = _cf._fetch_app_routes('CI-HelloWorld-v2.9.0+1'.encode())
+            result = _cf._fetch_app_routes('CI-HelloWorld-v2.9.0+1')
     mock_printmsg_fn.assert_any_call('CloudFoundry', '_fetch_app_routes', 'cf routes grep CI-HelloWorld-v2.9.0+1 [\'awk\', \'{{print $2,$3}}\']')
     assert result.decode("utf-8") == ''
 
@@ -449,7 +449,7 @@ def test_fetch_app_routes_with_error():
             _b = MagicMock(BuildConfig)
             _cf = CloudFoundry(_b)
 
-            result = _cf._fetch_app_routes('CI-HelloWorld-v2.9.0+1'.encode())
+            result = _cf._fetch_app_routes('CI-HelloWorld-v2.9.0+1')
     mock_printmsg_fn.assert_any_call('CloudFoundry', '_fetch_app_routes', 'cf routes grep CI-HelloWorld-v2.9.0+1 [\'awk\', \'{{print $2,$3}}\']')
     mock_printmsg_fn.assert_any_call('CloudFoundry', '_fetch_app_routes', 'Failed calling cf routes grep CI-HelloWorld-v2.9.0+1 [\'awk\', \'{{print $2,$3}}\']. Return code of 1', 'ERROR')
     assert result is None
@@ -462,7 +462,7 @@ def test_fetch_app_routes_with_timeout():
             _b = MagicMock(BuildConfig)
             _cf = CloudFoundry(_b)
 
-            result = _cf._fetch_app_routes('CI-HelloWorld-v2.9.0+1'.encode())
+            result = _cf._fetch_app_routes('CI-HelloWorld-v2.9.0+1')
     mock_printmsg_fn.assert_any_call('CloudFoundry', '_fetch_app_routes', 'cf routes grep CI-HelloWorld-v2.9.0+1 [\'awk\', \'{{print $2,$3}}\']')
     mock_printmsg_fn.assert_any_call('CloudFoundry', '_fetch_app_routes', 'Timed out calling cf routes grep CI-HelloWorld-v2.9.0+1 [\'awk\', \'{{print $2,$3}}\']', 'ERROR')
     assert result is None
@@ -506,7 +506,7 @@ def test_get_routes_domains_for_latest_in_app_list():
         with patch.object(_cf, '_fetch_app_routes') as mock_fetch_app_routes_fn:
             mock_fetch_app_routes_fn.return_value = mock_routes_domains_output.encode()
             result_version, result_routes, result_domains = _cf._get_routes_domains_for_latest_in_app_list(mock_list_of_existing_apps)
-    assert result_version.decode("utf-8") == 'CI-HelloWorld-v2.9.0+1'
+    assert result_version == 'CI-HelloWorld-v2.9.0+1'
     assert len(result_routes) == 1
     assert result_routes[0] == 'CI-HelloWorld'
     assert len(result_domains) == 1
@@ -519,7 +519,7 @@ def test_get_routes_domains_for_latest_in_app_list_with_no_routes():
         with patch.object(_cf, '_fetch_app_routes') as mock_fetch_app_routes_fn:
             mock_fetch_app_routes_fn.return_value = ''.encode()
             result_version, result_routes, result_domains = _cf._get_routes_domains_for_latest_in_app_list(mock_list_of_existing_apps)
-    assert result_version.decode("utf-8") == 'CI-HelloWorld-v2.9.0+1'
+    assert result_version == 'CI-HelloWorld-v2.9.0+1'
     assert len(result_routes) == 0
     assert len(result_domains) == 0
 
@@ -669,7 +669,7 @@ def test_start_stop_delete_app_with_start_action():
             return_string='Starting app {app} in org test / space test as TEST_USER'.format(
                 app=input_app
             )
-            command_string = 'cf {action} {app} -f'.format(
+            command_string = 'cf {action} {app}'.format(
                 action = input_app_action,
                 app = input_app
             )
@@ -691,7 +691,7 @@ def test_start_stop_delete_app_with_stop_action():
             return_string='Stopping app {app} in org test / space test as TEST_USER'.format(
                 app=input_app
             )
-            command_string = 'cf {action} {app} -f'.format(
+            command_string = 'cf {action} {app}'.format(
                 action = input_app_action,
                 app = input_app
             )

@@ -139,7 +139,7 @@ class CloudFoundry(Cloud):
         commons.print_msg(CloudFoundry.clazz, method, 'begin')
 
         cmd1 = "{}cf routes".format(CloudFoundry.path_to_cf)
-        cmd2 = "grep {}".format(appName.decode("utf-8"))
+        cmd2 = "grep {}".format(appName)
         cmd3 = ["awk", "{{print $2,$3}}"]
 
         cmd_string = ' '.join([cmd1, cmd2, str(cmd3)])
@@ -203,7 +203,7 @@ class CloudFoundry(Cloud):
             exit(1)
 
         app_list.sort(key = lambda v: [int(n) for n in re.split(r'[\.\+]', v.decode('utf-8').split('-v')[1])])
-        latest_version = app_list[-1]
+        latest_version = app_list[-1].decode("utf-8")
 
         routes_domains_output = self._fetch_app_routes(latest_version)
         routes, domains = self._split_app_routes_to_list(routes_domains_output)
@@ -280,9 +280,14 @@ class CloudFoundry(Cloud):
                                                           'ERROR')
             exit(1)
 
-        app_cmd = "{path}cf {action} {project} -f".format(project=app,
+        app_action_flags = ''
+        if app_action == 'delete':
+            app_action_flags = ' -f'
+
+        app_cmd = "{path}cf {action} {project}{flags}".format(project=app,
                                                             action=app_action,
-                                                            path=CloudFoundry.path_to_cf)
+                                                            path=CloudFoundry.path_to_cf,
+                                                            flags = app_action_flags)
 
         commons.print_msg(CloudFoundry.clazz, method, app_cmd)
 
@@ -552,35 +557,29 @@ class CloudFoundry(Cloud):
 
         unmap_modify_app_state_versions = False
 
-        for line in enumerate(versions_to_delete):
-            if "{proj}-{ver}".format(proj=self.config.project_name,
-                                     ver=self.config.version_number).lower() == line.decode("utf-8").lower():
-                commons.print_msg(CloudFoundry.clazz, method, "{} exists. Not removing routes for it.".format(
-                    line.decode("utf-8").lower()))
-            else:
+        for idx, line in enumerate(versions_to_update):
+            if CloudFoundry.cf_domain is not None:
+                existing_routes_domains_output = self._fetch_app_routes(line)
 
-                if CloudFoundry.cf_domain is not None:
-                    existing_routes_domains_output = self._fetch_app_routes(line)
+                if existing_routes_domains_output is not None:
+                    routes, domains = self._split_app_routes_to_list(existing_routes_domains_output)
+                    for idx, route in enumerate(routes):
 
-                    if existing_routes_domains_output is not None:
-                        routes, domains = self._split_app_routes_to_list(existing_routes_domains_output)
-                        for idx, route in enumerate(routes):
+                        modify_route_failed = self._modify_route_for_app(route, line, domains[idx], 'unmap')
+                        unmap_modify_app_state_versions = unmap_modify_app_state_versions or modify_route_failed
 
-                            modify_route_failed = self._modify_route_for_app(route, line.decode("utf-8"), domains[idx], 'unmap')
-                            unmap_modify_app_state_versions = unmap_modify_app_state_versions or modify_route_failed
+                else:
+                    unmap_modify_app_state_versions = True
 
-                    else:
-                        unmap_modify_app_state_versions = True
+            if unmap_modify_app_state_versions is False:
+                self._start_stop_delete_app(line, app_action)
 
-                if unmap_modify_app_state_versions is False:
-                    self._start_stop_delete_app(line.decode("utf-8"), app_action)
-
-                if unmap_modify_app_state_versions:
-                    existing_routes_domains.kill()
-                    # existing_routes.communicate()
-                    os.system('stty sane')
-                    self._cf_logout()
-                    exit(1)
+            if unmap_modify_app_state_versions:
+                existing_routes_domains.kill()
+                # existing_routes.communicate()
+                os.system('stty sane')
+                self._cf_logout()
+                exit(1)
 
         commons.print_msg(CloudFoundry.clazz, method, 'end')
 
@@ -616,7 +615,7 @@ class CloudFoundry(Cloud):
                 map_and_start_stopped_server_failed = True
 
             if map_and_start_stopped_server_failed is False:
-                self._start_stop_delete_app(previous_version, 'start')
+                self._start_stop_delete_app(previous_app, 'start')
 
         if map_and_start_stopped_server_failed:
             self._cf_logout()
@@ -851,6 +850,7 @@ class CloudFoundry(Cloud):
         self._get_stopped_apps()
 
         rollback=True
+        force_deploy=False
         self._get_started_apps(force_deploy, rollback)
 
         self._map_and_start_stopped_server()
