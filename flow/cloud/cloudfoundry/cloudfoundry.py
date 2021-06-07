@@ -826,7 +826,7 @@ class CloudFoundry(Cloud):
             # that is currently running
             previous_versions = []
             for line in CloudFoundry.stopped_apps.splitlines():
-                previous_version.append(line.decode("utf-8"))
+                previous_versions.append(line.decode("utf-8"))
             self._unmap_modify_app_state_versions(previous_versions, 'delete')
 
         commons.print_msg(CloudFoundry.clazz, method, 'DEPLOYMENT SUCCESSFUL')
