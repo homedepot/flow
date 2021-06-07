@@ -2,6 +2,7 @@ import os
 import subprocess
 from unittest.mock import MagicMock
 from unittest.mock import patch
+from subprocess import TimeoutExpired
 
 import pytest
 from flow.cloud.cloudfoundry.cloudfoundry import CloudFoundry
@@ -97,6 +98,8 @@ mock_build_config_missing_org_dict = {
 }
 
 mock_started_apps_already_started = 'CI-HelloWorld-v2.9.0+1'
+mock_list_of_existing_apps = [ 'CI-HelloWorld-v2.9.0+1'.encode(), 'CI-HelloWorld-v2.7.0'.encode(), 'CI-HelloWorld-v2.8.0+12'.encode(), 'CI-HelloWorld-v1.15.2'.encode()]
+mock_routes_domains_output = 'CI-HelloWorld apps-np.fake.com'
 
 def test_verify_required_attributes_missing_user(monkeypatch):
     if os.getenv('DEPLOYMENT_USER'):
@@ -409,3 +412,373 @@ def test_determine_push_location_called_by_cf_push():
                     _cf._cf_push('fake_manifest.yml')
 
     mock_printmsg_fn.assert_any_call('Cloud', 'find_deployable', 'Looking for a war in fake_push_dir')
+
+def test_fetch_app_routes():
+    with patch('flow.utils.commons.print_msg') as mock_printmsg_fn:
+        with patch.object(subprocess, 'Popen') as mocked_popen:
+            mocked_popen.return_value.returncode = 0
+            mocked_popen.return_value.communicate.return_value = (mock_routes_domains_output.encode(),
+                                                                          'FAKE_ERR_OUTPUT')
+            _b = MagicMock(BuildConfig)
+            _cf = CloudFoundry(_b)
+
+            result = _cf._fetch_app_routes('CI-HelloWorld-v2.9.0+1')
+    mock_printmsg_fn.assert_any_call('CloudFoundry', '_fetch_app_routes', 'cf routes grep CI-HelloWorld-v2.9.0+1 [\'awk\', \'{{print $2,$3}}\']')
+    assert result is not None
+    assert result.decode("utf-8") == mock_routes_domains_output
+
+def test_fetch_app_routes_with_no_routes_returned():
+    with patch('flow.utils.commons.print_msg') as mock_printmsg_fn:
+        with patch.object(subprocess, 'Popen') as mocked_popen:
+            mocked_popen.return_value.returncode = 0
+            mocked_popen.return_value.communicate.return_value = (''.encode(),
+                                                                        'FAKE_ERR_OUTPUT')
+            _b = MagicMock(BuildConfig)
+            _cf = CloudFoundry(_b)
+
+            result = _cf._fetch_app_routes('CI-HelloWorld-v2.9.0+1')
+    mock_printmsg_fn.assert_any_call('CloudFoundry', '_fetch_app_routes', 'cf routes grep CI-HelloWorld-v2.9.0+1 [\'awk\', \'{{print $2,$3}}\']')
+    assert result.decode("utf-8") == ''
+
+def test_fetch_app_routes_with_error():
+    with patch('flow.utils.commons.print_msg') as mock_printmsg_fn:
+        with patch.object(subprocess, 'Popen') as mocked_popen:
+            mocked_popen.return_value.returncode = 1
+            mocked_popen.return_value.communicate.return_value = (''.encode(),
+                                                                        'FAKE_ERR_OUTPUT')
+            _b = MagicMock(BuildConfig)
+            _cf = CloudFoundry(_b)
+
+            result = _cf._fetch_app_routes('CI-HelloWorld-v2.9.0+1')
+    mock_printmsg_fn.assert_any_call('CloudFoundry', '_fetch_app_routes', 'cf routes grep CI-HelloWorld-v2.9.0+1 [\'awk\', \'{{print $2,$3}}\']')
+    mock_printmsg_fn.assert_any_call('CloudFoundry', '_fetch_app_routes', 'Failed calling cf routes grep CI-HelloWorld-v2.9.0+1 [\'awk\', \'{{print $2,$3}}\']. Return code of 1', 'ERROR')
+    assert result is None
+
+def test_fetch_app_routes_with_timeout():
+    with patch('flow.utils.commons.print_msg') as mock_printmsg_fn:
+        with patch.object(subprocess, 'Popen') as mocked_popen:
+            mocked_popen.return_value.returncode = 1
+            mocked_popen.return_value.communicate.side_effect = TimeoutExpired("get_routes", 1)
+            _b = MagicMock(BuildConfig)
+            _cf = CloudFoundry(_b)
+
+            result = _cf._fetch_app_routes('CI-HelloWorld-v2.9.0+1')
+    mock_printmsg_fn.assert_any_call('CloudFoundry', '_fetch_app_routes', 'cf routes grep CI-HelloWorld-v2.9.0+1 [\'awk\', \'{{print $2,$3}}\']')
+    mock_printmsg_fn.assert_any_call('CloudFoundry', '_fetch_app_routes', 'Timed out calling cf routes grep CI-HelloWorld-v2.9.0+1 [\'awk\', \'{{print $2,$3}}\']', 'ERROR')
+    assert result is None
+
+def test_split_app_routes_to_list():
+    with patch('flow.utils.commons.print_msg') as mock_printmsg_fn:
+        _b = MagicMock(BuildConfig)
+        _cf = CloudFoundry(_b)
+
+        result_routes, result_domains = _cf._split_app_routes_to_list(mock_routes_domains_output.encode())
+    mock_printmsg_fn.assert_any_call('CloudFoundry', '_split_app_routes_to_list', 'Found route CI-HelloWorld')
+    assert len(result_routes) == 1
+    assert result_routes[0] == 'CI-HelloWorld'
+    assert len(result_domains) == 1
+    assert result_domains[0] == 'apps-np.fake.com'
+
+def test_split_app_routes_to_list_when_input_is_empty():
+    with patch('flow.utils.commons.print_msg') as mock_printmsg_fn:
+        _b = MagicMock(BuildConfig)
+        _cf = CloudFoundry(_b)
+
+        result_routes, result_domains = _cf._split_app_routes_to_list(''.encode())
+    assert mock_printmsg_fn.call_count == 4 #begin/end for both init and function
+    assert len(result_routes) == 0
+    assert len(result_domains) == 0
+
+def test_split_app_routes_to_list_when_input_is_None():
+    with patch('flow.utils.commons.print_msg') as mock_printmsg_fn:
+        _b = MagicMock(BuildConfig)
+        _cf = CloudFoundry(_b)
+
+        result_routes, result_domains = _cf._split_app_routes_to_list(None)
+    assert mock_printmsg_fn.call_count == 4 #begin/end for both init and function
+    assert len(result_routes) == 0
+    assert len(result_domains) == 0
+
+def test_get_routes_domains_for_latest_in_app_list():
+    with patch('flow.utils.commons.print_msg') as mock_printmsg_fn:
+        _b = MagicMock(BuildConfig)
+        _cf = CloudFoundry(_b)
+        with patch.object(_cf, '_fetch_app_routes') as mock_fetch_app_routes_fn:
+            mock_fetch_app_routes_fn.return_value = mock_routes_domains_output.encode()
+            result_version, result_routes, result_domains = _cf._get_routes_domains_for_latest_in_app_list(mock_list_of_existing_apps)
+    assert result_version == 'CI-HelloWorld-v2.9.0+1'
+    assert len(result_routes) == 1
+    assert result_routes[0] == 'CI-HelloWorld'
+    assert len(result_domains) == 1
+    assert result_domains[0] == 'apps-np.fake.com'
+
+def test_get_routes_domains_for_latest_in_app_list_with_no_routes():
+    with patch('flow.utils.commons.print_msg') as mock_printmsg_fn:
+        _b = MagicMock(BuildConfig)
+        _cf = CloudFoundry(_b)
+        with patch.object(_cf, '_fetch_app_routes') as mock_fetch_app_routes_fn:
+            mock_fetch_app_routes_fn.return_value = ''.encode()
+            result_version, result_routes, result_domains = _cf._get_routes_domains_for_latest_in_app_list(mock_list_of_existing_apps)
+    assert result_version == 'CI-HelloWorld-v2.9.0+1'
+    assert len(result_routes) == 0
+    assert len(result_domains) == 0
+
+def test_get_routes_domains_for_empty_app_list():
+    with patch('flow.utils.commons.print_msg') as mock_printmsg_fn:
+        with pytest.raises(SystemExit):
+            _b = MagicMock(BuildConfig)
+            _cf = CloudFoundry(_b)
+            result_version, result_routes, result_domains = _cf._get_routes_domains_for_latest_in_app_list([])
+    mock_printmsg_fn.assert_any_call('CloudFoundry', '_get_routes_domains_for_latest_in_app_list', 'App list is empty, cannot retrieve routes without at least one app', 'ERROR')
+
+def test_modify_route_for_app_map_route():
+    with patch('flow.utils.commons.print_msg') as mock_printmsg_fn:
+        with patch.object(subprocess, 'Popen') as mocked_popen:
+            input_route = 'CI-HelloWorld'
+            input_domain = 'apps-np.fake.com'
+            input_app = 'CI-HelloWorld-v2.9.0+1'
+            input_route_action = 'map'
+            return_string="Adding route {route}.{domain} from app {app} in org test / space test as TEST_USER...".format(
+                route = input_route,
+                domain = input_domain,
+                app = input_app
+            )
+            command_string = 'cf {action}-route {app} {domain} -n {route}'.format(
+                action = input_route_action,
+                app = input_app,
+                domain = input_domain,
+                route = input_route
+            )
+            mocked_popen.return_value.returncode = 0
+            mocked_popen.return_value.communicate.return_value = (return_string.encode(),
+                                                                  'FAKE_ERR_OUTPUT')
+            _b = MagicMock(BuildConfig)
+            _cf = CloudFoundry(_b)
+            result = _cf._modify_route_for_app(input_route, input_app, input_domain, input_route_action)
+    mock_printmsg_fn.assert_any_call('CloudFoundry', '_modify_route_for_app', command_string)
+    mock_printmsg_fn.assert_any_call('CloudFoundry', '_modify_route_for_app', return_string)
+    assert result == False
+
+def test_modify_route_for_app_unmap_route():
+    with patch('flow.utils.commons.print_msg') as mock_printmsg_fn:
+        with patch.object(subprocess, 'Popen') as mocked_popen:
+            input_route = 'CI-HelloWorld'
+            input_domain = 'apps-np.fake.com'
+            input_app = 'CI-HelloWorld-v2.9.0+1'
+            input_route_action = 'unmap'
+            return_string="Removing route {route}.{domain} from app {app} in org test / space test as TEST_USER...".format(
+                route = input_route,
+                domain = input_domain,
+                app = input_app
+            )
+            command_string = 'cf {action}-route {app} {domain} -n {route}'.format(
+                action = input_route_action,
+                app = input_app,
+                domain = input_domain,
+                route = input_route
+            )
+            mocked_popen.return_value.returncode = 0
+            mocked_popen.return_value.communicate.return_value = (return_string.encode(),
+                                                                  'FAKE_ERR_OUTPUT')
+            _b = MagicMock(BuildConfig)
+            _cf = CloudFoundry(_b)
+            result = _cf._modify_route_for_app(input_route, input_app, input_domain, input_route_action)
+    mock_printmsg_fn.assert_any_call('CloudFoundry', '_modify_route_for_app', command_string)
+    mock_printmsg_fn.assert_any_call('CloudFoundry', '_modify_route_for_app', return_string)
+    assert result == False
+
+def test_modify_route_for_app_bad_action():
+    with patch('flow.utils.commons.print_msg') as mock_printmsg_fn:
+        with pytest.raises(SystemExit):
+            input_route = 'CI-HelloWorld'
+            input_domain = 'apps-np.fake.com'
+            input_app = 'CI-HelloWorld-v2.9.0+1'
+            input_route_action = 'badmap'
+            _b = MagicMock(BuildConfig)
+            _cf = CloudFoundry(_b)
+            result = _cf._modify_route_for_app(input_route, input_app, input_domain, input_route_action)
+    mock_printmsg_fn.assert_any_call('CloudFoundry', '_modify_route_for_app', "Modify route action was {action} it must be either "
+                                                          "\"map\" or \"unmap\"".format(
+                                                          action=input_route_action),
+                                                          'ERROR')
+
+def test_modify_route_for_app_map_route_non_zero_return():
+    with patch('flow.utils.commons.print_msg') as mock_printmsg_fn:
+        with patch.object(subprocess, 'Popen') as mocked_popen:
+            input_route = 'CI-HelloWorld'
+            input_domain = 'apps-np.fake.com'
+            input_app = 'CI-HelloWorld-v2.9.0+1'
+            input_route_action = 'map'
+            return_string="Adding route {route}.{domain} from app {app} in org test / space test as TEST_USER...".format(
+                route = input_route,
+                domain = input_domain,
+                app = input_app
+            )
+            command_string = 'cf {action}-route {app} {domain} -n {route}'.format(
+                action = input_route_action,
+                app = input_app,
+                domain = input_domain,
+                route = input_route
+            )
+            mocked_popen.return_value.returncode = 1
+            mocked_popen.return_value.communicate.return_value = (return_string.encode(),
+                                                                  'FAKE_ERR_OUTPUT')
+            _b = MagicMock(BuildConfig)
+            _cf = CloudFoundry(_b)
+            result = _cf._modify_route_for_app(input_route, input_app, input_domain, input_route_action)
+    mock_printmsg_fn.assert_any_call('CloudFoundry', '_modify_route_for_app', return_string)
+    mock_printmsg_fn.assert_any_call('CloudFoundry', '_modify_route_for_app', 'Failed calling {command}. Return code of {rtn}'.format(
+                                        command = command_string,
+                                        rtn = 1
+                                        ), 'ERROR')
+    assert result == True
+
+def test_modify_route_for_app_with_timeout():
+    with patch('flow.utils.commons.print_msg') as mock_printmsg_fn:
+        with patch.object(subprocess, 'Popen') as mocked_popen:
+            input_route = 'CI-HelloWorld'
+            input_domain = 'apps-np.fake.com'
+            input_app = 'CI-HelloWorld-v2.9.0+1'
+            input_route_action = 'map'
+            return_string="Adding route {route}.{domain} from app {app} in org test / space test as TEST_USER...".format(
+                route = input_route,
+                domain = input_domain,
+                app = input_app
+            )
+            command_string = 'cf {action}-route {app} {domain} -n {route}'.format(
+                action = input_route_action,
+                app = input_app,
+                domain = input_domain,
+                route = input_route
+            )
+            mocked_popen.return_value.returncode = 0
+            mocked_popen.return_value.communicate.side_effect = TimeoutExpired("modify_route", 1)
+            _b = MagicMock(BuildConfig)
+            _cf = CloudFoundry(_b)
+            result = _cf._modify_route_for_app(input_route, input_app, input_domain, input_route_action)
+    mock_printmsg_fn.assert_any_call('CloudFoundry', '_modify_route_for_app', 'Timed out calling {cmd}'.format(
+                                        cmd = command_string
+                                        ), 'ERROR')
+    assert result == True
+
+def test_start_stop_delete_app_with_start_action():
+    with patch('flow.utils.commons.print_msg') as mock_printmsg_fn:
+        with patch.object(subprocess, 'Popen') as mocked_popen:
+            input_app = 'CI-HelloWorld-v2.9.0+1'
+            input_app_action = 'start'
+            return_string='Starting app {app} in org test / space test as TEST_USER'.format(
+                app=input_app
+            )
+            command_string = 'cf {action} {app}'.format(
+                action = input_app_action,
+                app = input_app
+            )
+            mocked_popen.return_value.returncode = 0
+            mocked_popen.return_value.communicate.return_value = (return_string.encode(),
+                                                                  'FAKE_ERR_OUTPUT')
+            _b = MagicMock(BuildConfig)
+            _cf = CloudFoundry(_b)
+            result = _cf._start_stop_delete_app(input_app, input_app_action)
+    mock_printmsg_fn.assert_any_call('CloudFoundry', '_start_stop_delete_app', command_string)
+    mock_printmsg_fn.assert_any_call('CloudFoundry', '_start_stop_delete_app', return_string)
+    assert result == False
+
+def test_start_stop_delete_app_with_stop_action():
+    with patch('flow.utils.commons.print_msg') as mock_printmsg_fn:
+        with patch.object(subprocess, 'Popen') as mocked_popen:
+            input_app = 'CI-HelloWorld-v2.9.0+1'
+            input_app_action = 'stop'
+            return_string='Stopping app {app} in org test / space test as TEST_USER'.format(
+                app=input_app
+            )
+            command_string = 'cf {action} {app}'.format(
+                action = input_app_action,
+                app = input_app
+            )
+            mocked_popen.return_value.returncode = 0
+            mocked_popen.return_value.communicate.return_value = (return_string.encode(),
+                                                                  'FAKE_ERR_OUTPUT')
+            _b = MagicMock(BuildConfig)
+            _cf = CloudFoundry(_b)
+            result = _cf._start_stop_delete_app(input_app, input_app_action)
+    mock_printmsg_fn.assert_any_call('CloudFoundry', '_start_stop_delete_app', command_string)
+    mock_printmsg_fn.assert_any_call('CloudFoundry', '_start_stop_delete_app', return_string)
+    assert result == False
+
+def test_start_stop_delete_app_with_delete_action():
+    with patch('flow.utils.commons.print_msg') as mock_printmsg_fn:
+        with patch.object(subprocess, 'Popen') as mocked_popen:
+            input_app = 'CI-HelloWorld-v2.9.0+1'
+            input_app_action = 'delete'
+            return_string='Deleting app {app} in org test / space test as TEST_USER'.format(
+                app=input_app
+            )
+            command_string = 'cf {action} {app} -f'.format(
+                action = input_app_action,
+                app = input_app
+            )
+            mocked_popen.return_value.returncode = 0
+            mocked_popen.return_value.communicate.return_value = (return_string.encode(),
+                                                                  'FAKE_ERR_OUTPUT')
+            _b = MagicMock(BuildConfig)
+            _cf = CloudFoundry(_b)
+            result = _cf._start_stop_delete_app(input_app, input_app_action)
+    mock_printmsg_fn.assert_any_call('CloudFoundry', '_start_stop_delete_app', command_string)
+    mock_printmsg_fn.assert_any_call('CloudFoundry', '_start_stop_delete_app', return_string)
+    assert result == False
+
+def test_start_stop_delete_app_with_unexpected_action():
+    with patch('flow.utils.commons.print_msg') as mock_printmsg_fn:
+        with pytest.raises(SystemExit):
+            input_app = 'CI-HelloWorld-v2.9.0+1'
+            input_app_action = 'unexpected'
+            error_string = 'App action was {action}: it must be either "start", "stop" or "delete"'.format(action=input_app_action)
+            _b = MagicMock(BuildConfig)
+            _cf = CloudFoundry(_b)
+            result = _cf._start_stop_delete_app(input_app, input_app_action)
+    mock_printmsg_fn.assert_any_call('CloudFoundry', '_start_stop_delete_app', error_string, 'ERROR')
+
+def test_start_stop_delete_app_with_non_zero_return_code():
+    with patch('flow.utils.commons.print_msg') as mock_printmsg_fn:
+        with patch.object(subprocess, 'Popen') as mocked_popen:
+            input_app = 'CI-HelloWorld-v2.9.0+1'
+            input_app_action = 'delete'
+            command_string = 'cf {action} {app} -f'.format(
+                action = input_app_action,
+                app = input_app
+            )
+            error_string = 'Failed calling {command}. Return code of {rtn}'.format(
+                command=command_string,
+                rtn=1
+            )
+            mocked_popen.return_value.returncode = 1
+            mocked_popen.return_value.communicate.return_value = (''.encode(),
+                                                                  'FAKE_ERR_OUTPUT')
+            _b = MagicMock(BuildConfig)
+            _cf = CloudFoundry(_b)
+            result = _cf._start_stop_delete_app(input_app, input_app_action)
+    mock_printmsg_fn.assert_any_call('CloudFoundry', '_start_stop_delete_app', command_string)
+    mock_printmsg_fn.assert_any_call('CloudFoundry', '_start_stop_delete_app', error_string, 'ERROR')
+    assert result == True
+
+def test_start_stop_delete_app_with_timeout():
+    with patch('flow.utils.commons.print_msg') as mock_printmsg_fn:
+        with pytest.raises(TimeoutExpired):
+            with patch.object(subprocess, 'Popen') as mocked_popen:
+                input_app = 'CI-HelloWorld-v2.9.0+1'
+                input_app_action = 'delete'
+                command_string = 'cf {action} {app} -f'.format(
+                    action = input_app_action,
+                    app = input_app
+                )
+                error_string = 'Timed out calling {command}'.format(command=command_string)
+                mocked_popen.return_value.returncode = 0
+                mocked_popen.return_value.communicate.side_effect = TimeoutExpired("modify_app_state", 1)
+                _b = MagicMock(BuildConfig)
+                _cf = CloudFoundry(_b)
+                result = _cf._start_stop_delete_app(input_app, input_app_action)
+                assert result == False # this is here because result wasn't defined at top level
+    mock_printmsg_fn.assert_any_call('CloudFoundry', '_start_stop_delete_app', command_string)
+    mock_printmsg_fn.assert_any_call('CloudFoundry', '_start_stop_delete_app', error_string, 'ERROR')
+    assert mocked_popen.return_value.communicate.call_count == 2
+    

@@ -212,52 +212,57 @@ def main():
 
         is_script_run_successful = True
 
-        if args.script is not None:
-            commons.print_msg(clazz, method, 'Custom deploy script detected')
-            cf.download_cf_cli()
-            cf.download_custom_deployment_script(args.script)
-            is_script_run_successful = cf.run_deployment_script(args.script)
-        else:
-            commons.print_msg(clazz, method, 'No custom deploy script passed in.  Cloud Foundry detected in '
-                                             'buildConfig.  Calling standard CloudFoundry deployment.')
+        if args.action == 'deploy':
 
-            if not args.no_download:
-                create_deployment_directory()
+            if args.script is not None:
+                commons.print_msg(clazz, method, 'Custom deploy script detected')
+                cf.download_cf_cli()
+                cf.download_custom_deployment_script(args.script)
+                is_script_run_successful = cf.run_deployment_script(args.script)
+            else:
+                commons.print_msg(clazz, method, 'No custom deploy script passed in.  Cloud Foundry detected in '
+                                                'buildConfig.  Calling standard CloudFoundry deployment.')
 
-                if BuildConfig.artifact_extension is None and BuildConfig.artifact_extensions is None:
-                    commons.print_msg(clazz, method, 'Attempting to retrieve and deploy from GitHub.')
+                if not args.no_download:
+                    create_deployment_directory()
 
-                    github.download_code_at_version()
-                else:
-                    commons.print_msg(clazz, method, 'Attempting to retrieve and deploy from Artifactory.')
-                    artifactory = Artifactory()
+                    if BuildConfig.artifact_extension is None and BuildConfig.artifact_extensions is None:
+                        commons.print_msg(clazz, method, 'Attempting to retrieve and deploy from GitHub.')
 
-                    artifactory.download_and_extract_artifacts_locally(BuildConfig.push_location + '/')
+                        github.download_code_at_version()
+                    else:
+                        commons.print_msg(clazz, method, 'Attempting to retrieve and deploy from Artifactory.')
+                        artifactory = Artifactory()
 
-            force = False
+                        artifactory.download_and_extract_artifacts_locally(BuildConfig.push_location + '/')
 
-            if args.force is not None and args.force.strip().lower() != 'false':
-                force = True
+                force = False
 
-            manifest = None
+                if args.force is not None and args.force.strip().lower() != 'false':
+                    force = True
 
-            if args.manifest is not None:
-                commons.print_msg(clazz, method, "Setting manifest to {}".format(args.manifest))
-                manifest = args.manifest
+                manifest = None
 
-            cf.deploy(force_deploy=force, manifest=manifest)
+                if args.manifest is not None:
+                    commons.print_msg(clazz, method, "Setting manifest to {}".format(args.manifest))
+                    manifest = args.manifest
 
-        commons.print_msg(clazz, method, 'Checking if we can attach the output to the CR')
+                cf.deploy(force_deploy=force, manifest=manifest)
 
-        # noinspection PyPep8Naming
-        SIGNAL = 'publish-deploy-complete'
-        sender = {}
-        dispatcher.send(signal=SIGNAL, sender=sender)
+            commons.print_msg(clazz, method, 'Checking if we can attach the output to the CR')
+
+            # noinspection PyPep8Naming
+            SIGNAL = 'publish-deploy-complete'
+            sender = {}
+            dispatcher.send(signal=SIGNAL, sender=sender)
+        elif args.action == 'rollback':
+            cf.rollback_to_previous()
 
         if is_script_run_successful is False:
             exit(1)
 
         metrics.write_metric(task, args.action)
+
     elif task == 'gcappengine':
         app_engine = GCAppEngine()
 
@@ -375,22 +380,24 @@ def load_task_parsers(subparsers):
     sonar_parser.add_argument('-pk', '--sonar-project-key', help='(optional) If passed then this value is used for sonar.projectKey and sonar.projectName '
                                                           'otherwise buildConfig projectInfo.name is used.')
 
-    cfdeploy_parser = subparsers.add_parser("cf", help="Cloud Foundry Deploy task",
+    cf_parser = subparsers.add_parser("cf", help="Cloud Foundry task",
                                             formatter_class=RawTextHelpFormatter)
-    cfdeploy_parser.add_argument('action', help='CF task. Possible values: \n '
-                                                'deploy - deploy application to Cloud Foundry')
-    cfdeploy_parser.add_argument('-v', '--version', help='(optional) Defaults to latest version.  If deployment is '
+    cf_parser.add_argument('action', help='CF task. Possible values: \n '
+                                                'deploy   - deploy application to Cloud Foundry \n'
+                                                'rollback - Route traffic to and restart the most '
+                                                'recent stopped version while stopping and deleting the current version')
+    cf_parser.add_argument('-v', '--version', help='(optional) Defaults to latest version.  If deployment is '
                                                          'for a previous version, pass in the version number here. ')
-    cfdeploy_parser.add_argument('-f', '--force', help='(optional) Force the deploy even if the same version number is '
+    cf_parser.add_argument('-f', '--force', help='(optional) Force the deploy even if the same version number is '
                                                        'already running.  \n '
                                                        'Note: Zero-downtime deployment will not occur if forcing a '
                                                        'deploy on the same version number.')
-    cfdeploy_parser.add_argument('-s', '--script', help='(optional) If you choose to use a custom deploy script '
+    cf_parser.add_argument('-s', '--script', help='(optional) If you choose to use a custom deploy script '
                                                         'instead of the default zero-downtime, pass in the path to '
                                                         'deploy script here.')
-    cfdeploy_parser.add_argument('-metrics', '--manifest', help='(optional) Custom manifest name if you choose not to '
-                                                                ' follow standard pattern of{environment}.manifest.yml')
-    cfdeploy_parser.add_argument('--no-download', help='(optional) Skips downloading and extraction of artifact.'
+    cf_parser.add_argument('-metrics', '--manifest', help='(optional) Custom manifest name if you choose not to '
+                                                                ' follow standard pattern of {environment}.manifest.yml')
+    cf_parser.add_argument('--no-download', help='(optional) Skips downloading and extraction of artifact.'
                                                        'Useful if the artifact was downloaded previously.',
                                  action='store_true')
 
