@@ -77,6 +77,7 @@ class Artifactory(Artifact_Storage):
         else:
             headers = {}
         auth = None
+
         # token and user env variables
         if os.getenv('ARTIFACTORY_TOKEN') and os.getenv('ARTIFACTORY_USER'):
             commons.print_msg(Artifactory.clazz, method, 'Found artifactory token and user.')
@@ -94,6 +95,7 @@ class Artifactory(Artifact_Storage):
             commons.print_msg(Artifactory.clazz, method, 'Found artifactory token.  Assuming it\'s API key.')
             headers['X-Api-Key'] = os.getenv('ARTIFACTORY_TOKEN')
 
+        # no auth
         else:
             commons.print_msg(Artifactory.clazz, method, 'No artifactory user specified.  This operation may '
                                                          'fail if anonymous access is not allowed. To specify '
