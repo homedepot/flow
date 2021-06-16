@@ -71,8 +71,8 @@ class Artifactory(Artifact_Storage):
 
         commons.print_msg(Artifactory.clazz, method, 'end')
 
-    def _get_artifactory_headers_and_auth(self, publishing):
-        if (publishing):
+    def _get_artifactory_headers_and_auth(self, publishing=False):
+        if publishing:
             headers = {'Content-type': commons.content_oct_stream, 'Accept': commons.content_json}
         else:
             headers = {}
@@ -336,7 +336,7 @@ class Artifactory(Artifact_Storage):
         method = "download_artifact"
         try:
             with open(download_path, 'wb') as handle:
-                headers, auth = self._get_artifactory_headers_and_auth(False)
+                headers, auth = self._get_artifactory_headers_and_auth()
                 response = requests.get(artifact_url,
                                         auth=auth,
                                         headers=headers,
