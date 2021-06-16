@@ -113,9 +113,11 @@ class Artifactory(Artifact_Storage):
 
                 headers, auth = self._get_artifactory_headers_and_auth(True)
 
-                # Attempt to DELETE current artifact first and upload new one instead of PUT to work around
-                # broken pipe error when Artifactory terminates early on a larger payload if Artifactory user
-                # does not have DELETE permission
+                # Check first if the artifact exists already.
+                # Normally a PUT would override the existing artifact,
+                # but instead we DELETE and then upload a new one to work around a
+                # broken pipe error when Artifactory terminates early on a larger payload
+                # if Artifactory user does not have DELETE permission
                 artifact_exist_check_resp = requests.get(file_url,
                                             auth=auth,
                                             headers=header,
@@ -125,12 +127,14 @@ class Artifactory(Artifact_Storage):
                                                                  "Removing and attempting to publish."
                                       .format(self.config.version_number),
                                       "WARN")
-                    # Try to delete the file first, in case one with this name already exists
+                    # Try to delete the existing file
                     remove_resp = requests.delete(file_url,
                                                   auth=auth,
                                                   headers=headers,
                                                   timeout=self.http_timeout)
 
+                    # Stop processing if we didn't have permission,
+                    # since the PUT we're about to do will fail
                     self._check_artifact_permissions(remove_resp, method)
 
                 commons.print_msg(Artifactory.clazz, method, "Publishing to {}".format(file_url))
@@ -147,7 +151,7 @@ class Artifactory(Artifact_Storage):
                               .format(error), "ERROR")
             exit(1)
         except Exception as ex:
-            commons.print_msg(Artifactory.clazz, method, "Failed publishing to artifactory: {}. Sometimes this can be "
+            commons.print_msg(Artifactory.clazz, method, "Failed publishing to Artifactory: {}. Sometimes this can be "
                                                          "due to an invalid user name/password.".format(ex), 'ERROR')
 
             exit(1)
@@ -159,7 +163,7 @@ class Artifactory(Artifact_Storage):
         if resp.status_code != 201:
             commons.print_msg(Artifactory.clazz,
                               method,
-                              "Publish to artifactory failed to {home}{fwdslash}{file} Response: {response}"
+                              "Publish to Artifactory failed to {home}{fwdslash}{file} Response: {response}"
                               .format(home=self.get_artifact_home_url(),
                                       fwdslash=commons.forward_slash,
                                       file=file_name,
