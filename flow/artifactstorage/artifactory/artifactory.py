@@ -72,9 +72,9 @@ class Artifactory(Artifact_Storage):
         commons.print_msg(Artifactory.clazz, method, 'end')
 
     def _get_artifactory_headers_and_auth(self, publishing):
-        if (publishing)
+        if (publishing):
             headers = {'Content-type': commons.content_oct_stream, 'Accept': commons.content_json}
-        else
+        else:
             headers = {}
         auth = None
         # token and user env variables
