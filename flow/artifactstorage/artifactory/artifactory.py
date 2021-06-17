@@ -75,7 +75,7 @@ class Artifactory(Artifact_Storage):
         if publishing:
             headers = {'Content-type': commons.content_oct_stream, 'Accept': commons.content_json}
         else:
-            headers = {}
+            headers = {'Content-type': 'application/json'}
         auth = None
 
         # token and user env variables
