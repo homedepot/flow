@@ -85,11 +85,11 @@ class Artifactory(Artifact_Storage):
             headers["Authorization"] = "Bearer " + os.getenv('ARTIFACTORY_TOKEN')
 
         # token environment var and user defined in settings.ini
-        elif os.getenv('ARTIFACTORY_TOKEN') and BuildConfig.settings.has_section('artifactory') and \
-                BuildConfig.settings.has_option('artifactory', 'user'):
+        elif os.getenv('ARTIFACTORY_TOKEN') and self.config.settings.has_section('artifactory') and \
+                self.config.settings.has_option('artifactory', 'user'):
             commons.print_msg(Artifactory.clazz, method, 'Found artifactory token.  Using default user '
                                                          'specified in settings.ini.')
-            auth = (BuildConfig.settings.get('artifactory', 'user'), os.getenv('ARTIFACTORY_TOKEN'))
+            auth = (self.config.settings.get('artifactory', 'user'), os.getenv('ARTIFACTORY_TOKEN'))
 
         # token only and assumed to be api key
         elif os.getenv('ARTIFACTORY_TOKEN'):
