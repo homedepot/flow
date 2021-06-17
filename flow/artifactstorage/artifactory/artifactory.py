@@ -72,6 +72,7 @@ class Artifactory(Artifact_Storage):
         commons.print_msg(Artifactory.clazz, method, 'end')
 
     def _get_artifactory_headers_and_auth(self, publishing=False):
+        method = '_get_artifactory_headers_and_auth'
         if publishing:
             headers = {'Content-type': commons.content_oct_stream, 'Accept': commons.content_json}
         else:
@@ -122,7 +123,7 @@ class Artifactory(Artifact_Storage):
                 # if Artifactory user does not have DELETE permission
                 artifact_exist_check_resp = requests.get(file_url,
                                             auth=auth,
-                                            headers=header,
+                                            headers=headers,
                                             timeout=self.http_timeout)
                 if artifact_exist_check_resp.status_code == 200:
                     commons.print_msg(Artifactory.clazz, method, "Artifact with version {} already exists. "
@@ -155,7 +156,6 @@ class Artifactory(Artifact_Storage):
         except Exception as ex:
             commons.print_msg(Artifactory.clazz, method, "Failed publishing to Artifactory: {}. Sometimes this can be "
                                                          "due to an invalid user name/password.".format(ex), 'ERROR')
-
             exit(1)
 
         # noinspection PyUnboundLocalVariable

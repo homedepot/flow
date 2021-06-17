@@ -139,7 +139,7 @@ mkdir /.virtualenvs
 
 ```shell
 cd /flow
-bash ./scrips/unittest.sh
+bash ./scripts/unittest.sh
 ```
 
 Once set-up any changes that you make on your local machine will be reflected within the docker container. Changes are also immediately reflected in the `flow` command that is run within the container. You can also install flow locally on your machine using `pip3 install -e ./`. This of course requires the installation of [pip](https://pip.pypa.io/en/stable/installing/).
