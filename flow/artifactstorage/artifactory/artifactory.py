@@ -284,7 +284,12 @@ class Artifactory(Artifact_Storage):
                        "/" + self.config.version_number
 
         try:
-            resp = requests.get(arti_api_url, timeout=self.http_timeout)
+            headers, auth = self._get_artifactory_headers_and_auth()
+            resp = requests.get(arti_api_url,
+                                    auth=auth,
+                                    headers=headers,
+                                    timeout=self.http_timeout
+                                )
         except requests.ConnectionError as e:
             commons.print_msg(Artifactory.clazz, method, "Request to Artifactory timed out.", "ERROR")
             raise ArtifactException(e)
