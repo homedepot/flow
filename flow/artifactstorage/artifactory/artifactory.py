@@ -71,107 +71,91 @@ class Artifactory(Artifact_Storage):
 
         commons.print_msg(Artifactory.clazz, method, 'end')
 
+    def _get_artifactory_headers_and_auth(self, publishing=False):
+        method = '_get_artifactory_headers_and_auth'
+        if publishing:
+            headers = {'Content-type': commons.content_oct_stream, 'Accept': commons.content_json}
+        else:
+            headers = {'Content-type': 'application/json'}
+        auth = None
+
+        # token and user env variables
+        if os.getenv('ARTIFACTORY_TOKEN') and os.getenv('ARTIFACTORY_USER'):
+            commons.print_msg(Artifactory.clazz, method, 'Found artifactory token and user.')
+            headers["Authorization"] = "Bearer " + os.getenv('ARTIFACTORY_TOKEN')
+
+        # token environment var and user defined in settings.ini
+        elif os.getenv('ARTIFACTORY_TOKEN') and self.config.settings.has_section('artifactory') and \
+                self.config.settings.has_option('artifactory', 'user'):
+            commons.print_msg(Artifactory.clazz, method, 'Found artifactory token.  Using default user '
+                                                         'specified in settings.ini.')
+            auth = (self.config.settings.get('artifactory', 'user'), os.getenv('ARTIFACTORY_TOKEN'))
+
+        # token only and assumed to be api key
+        elif os.getenv('ARTIFACTORY_TOKEN'):
+            commons.print_msg(Artifactory.clazz, method, 'Found artifactory token.  Assuming it\'s API key.')
+            headers['X-Api-Key'] = os.getenv('ARTIFACTORY_TOKEN')
+
+        # no auth
+        else:
+            commons.print_msg(Artifactory.clazz, method, 'No artifactory user specified.  This operation may '
+                                                         'fail if anonymous access is not allowed. To specify '
+                                                         'user, set environment variables \'ARTIFACTORY_TOKEN\' '
+                                                         'and \'ARTIFACTORY_USER\'.',
+                              'WARN')
+        return headers, auth
+
     def publish(self, file, file_name):
         method = 'publish'
         commons.print_msg(Artifactory.clazz, method, 'begin')
-
-        headers = {'Content-type': commons.content_oct_stream, 'Accept': commons.content_json}
 
         try:
             with open(file, 'rb') as zip_file:
                 file_url = "{artifact_home}/{file}".format(artifact_home=self.get_artifact_home_url(), file=file_name)
                 commons.print_msg(Artifactory.clazz, method, "Checking url {} for existing artifact.".format(file_url))
 
-                artifact_exist_check_resp = requests.get(file_url, timeout=self.http_timeout)
+                headers, auth = self._get_artifactory_headers_and_auth(True)
+
+                # Check first if the artifact exists already.
+                # Normally a PUT would override the existing artifact,
+                # but instead we DELETE and then upload a new one to work around a
+                # broken pipe error when Artifactory terminates early on a larger payload
+                # if Artifactory user does not have DELETE permission
+                artifact_exist_check_resp = requests.get(file_url,
+                                            auth=auth,
+                                            headers=headers,
+                                            timeout=self.http_timeout)
                 if artifact_exist_check_resp.status_code == 200:
                     commons.print_msg(Artifactory.clazz, method, "Artifact with version {} already exists. "
                                                                  "Removing and attempting to publish."
                                       .format(self.config.version_number),
                                       "WARN")
+                    # Try to delete the existing file
+                    remove_resp = requests.delete(file_url,
+                                                  auth=auth,
+                                                  headers=headers,
+                                                  timeout=self.http_timeout)
 
-                # Attempt to DELETE current artifact first and upload new one instead of PUT to work around
-                # broken pipe error when Artifactory terminates early on a larger payload if Artifactory user
-                # does not have DELETE permission
+                    # Stop processing if we didn't have permission,
+                    # since the PUT we're about to do will fail
+                    self._check_artifact_permissions(remove_resp, method)
+
                 commons.print_msg(Artifactory.clazz, method, "Publishing to {}".format(file_url))
 
-                # token and user env variables
-                if os.getenv('ARTIFACTORY_TOKEN') and os.getenv('ARTIFACTORY_USER'):
-                    commons.print_msg(Artifactory.clazz, method, 'Found artifactory token and user.')
-                    headers["Authorization"] = "Bearer " + os.getenv('ARTIFACTORY_TOKEN')
-
-                    remove_resp = requests.delete(file_url,
-                                                  headers=headers,
-                                                  timeout=self.http_timeout)
-
-                    self._check_artifact_permissions(remove_resp, method)
-
-                    resp = requests.put(file_url,
-                                        headers=headers,
-                                        data=zip_file,
-                                        timeout=self.http_timeout)
-
-                # token environment var and user defined in settings.ini
-                elif os.getenv('ARTIFACTORY_TOKEN') and BuildConfig.settings.has_section('artifactory') and \
-                        BuildConfig.settings.has_option('artifactory', 'user'):
-                    commons.print_msg(Artifactory.clazz, method, 'Found artifactory token.  Using default user '
-                                                                 'specified in settings.ini.')
-
-                    remove_resp = requests.delete(file_url,
-                                                  auth=(BuildConfig.settings.get('artifactory', 'user'),
-                                                        os.getenv('ARTIFACTORY_TOKEN')),
-                                                  headers=headers,
-                                                  timeout=self.http_timeout)
-
-                    self._check_artifact_permissions(remove_resp, method)
-
-                    resp = requests.put(file_url,
-                                        auth=(BuildConfig.settings.get('artifactory', 'user'),
-                                              os.getenv('ARTIFACTORY_TOKEN')),
-                                        headers=headers,
-                                        data=zip_file,
-                                        timeout=self.http_timeout)
-
-                # token only and assumed to be api key
-                elif os.getenv('ARTIFACTORY_TOKEN'):
-                    commons.print_msg(Artifactory.clazz, method, 'Found artifactory token.  Assuming it\'s API key.')
-
-                    headers = {'X-Api-Key': os.getenv('ARTIFACTORY_TOKEN'),
-                               'Content-type': commons.content_oct_stream,
-                               'Accept': commons.content_json}
-
-                    remove_resp = requests.delete(file_url,
-                                                  headers=headers,
-                                                  timeout=self.http_timeout)
-
-                    self._check_artifact_permissions(remove_resp, method)
-
-                    resp = requests.put(file_url,
-                                        headers=headers,
-                                        data=zip_file,
-                                        timeout=self.http_timeout)
-
-                else:
-                    commons.print_msg(Artifactory.clazz, method, 'No artifactory user specified.  This operation may '
-                                                                 'fail if anonymous access is not allowed. To specify '
-                                                                 'user, set environment variable \'ARTIFACTORY_TOKEN\' '
-                                                                 'and \'ARTIFACTORY_USER\'.',
-                                      'WARN')
-
-                    remove_resp = requests.delete(file_url,
-                                                  headers=headers,
-                                                  timeout=self.http_timeout)
-
-                    self._check_artifact_permissions(remove_resp, method)
-                    resp = requests.put(file_url, headers=headers, data=zip_file, timeout=self.http_timeout)
+                # Upload our file
+                resp = requests.put(file_url,
+                                    auth=auth,
+                                    headers=headers,
+                                    data=zip_file,
+                                    timeout=self.http_timeout)
         except requests.ConnectionError as e:
             error = str(e)
             commons.print_msg(Artifactory.clazz, method, "Request to Artifactory raised a ConnectionError: {}"
                               .format(error), "ERROR")
             exit(1)
         except Exception as ex:
-            commons.print_msg(Artifactory.clazz, method, "Failed publishing to artifactory: {}. Sometimes this can be "
+            commons.print_msg(Artifactory.clazz, method, "Failed publishing to Artifactory: {}. Sometimes this can be "
                                                          "due to an invalid user name/password.".format(ex), 'ERROR')
-
             exit(1)
 
         # noinspection PyUnboundLocalVariable
@@ -181,7 +165,7 @@ class Artifactory(Artifact_Storage):
         if resp.status_code != 201:
             commons.print_msg(Artifactory.clazz,
                               method,
-                              "Publish to artifactory failed to {home}{fwdslash}{file} Response: {response}"
+                              "Publish to Artifactory failed to {home}{fwdslash}{file} Response: {response}"
                               .format(home=self.get_artifact_home_url(),
                                       fwdslash=commons.forward_slash,
                                       file=file_name,
@@ -300,7 +284,12 @@ class Artifactory(Artifact_Storage):
                        "/" + self.config.version_number
 
         try:
-            resp = requests.get(arti_api_url, timeout=self.http_timeout)
+            headers, auth = self._get_artifactory_headers_and_auth()
+            resp = requests.get(arti_api_url,
+                                    auth=auth,
+                                    headers=headers,
+                                    timeout=self.http_timeout
+                                )
         except requests.ConnectionError as e:
             commons.print_msg(Artifactory.clazz, method, "Request to Artifactory timed out.", "ERROR")
             raise ArtifactException(e)
@@ -358,7 +347,11 @@ class Artifactory(Artifact_Storage):
         method = "download_artifact"
         try:
             with open(download_path, 'wb') as handle:
-                response = requests.get(artifact_url, stream=True)
+                headers, auth = self._get_artifactory_headers_and_auth()
+                response = requests.get(artifact_url,
+                                        auth=auth,
+                                        headers=headers,
+                                        stream=True)
                 if not response.ok:
                     response.raise_for_status()
 

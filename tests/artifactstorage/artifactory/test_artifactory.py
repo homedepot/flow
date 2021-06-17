@@ -1,4 +1,5 @@
 import os
+import configparser
 from unittest.mock import MagicMock
 from unittest.mock import patch
 
@@ -146,7 +147,7 @@ response_body_artifactory_not_found = """
 
 # noinspection PyUnresolvedReferences
 @responses.activate
-def test_get_urls_of_artifacts():
+def test_get_urls_of_artifacts(monkeypatch):
     _b = MagicMock(BuildConfig)
     _b.build_env_info = mock_build_config_dict['environments']['unittest']
     _b.json_config = mock_build_config_dict
@@ -166,12 +167,27 @@ def test_get_urls_of_artifacts():
 
     urls = art.get_urls_of_artifacts()
 
+    assert len(responses.calls) == 2
+    assert 'Authorization' not in responses.calls[0].request.headers
+    assert 'Authorization' not in responses.calls[1].request.headers
+    assert urls == ["https://testdomain/artifactory/release-repo/group/testproject/v1.0.0/testproject.bob",
+                    "https://testdomain/artifactory/release-repo/group/testproject/v1.0.0/testproject.vcl"]
+
+    artifactory_token = 'fake_token_a'
+    monkeypatch.setenv('ARTIFACTORY_USER', 'fake_user')
+    monkeypatch.setenv('ARTIFACTORY_TOKEN', artifactory_token)
+
+    urls = art.get_urls_of_artifacts()
+
+    assert len(responses.calls) == 4
+    assert responses.calls[2].request.headers['Authorization'] == 'Bearer ' + artifactory_token
+    assert responses.calls[3].request.headers['Authorization'] == 'Bearer ' + artifactory_token
     assert urls == ["https://testdomain/artifactory/release-repo/group/testproject/v1.0.0/testproject.bob", "https://testdomain/artifactory/release-repo/group/testproject/v1.0.0/testproject.vcl"]
 
 
 # noinspection PyUnresolvedReferences
 @responses.activate
-def test_get_artifact_url():
+def test_get_artifact_url(monkeypatch):
     _b = MagicMock(BuildConfig)
     _b.build_env_info = mock_build_config_dict['environments']['unittest']
     _b.json_config = mock_build_config_dict
@@ -179,6 +195,9 @@ def test_get_artifact_url():
     _b.version_number = 'v1.0.0'
     _b.artifact_extension = 'bob'
     _b.artifact_extensions = None
+    parser = configparser.ConfigParser()
+    parser.add_section('artifactory')
+    _b.settings = parser
     art = Artifactory(config_override=_b)
 
     test_url = "https://testdomain/artifactory/api/storage/release-repo/group/testproject/v1.0.0"
@@ -190,13 +209,22 @@ def test_get_artifact_url():
                   content_type="application/json")
 
     url = art.get_artifact_url()
+    assert len(responses.calls) == 1
+    assert 'X-Api-Key' not in responses.calls[0].request.headers
+    assert url == "https://testdomain/artifactory/release-repo/group/testproject/v1.0.0/testproject.bob"
 
+    artifactory_token = 'fake_token_b'
+    monkeypatch.setenv('ARTIFACTORY_TOKEN', artifactory_token)
+
+    url = art.get_artifact_url()
+    assert len(responses.calls) == 2
+    assert responses.calls[1].request.headers['X-Api-Key'] == artifactory_token
     assert url == "https://testdomain/artifactory/release-repo/group/testproject/v1.0.0/testproject.bob"
 
 
 # noinspection PyUnresolvedReferences
 @responses.activate
-def test_get_artifact_with_include_pom():
+def test_get_artifact_with_include_pom(monkeypatch):
     _b = MagicMock(BuildConfig)
     _b.build_env_info = mock_build_config_artifactoryConfig_include_POM['environments']['unittest']
     _b.json_config = mock_build_config_artifactoryConfig_include_POM
@@ -205,6 +233,10 @@ def test_get_artifact_with_include_pom():
     _b.version_number = 'v1.0.0'
     _b.artifact_extension = 'bob'
     _b.artifact_extensions = None
+    parser = configparser.ConfigParser()
+    parser.add_section('artifactory')
+    parser.set('artifactory', 'user', 'fake_user')
+    _b.settings = parser
     art = Artifactory(config_override=_b)
 
     test_url = "https://testdomain/artifactory/api/storage/release-repo/group/testproject/v1.0.0"
@@ -216,7 +248,16 @@ def test_get_artifact_with_include_pom():
                   content_type="application/json")
 
     url = art.get_artifact_url()
+    assert len(responses.calls) == 1
+    assert 'Authorization' not in responses.calls[0].request.headers
+    assert url == "https://testdomain/artifactory/release-repo/group/testproject/v1.0.0/testproject.bob"
 
+    artifactory_token = 'fake_token_c'
+    monkeypatch.setenv('ARTIFACTORY_TOKEN', artifactory_token)
+
+    url = art.get_artifact_url()
+    assert len(responses.calls) == 2
+    assert responses.calls[1].request.headers['Authorization'] == 'Basic ZmFrZV91c2VyOmZha2VfdG9rZW5fYw=='
     assert url == "https://testdomain/artifactory/release-repo/group/testproject/v1.0.0/testproject.bob"
 
 
