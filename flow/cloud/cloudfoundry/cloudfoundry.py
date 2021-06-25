@@ -402,24 +402,6 @@ class CloudFoundry(Cloud):
 
         commons.print_msg(CloudFoundry.clazz, method, 'end')
 
-    def _delete_failed_push(self, app):
-        method = '_delete_failed_push'
-        commons.print_msg(CloudFoundry.clazz, method, 'begin')
-
-        found_failed_push = False
-
-        for line in CloudFoundry.stopped_apps.splitlines():
-            if app == line.decode("utf-8"):
-                found_failed_push = True
-                commons.print_msg(CloudFoundry.clazz, method, 'Found Failed push {app}'.format(app=app))
-
-        # Delete app
-        if found_failed_push:
-            self._start_stop_delete_app(app, 'delete')
-
-        commons.print_msg(CloudFoundry.clazz, method, 'end')
-
-
     def _determine_manifests(self):
         method = '_determine_manifests'
         commons.print_msg(CloudFoundry.clazz, method, 'begin')
@@ -501,7 +483,7 @@ class CloudFoundry(Cloud):
 
         if push_failed:
             os.system('stty sane')
-            self._delete_failed_push()
+            self._start_stop_delete_app(new_app_name, 'delete')
             self._cf_logout()
             exit(1)
 
@@ -847,8 +829,11 @@ class CloudFoundry(Cloud):
             # for backup and force_deploy is used when you need to redeploy/replace an instance
             # that is currently running
             previous_versions = []
+            new_app_name = "{project_name}-{version}".format(project_name=self.config.project_name,
+                                                             version=self.config.version_number)
             for line in CloudFoundry.stopped_apps.splitlines():
-                previous_versions.append(line.decode("utf-8"))
+                if line != new_app_name:
+                    previous_versions.append(line.decode("utf-8"))
             self._unmap_modify_app_state_versions(previous_versions, 'delete')
 
         commons.print_msg(CloudFoundry.clazz, method, 'DEPLOYMENT SUCCESSFUL')
