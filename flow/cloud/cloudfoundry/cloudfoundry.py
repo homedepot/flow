@@ -24,6 +24,7 @@ class CloudFoundry(Cloud):
     path_to_cf = None
     stopped_apps = None
     started_apps = None
+    deployed_app = None
     config = BuildConfig
     http_timeout = 30
 
@@ -401,6 +402,24 @@ class CloudFoundry(Cloud):
 
         commons.print_msg(CloudFoundry.clazz, method, 'end')
 
+    def _delete_failed_push(self, app):
+        method = '_delete_failed_push'
+        commons.print_msg(CloudFoundry.clazz, method, 'begin')
+
+        found_failed_push = False
+
+        for line in CloudFoundry.stopped_apps.splitlines():
+            if app == line.decode("utf-8"):
+                found_failed_push = True
+                commons.print_msg(CloudFoundry.clazz, method, 'Found Failed push {app}'.format(app=app))
+
+        # Delete app
+        if found_failed_push:
+            self._start_stop_delete_app(app, 'delete')
+
+        commons.print_msg(CloudFoundry.clazz, method, 'end')
+
+
     def _determine_manifests(self):
         method = '_determine_manifests'
         commons.print_msg(CloudFoundry.clazz, method, 'begin')
@@ -448,8 +467,10 @@ class CloudFoundry(Cloud):
         buildpack = "-b {}".format(os.getenv('CF_BUILDPACK')) if os.getenv('CF_BUILDPACK') else ""
         varsfile = "--vars-file {}".format(os.getenv('CF_VARS')) if os.getenv('CF_VARS') else ""
 
-        cmd = CloudFoundry.path_to_cf + "cf push {project_name}-{version} {pushlocation} -f {manifest} {buildpack} {varsfile}".format(project_name=self.config.project_name,
-                                            version=self.config.version_number,
+        new_app_name = "{project_name}-{version}".format(project_name=self.config.project_name, version=self.config.version_number)
+
+        cmd = CloudFoundry.path_to_cf + "cf push {app} {pushlocation} -f {manifest} {buildpack} {varsfile}".format(
+                                            app=new_app_name,
                                             pushlocation=file_to_push,
                                             manifest=manifest,
                                             buildpack=buildpack,
@@ -480,6 +501,7 @@ class CloudFoundry(Cloud):
 
         if push_failed:
             os.system('stty sane')
+            self._delete_failed_push()
             self._cf_logout()
             exit(1)
 
