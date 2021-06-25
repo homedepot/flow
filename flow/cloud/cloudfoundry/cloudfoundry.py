@@ -24,7 +24,6 @@ class CloudFoundry(Cloud):
     path_to_cf = None
     stopped_apps = None
     started_apps = None
-    deployed_app = None
     config = BuildConfig
     http_timeout = 30
 
@@ -483,6 +482,7 @@ class CloudFoundry(Cloud):
 
         if push_failed:
             os.system('stty sane')
+            commons.print_msg(CloudFoundry.clazz, method, 'Deleting failed deployment {app}'.format(app=new_app_name))
             self._start_stop_delete_app(new_app_name, 'delete')
             self._cf_logout()
             exit(1)
@@ -832,8 +832,11 @@ class CloudFoundry(Cloud):
             new_app_name = "{project_name}-{version}".format(project_name=self.config.project_name,
                                                              version=self.config.version_number)
             for line in CloudFoundry.stopped_apps.splitlines():
-                if line != new_app_name:
+                if line.decode("utf-8").lower() != new_app_name.lower():
                     previous_versions.append(line.decode("utf-8"))
+                else:
+                    commons.print_msg(CloudFoundry.clazz, method,
+                                      '{app} is version that just deployed'.format(app=new_app_name))
             self._unmap_modify_app_state_versions(previous_versions, 'delete')
 
         commons.print_msg(CloudFoundry.clazz, method, 'DEPLOYMENT SUCCESSFUL')
