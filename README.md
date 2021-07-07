@@ -23,7 +23,7 @@ A CLI tool for common Continuous Integration/Continuous Delivery Tasks
   * [Pivotal Cloud Foundry](#CF-(Pivotal-Cloud-Foundry))
   * [Google AppEngine](#Google-Cloud-App-Engine)
 
-* **Notification Mangaement**
+* **Notification Management**
   * [Slack](#Slack)
 
 * **Plugins**
