@@ -448,8 +448,10 @@ class CloudFoundry(Cloud):
         buildpack = "-b {}".format(os.getenv('CF_BUILDPACK')) if os.getenv('CF_BUILDPACK') else ""
         varsfile = "--vars-file {}".format(os.getenv('CF_VARS')) if os.getenv('CF_VARS') else ""
 
-        cmd = CloudFoundry.path_to_cf + "cf push {project_name}-{version} {pushlocation} -f {manifest} {buildpack} {varsfile}".format(project_name=self.config.project_name,
-                                            version=self.config.version_number,
+        new_app_name = "{project_name}-{version}".format(project_name=self.config.project_name, version=self.config.version_number)
+
+        cmd = CloudFoundry.path_to_cf + "cf push {app} {pushlocation} -f {manifest} {buildpack} {varsfile}".format(
+                                            app=new_app_name,
                                             pushlocation=file_to_push,
                                             manifest=manifest,
                                             buildpack=buildpack,
@@ -480,6 +482,8 @@ class CloudFoundry(Cloud):
 
         if push_failed:
             os.system('stty sane')
+            commons.print_msg(CloudFoundry.clazz, method, 'Deleting failed deployment {app}'.format(app=new_app_name))
+            self._start_stop_delete_app(new_app_name, 'delete')
             self._cf_logout()
             exit(1)
 
@@ -825,8 +829,14 @@ class CloudFoundry(Cloud):
             # for backup and force_deploy is used when you need to redeploy/replace an instance
             # that is currently running
             previous_versions = []
+            new_app_name = "{project_name}-{version}".format(project_name=self.config.project_name,
+                                                             version=self.config.version_number)
             for line in CloudFoundry.stopped_apps.splitlines():
-                previous_versions.append(line.decode("utf-8"))
+                if line.decode("utf-8").lower() != new_app_name.lower():
+                    previous_versions.append(line.decode("utf-8"))
+                else:
+                    commons.print_msg(CloudFoundry.clazz, method,
+                                      '{app} is version that just deployed'.format(app=new_app_name))
             self._unmap_modify_app_state_versions(previous_versions, 'delete')
 
         commons.print_msg(CloudFoundry.clazz, method, 'DEPLOYMENT SUCCESSFUL')
