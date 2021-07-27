@@ -16,6 +16,7 @@ class BuildConfig:
     version_number = None
     project_name = None
     artifact_category = None
+    calver_bump_type = None
     settings = None
     language = None
     version_strategy = None
@@ -117,6 +118,10 @@ class BuildConfig:
             BuildConfig.project_name = BuildConfig.json_config['projectInfo']['name']
             BuildConfig.artifact_category = BuildConfig.json_config['environments'][BuildConfig.build_env][
                 'artifactCategory'].lower()
+            if ('version_strategy' in BuildConfig.json_config['projectInfo'].keys() and
+                BuildConfig.json_config['projectInfo']['version_strategy'] == 'calver_year'):
+                BuildConfig.calver_bump_type = BuildConfig.json_config['environments'][BuildConfig.build_env][
+                    'calverBumpType'].lower()
         except KeyError as e:
             commons.print_msg(BuildConfig.clazz, method, "The buildConfig.json is missing a key. {}".format(e),
                              'ERROR')

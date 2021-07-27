@@ -568,6 +568,48 @@ def call_github_version(github_instance, project_tracker_instance, config=None, 
             commons.write_to_file(file_path, my_version, open_func=open_func)
         commons.print_msg(clazz, method, 'end')
 
+    elif config.version_strategy == 'calver_year':
+        #This version strategy is using a calver variant that looks like: year.major.patch+snapshot.
+        # find the highest existing tag that matches the base release that was passed in.
+        # functionality for fetching versions from github is identical for semver so re-using existing functions.
+        if config.artifact_category == 'snapshot':
+            # - Find the highest sem ver tag (not latest), doesn't matter if snapshot or release or beginning of time
+            highest_calver_tag_array = github_instance.get_highest_semver_tag()
+            highest_calver_tag_array_history = github_instance.get_highest_semver_snapshot_tag()
+
+        elif config.artifact_category == 'release':
+            # - Find the last semantic version release tag or beginning of time
+            highest_calver_tag_array = github_instance.get_highest_semver_release_tag()
+            highest_calver_tag_array_history = highest_calver_tag_array
+        else:
+            raise Exception("Invalid artifact_category provided.  Must be 'snapshot' or 'release'")
+
+        # This is a calver scheme, but leaving name as semver for compatibility with shared
+        # code that comes after this if/else.
+        next_semver_tag_array = github_instance.calculate_next_calver(tag_type=config.artifact_category,
+                                                                        bump_type=config.calver_bump_type,
+                                                                        highest_version_array=highest_calver_tag_array)
+
+        # - Dig through the story list to fetch some meta data about each story.
+        commits = github_instance.get_all_git_commit_history_between_provided_tags(highest_calver_tag_array_history)
+        if project_tracker_instance is None:
+            story_details = None
+        else:
+            # - Dig through commits to find story list.
+            story_list = project_tracker_instance.extract_story_id_from_commit_messages(commits)
+            story_details = project_tracker_instance.get_details_for_all_stories(story_list)
+            # need to ensure expected keys exist on story details for release notes formatting
+            story_details = project_tracker_instance.flatten_story_details(story_details)
+
+        # - Tag the version
+        # - Update the release notes on the new version number with the stories meta data.
+        release_notes = github_instance.format_github_specific_release_notes_from_project_tracker_story_details(story_details)
+
+        my_version = github_instance.convert_semver_tag_array_to_semver_string(next_semver_tag_array)
+        if file_path:
+            commons.write_to_file(file_path, my_version, open_func=open_func)
+        commons.print_msg(clazz, method, 'end')
+
     elif config.version_strategy == 'tracker' or config.version_strategy == 'jira':
         if args and 'version' in args and args.version is not None:
             commons.print_msg(clazz, method, 'Version strategy set to automated in buildConfig but version flag was '
