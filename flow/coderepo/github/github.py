@@ -395,7 +395,7 @@ class GitHub(Code_Repo):
                 new_version_array[2] = 0
             elif bump_type == 'patch':
                 # if minor rolls then set bug to zero.
-                new_version_array[2] = new_version_array[1]+1
+                new_version_array[2] = new_version_array[2]+1
 
         #set year in version to be current 2 digit year
         new_version_array[0] = int(datetime.date.today().strftime("%y"))
