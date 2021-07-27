@@ -323,6 +323,10 @@ def load_task_parsers(subparsers):
                                                        '"manual"')
     github_parser.add_argument('-o', '--output', help='(optional) Writes the version number to a file. Use only if '
                                                       'you need to persist the version number in a file.')
+    github_parser.add_argument('-sy', '--short-year', help='(optional) causes flow to create a calver_year version '
+                                                           'with a 2 digit year instead of a 4 digit year.  Note: '
+                                                           'versionStrategy in buildConfig should be set to "calver_year"',
+                                                           action='store_true')
     github_parser.add_argument('--no-publish', help='(optional) Stops publish to GitHub releases', action='store_true')
     github_parser.add_argument('-rnop', '--release-notes-output-path',
                                type=FileType('w'), help='(optional) Writes the release notes to a file. Use only if '
@@ -584,11 +588,15 @@ def call_github_version(github_instance, project_tracker_instance, config=None, 
         else:
             raise Exception("Invalid artifact_category provided.  Must be 'snapshot' or 'release'")
 
+        short_year = False
+        if args.short_year:
+            short_year = True
         # This is a calver scheme, but leaving name as semver for compatibility with shared
         # code that comes after this if/else.
         next_semver_tag_array = github_instance.calculate_next_calver(tag_type=config.artifact_category,
                                                                         bump_type=config.calver_bump_type,
-                                                                        highest_version_array=highest_calver_tag_array)
+                                                                        highest_version_array=highest_calver_tag_array,
+                                                                        short_year=short_year)
 
         # - Dig through the story list to fetch some meta data about each story.
         commits = github_instance.get_all_git_commit_history_between_provided_tags(highest_calver_tag_array_history)

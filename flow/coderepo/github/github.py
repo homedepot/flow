@@ -340,7 +340,7 @@ class GitHub(Code_Repo):
         commons.print_msg(GitHub.clazz, method, 'end')
         return new_version_array
 
-    def calculate_next_calver(self, tag_type, bump_type, highest_version_array):
+    def calculate_next_calver(self, tag_type, bump_type, highest_version_array, short_year):
         #This version strategy is using a calver variant that looks like: year.major.patch+snapshot
         method = 'calculate_next_calver'
         commons.print_msg(GitHub.clazz, method, 'begin')
@@ -397,8 +397,12 @@ class GitHub(Code_Repo):
                 # if minor rolls then set bug to zero.
                 new_version_array[2] = new_version_array[2]+1
 
-        #set year in version to be current 2 digit year
-        new_version_array[0] = int(datetime.date.today().strftime("%y"))
+        if short_year:
+            #set year in version to be current 2 digit year
+            new_version_array[0] = int(datetime.date.today().strftime("%y"))
+        else:
+            #set 4 digit year in version
+            new_version_array[0] = datetime.date.today().year
 
         commons.print_msg(GitHub.clazz, method, "New Git tag {}".format(self.convert_semver_tag_array_to_semver_string(
             new_version_array)))

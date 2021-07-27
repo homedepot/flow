@@ -284,7 +284,14 @@ def test_aggregator_github_version_calver_year_snapshot():
     _config.artifact_category = 'snapshot'
     _config.calver_bump_type = 'patch'
 
-    flow.aggregator.call_github_version(_github, _jira, _config)
+    _parser = ArgumentParser()
+    _parser.add_argument('--version')
+    _parser.add_argument('--no-publish', action='store_true')
+    _parser.add_argument('--release-notes-output-path', type=open)
+    _parser.add_argument('--short-year', action='store_true')
+    _args = _parser.parse_args(['--short-year'])
+
+    flow.aggregator.call_github_version(_github, _jira, _config, args=_args)
 
     _github.get_all_git_commit_history_between_provided_tags.assert_called_with([0, 1, 4, 8])
     _jira.get_details_for_all_stories.assert_called_with(['TEST-123', 'TEST-456'])
@@ -311,7 +318,14 @@ def test_aggregator_github_version_calver_year_major_release():
     _config.artifact_category = 'release'
     _config.calver_bump_type = 'major'
 
-    flow.aggregator.call_github_version(_github, _jira, _config)
+    _parser = ArgumentParser()
+    _parser.add_argument('--version')
+    _parser.add_argument('--no-publish', action='store_true')
+    _parser.add_argument('--release-notes-output-path', type=open)
+    _parser.add_argument('--short-year', action='store_true')
+    _args = _parser.parse_args(['--short-year'])
+
+    flow.aggregator.call_github_version(_github, _jira, _config, args=_args)
 
     _jira.get_details_for_all_stories.assert_called_with(['TEST-123', 'TEST-456'])
     _github.add_tag_and_release_notes_to_github.assert_called_with([1, 1, 0, 0], 'No Release Notes')
@@ -337,7 +351,14 @@ def test_aggregator_github_version_calver_year_patch_release():
     _config.artifact_category = 'release'
     _config.calver_bump_type = 'patch'
 
-    flow.aggregator.call_github_version(_github, _jira, _config)
+    _parser = ArgumentParser()
+    _parser.add_argument('--version')
+    _parser.add_argument('--no-publish', action='store_true')
+    _parser.add_argument('--release-notes-output-path', type=open)
+    _parser.add_argument('--short-year', action='store_true')
+    _args = _parser.parse_args(['--short-year'])
+
+    flow.aggregator.call_github_version(_github, _jira, _config, args=_args)
 
     _jira.get_details_for_all_stories.assert_called_with(['TEST-123', 'TEST-456'])
     _github.add_tag_and_release_notes_to_github.assert_called_with([1, 0, 1, 0], 'No Release Notes')
@@ -357,7 +378,14 @@ def test_aggregator_github_version_calver_year_snapshot_no_project_tracker():
     _config.artifact_category = 'snapshot'
     _config.calver_bump_type = 'patch'
 
-    flow.aggregator.call_github_version(_github, None, _config)
+    _parser = ArgumentParser()
+    _parser.add_argument('--version')
+    _parser.add_argument('--no-publish', action='store_true')
+    _parser.add_argument('--release-notes-output-path', type=open)
+    _parser.add_argument('--short-year', action='store_true')
+    _args = _parser.parse_args([])
+
+    flow.aggregator.call_github_version(_github, None, _config, args=_args)
 
     _github.get_all_git_commit_history_between_provided_tags.assert_called_with([0, 1, 4, 8])
     _github.add_tag_and_release_notes_to_github.assert_called_with([0, 2, 0, 1], 'No Release Notes')
@@ -377,7 +405,14 @@ def test_aggregator_github_version_calver_year_major_release_no_project_tracker(
     _config.artifact_category = 'release'
     _config.calver_bump_type = 'major'
 
-    flow.aggregator.call_github_version(_github, None, _config)
+    _parser = ArgumentParser()
+    _parser.add_argument('--version')
+    _parser.add_argument('--no-publish', action='store_true')
+    _parser.add_argument('--release-notes-output-path', type=open)
+    _parser.add_argument('--short-year', action='store_true')
+    _args = _parser.parse_args([])
+
+    flow.aggregator.call_github_version(_github, None, _config, args=_args)
 
     _github.add_tag_and_release_notes_to_github.assert_called_with([1, 1, 0, 0], 'No Release Notes')
 
@@ -395,7 +430,14 @@ def test_aggregator_github_version_calver_year_patch_release_no_project_tracker(
     _config.artifact_category = 'release'
     _config.calver_bump_type = 'patch'
 
-    flow.aggregator.call_github_version(_github, None, _config)
+    _parser = ArgumentParser()
+    _parser.add_argument('--version')
+    _parser.add_argument('--no-publish', action='store_true')
+    _parser.add_argument('--release-notes-output-path', type=open)
+    _parser.add_argument('--short-year', action='store_true')
+    _args = _parser.parse_args([])
+
+    flow.aggregator.call_github_version(_github, None, _config, args=_args)
 
     _github.add_tag_and_release_notes_to_github.assert_called_with([1, 0, 1, 0], 'No Release Notes')
 
