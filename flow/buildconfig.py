@@ -16,6 +16,7 @@ class BuildConfig:
     version_number = None
     project_name = None
     artifact_category = None
+    calver_bump_type = None
     settings = None
     language = None
     version_strategy = None
@@ -82,14 +83,14 @@ class BuildConfig:
             BuildConfig.version_strategy = BuildConfig.json_config['projectInfo']['versionStrategy']
         except KeyError:
             commons.print_msg(BuildConfig.clazz, method, "The build config json does not contain projectInfo => "
-                                                        "versionStrategy.  'manual', 'tracker' or 'jira' values can be "
+                                                        "versionStrategy.  'manual', 'calver_year', 'tracker' or 'jira' values can be "
                                                         "used.", 'ERROR')
             exit(1)
 
-        if BuildConfig.version_strategy != 'manual' and BuildConfig.version_strategy != projectTrackers[0]:
+        if BuildConfig.version_strategy != 'manual' and BuildConfig.version_strategy != 'calver_year' and BuildConfig.version_strategy != projectTrackers[0]:
             commons.print_msg(BuildConfig.clazz, method, "The versionStrategy in build config json is not "
-                                                         "manual and does not match the defined project "
-                                                         "tracking tool: {}.".format(projectTrackers[0]), 'ERROR')
+                                                         "manual or calver_year and does not match the "
+                                                         "defined project tracking tool: {}.".format(projectTrackers[0]), 'ERROR')
             exit(1)
 
         commons.print_msg(BuildConfig.clazz, method, 'end')
@@ -117,6 +118,12 @@ class BuildConfig:
             BuildConfig.project_name = BuildConfig.json_config['projectInfo']['name']
             BuildConfig.artifact_category = BuildConfig.json_config['environments'][BuildConfig.build_env][
                 'artifactCategory'].lower()
+            if ('versionStrategy' in BuildConfig.json_config['projectInfo'].keys() and
+                BuildConfig.json_config['projectInfo']['versionStrategy'] == 'calver_year'):
+                commons.print_msg(BuildConfig.clazz, method, "The calver bump type is {}".format(BuildConfig.json_config['environments'][BuildConfig.build_env][
+                    'calverBumpType'].lower()))
+                BuildConfig.calver_bump_type = BuildConfig.json_config['environments'][BuildConfig.build_env][
+                    'calverBumpType'].lower()
         except KeyError as e:
             commons.print_msg(BuildConfig.clazz, method, "The buildConfig.json is missing a key. {}".format(e),
                              'ERROR')

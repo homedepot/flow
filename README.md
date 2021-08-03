@@ -69,6 +69,8 @@ Generates version numbers (using semantic versioning), attaches release notes an
 
 -v VERSION, --version VERSION (optional) If manually versioning, this is passed in by the user.  Note: versionStrategy in buildConfig should be set to "manual"
 
+-sy, --short-year (optional) causes flow to create a calver_year version with a 2 digit year instead of a 4 digit year.  Note: versionStrategy in buildConfig must be set to "calver_year"
+
 -o OUTPUT, --output OUTPUT (optional) Writes the version number to a file. Use only if you need to persist the version number in a file.
 
 --no-publish (optional) Stops publish to GitHub releases

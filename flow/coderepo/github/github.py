@@ -8,6 +8,7 @@ import shutil
 import subprocess
 import tarfile
 import time
+import datetime
 
 import requests
 from flow.buildconfig import BuildConfig
@@ -333,6 +334,75 @@ class GitHub(Code_Repo):
                 new_version_array[2] = 0
             elif bump_type == 'bug':
                 new_version_array[2] = new_version_array[2]+1
+
+        commons.print_msg(GitHub.clazz, method, "New Git tag {}".format(self.convert_semver_tag_array_to_semver_string(
+            new_version_array)))
+        commons.print_msg(GitHub.clazz, method, 'end')
+        return new_version_array
+
+    def calculate_next_calver(self, tag_type, bump_type, highest_version_array, short_year):
+        #This version strategy is using a calver variant that looks like: year.major.patch+snapshot
+        method = 'calculate_next_calver'
+        commons.print_msg(GitHub.clazz, method, 'begin')
+
+        if highest_version_array is not None:
+            commons.print_msg(GitHub.clazz, method, "Hightest Git tag: {}".format(
+                             self.convert_semver_tag_array_to_semver_string(highest_version_array)))
+        else:
+            commons.print_msg(GitHub.clazz, method, "Hightest Git tag: {}".format(str(highest_version_array)))
+
+        if os.getenv('CALVER_BUMP_TYPE'):
+            bump_type = os.getenv('CALVER_BUMP_TYPE')
+
+        commons.print_msg(GitHub.clazz, method, "Bump Type: {}".format(str(bump_type)))
+        commons.print_msg(GitHub.clazz, method, "Tag Type: {}".format(str(tag_type)))
+
+        new_version_array = None
+
+        if tag_type != "release" and tag_type != "snapshot":
+            commons.print_msg(GitHub.clazz, method, "Tag types can only be 'release' or 'snapshot', instead {} was "
+                                                   "provided.".format(str(tag_type)))
+            exit(1)
+
+        if tag_type == "release" and bump_type != "major" and bump_type != "patch":
+            commons.print_msg(GitHub.clazz, method, "Bump types can only be 'major' or 'patch', instead {} was "
+                                                   "provided.".format(str(bump_type)))
+            exit(1)
+
+        if tag_type == 'snapshot':
+            if highest_version_array is None:  # no previous snapshot
+                new_version_array = [0, 0, 0, 1]
+            else:
+                commons.print_msg(GitHub.clazz, method, "Incrementing +buildnumber based on last tag, since it's a "
+                                                       "snapshot build.")
+                new_version_array = highest_version_array[:]
+                # the build index is the 4th item (3rd position)
+                new_version_array[3] = new_version_array[3]+1
+
+        elif tag_type == 'release':
+            commons.print_msg(GitHub.clazz, method, 'New Release semver')
+
+            if highest_version_array is None:
+                new_version_array = [0, 0, 0, 0]
+            else:
+                new_version_array = highest_version_array[:]
+                # release builds don't have build numbers, so always set to zero
+                new_version_array[3] = 0
+
+            if bump_type == 'major':
+                # if major rolls then set minor and bug to zero.
+                new_version_array[1] = new_version_array[1]+1
+                new_version_array[2] = 0
+            elif bump_type == 'patch':
+                # if minor rolls then set bug to zero.
+                new_version_array[2] = new_version_array[2]+1
+
+        if short_year:
+            #set year in version to be current 2 digit year
+            new_version_array[0] = int(datetime.date.today().strftime("%y"))
+        else:
+            #set 4 digit year in version
+            new_version_array[0] = datetime.date.today().year
 
         commons.print_msg(GitHub.clazz, method, "New Git tag {}".format(self.convert_semver_tag_array_to_semver_string(
             new_version_array)))
