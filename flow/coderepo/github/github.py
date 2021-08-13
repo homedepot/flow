@@ -404,6 +404,12 @@ class GitHub(Code_Repo):
             #set 4 digit year in version
             new_version_array[0] = datetime.date.today().year
 
+        #Rollover to a new year resets the major, patch and snapshot values to 0 if a previous version existed.
+        if highest_version_array is not None and new_version_array[0] > highest_version_array[0]:
+            new_version_array[1] = 0
+            new_version_array[2] = 0
+            new_version_array[3] = 0
+
         commons.print_msg(GitHub.clazz, method, "New Git tag {}".format(self.convert_semver_tag_array_to_semver_string(
             new_version_array)))
         commons.print_msg(GitHub.clazz, method, 'end')
