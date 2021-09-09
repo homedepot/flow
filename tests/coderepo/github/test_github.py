@@ -593,7 +593,7 @@ def test_calculate_next_calver_first_snapshot():
     short_year = False
     with patch('flow.coderepo.github.github.datetime') as mock_datetime:
         mock_datetime.date.today.return_value = datetime.date(2021, 1, 1)
-        _github.calculate_next_calver(tag_type=tag_type, bump_type=bump_type, highest_version_array=highest_version_array, short_year=short_year)
+        new_tag_array = _github.calculate_next_calver(tag_type=tag_type, bump_type=bump_type, highest_version_array=highest_version_array, short_year=short_year)
     assert new_tag_array == [2021, 0, 0, 1]
 
 
@@ -601,7 +601,7 @@ def test_calculate_next_calver_next_snapshot():
     _github = GitHub(verify_repo=False)
     tag_type = "snapshot"
     bump_type = None
-    highest_version_array = [21, 1, 1, 1]
+    highest_version_array = [2021, 1, 1, 1]
     short_year = False
     with patch('flow.coderepo.github.github.datetime') as mock_datetime:
         mock_datetime.date.today.return_value = datetime.date(2021, 1, 1)
@@ -637,7 +637,7 @@ def test_calculate_next_calver_next_release_patch():
     _github = GitHub(verify_repo=False)
     tag_type="release"
     bump_type="patch"
-    highest_version_array=[0, 1, 1, 1]
+    highest_version_array=[2021, 1, 1, 1]
     short_year = False
     with patch('flow.coderepo.github.github.datetime') as mock_datetime:
         mock_datetime.date.today.return_value = datetime.date(2021, 1, 1)
@@ -649,7 +649,7 @@ def test_calculate_next_calver_next_release_major():
     _github = GitHub(verify_repo=False)
     tag_type="release"
     bump_type="major"
-    highest_version_array=[0, 1, 1, 1]
+    highest_version_array=[2021, 1, 1, 1]
     short_year = False
     with patch('flow.coderepo.github.github.datetime') as mock_datetime:
         mock_datetime.date.today.return_value = datetime.date(2021, 1, 1)
@@ -657,7 +657,7 @@ def test_calculate_next_calver_next_release_major():
     assert new_tag_array == [2021, 2, 0, 0]
 
 
-def test_calculate_next_calver_new_year():
+def test_calculate_next_calver_new_year_with_release_patch_bump_config():
     _github = GitHub(verify_repo=False)
     tag_type="release"
     bump_type="patch"
@@ -666,7 +666,31 @@ def test_calculate_next_calver_new_year():
     with patch('flow.coderepo.github.github.datetime') as mock_datetime:
         mock_datetime.date.today.return_value = datetime.date(2022, 1, 1)
         new_tag_array = _github.calculate_next_calver(tag_type=tag_type, bump_type=bump_type, highest_version_array=highest_version_array, short_year=short_year)
-    assert new_tag_array == [2022, 1, 2, 0]
+    assert new_tag_array == [2022, 0, 0, 0]
+
+
+def test_calculate_next_calver_new_year_with_release_major_bump_config():
+    _github = GitHub(verify_repo=False)
+    tag_type="release"
+    bump_type="major"
+    highest_version_array=[2021, 1, 1, 1]
+    short_year = False
+    with patch('flow.coderepo.github.github.datetime') as mock_datetime:
+        mock_datetime.date.today.return_value = datetime.date(2022, 1, 1)
+        new_tag_array = _github.calculate_next_calver(tag_type=tag_type, bump_type=bump_type, highest_version_array=highest_version_array, short_year=short_year)
+    assert new_tag_array == [2022, 0, 0, 0]
+
+
+def test_calculate_next_calver_new_year_with_snapshot_bump_config():
+    _github = GitHub(verify_repo=False)
+    tag_type="snapshot"
+    bump_type="patch"
+    highest_version_array=[2021, 1, 1, 1]
+    short_year = False
+    with patch('flow.coderepo.github.github.datetime') as mock_datetime:
+        mock_datetime.date.today.return_value = datetime.date(2022, 1, 1)
+        new_tag_array = _github.calculate_next_calver(tag_type=tag_type, bump_type=bump_type, highest_version_array=highest_version_array, short_year=short_year)
+    assert new_tag_array == [2022, 0, 0, 0]
 
 
 def test_calculate_next_calver_major_bump_type_env_var_when_bump_type_is_none(monkeypatch):
@@ -677,9 +701,9 @@ def test_calculate_next_calver_major_bump_type_env_var_when_bump_type_is_none(mo
     highest_version_array=[2021, 1, 1, 1]
     short_year = False
     with patch('flow.coderepo.github.github.datetime') as mock_datetime:
-        mock_datetime.date.today.return_value = datetime.date(2022, 1, 1)
+        mock_datetime.date.today.return_value = datetime.date(2021, 1, 1)
         new_tag_array = _github.calculate_next_calver(tag_type=tag_type, bump_type=bump_type, highest_version_array=highest_version_array, short_year=short_year)
-    assert new_tag_array == [2022, 2, 0, 0]
+    assert new_tag_array == [2021, 2, 0, 0]
 
 
 def test_calculate_next_calver_major_bump_type_env_var_when_bump_type_is_patch(monkeypatch):
@@ -690,9 +714,9 @@ def test_calculate_next_calver_major_bump_type_env_var_when_bump_type_is_patch(m
     highest_version_array=[2021, 1, 1, 1]
     short_year = False
     with patch('flow.coderepo.github.github.datetime') as mock_datetime:
-        mock_datetime.date.today.return_value = datetime.date(2022, 1, 1)
+        mock_datetime.date.today.return_value = datetime.date(2021, 1, 1)
         new_tag_array = _github.calculate_next_calver(tag_type=tag_type, bump_type=bump_type, highest_version_array=highest_version_array, short_year=short_year)
-    assert new_tag_array == [2022, 2, 0, 0]
+    assert new_tag_array == [2021, 2, 0, 0]
 
 
 def test_calculate_next_calver_patch_bump_type_env_var_when_bump_type_is_none(monkeypatch):
@@ -703,9 +727,9 @@ def test_calculate_next_calver_patch_bump_type_env_var_when_bump_type_is_none(mo
     highest_version_array=[2021, 1, 1, 1]
     short_year = False
     with patch('flow.coderepo.github.github.datetime') as mock_datetime:
-        mock_datetime.date.today.return_value = datetime.date(2022, 1, 1)
+        mock_datetime.date.today.return_value = datetime.date(2021, 1, 1)
         new_tag_array = _github.calculate_next_calver(tag_type=tag_type, bump_type=bump_type, highest_version_array=highest_version_array, short_year=short_year)
-    assert new_tag_array == [2022, 1, 2, 0]
+    assert new_tag_array == [2021, 1, 2, 0]
 
 
 def test_calculate_next_calver_patch_bump_type_env_var_when_bump_type_is_major(monkeypatch):
@@ -716,96 +740,120 @@ def test_calculate_next_calver_patch_bump_type_env_var_when_bump_type_is_major(m
     highest_version_array=[2021, 1, 1, 1]
     short_year = False
     with patch('flow.coderepo.github.github.datetime') as mock_datetime:
-        mock_datetime.date.today.return_value = datetime.date(2022, 1, 1)
+        mock_datetime.date.today.return_value = datetime.date(2021, 1, 1)
         new_tag_array = _github.calculate_next_calver(tag_type=tag_type, bump_type=bump_type, highest_version_array=highest_version_array, short_year=short_year)
-    assert new_tag_array == [2022, 1, 2, 0]
+    assert new_tag_array == [2021, 1, 2, 0]
 
 # =================================================================
-def test_calculate_next_calver_first_snapshot():
+def test_calculate_next_calver_first_snapshot_with_short_year_flag():
     _github = GitHub(verify_repo=False)
     tag_type = "snapshot"
     bump_type = None
     highest_version_array = None
     short_year = True
     with patch('flow.coderepo.github.github.datetime') as mock_datetime:
-        mock_datetime.date.today.return_value = datetime.date(21, 1, 1)
+        mock_datetime.date.today.return_value = datetime.date(2021, 1, 1)
         new_tag_array = _github.calculate_next_calver(tag_type=tag_type, bump_type=bump_type, highest_version_array=highest_version_array, short_year=short_year)
     assert new_tag_array == [21, 0, 0, 1]
 
 
-def test_calculate_next_calver_next_snapshot():
+def test_calculate_next_calver_next_snapshot_with_short_year_flag():
     _github = GitHub(verify_repo=False)
     tag_type = "snapshot"
     bump_type = None
     highest_version_array = [21, 1, 1, 1]
     short_year = True
     with patch('flow.coderepo.github.github.datetime') as mock_datetime:
-        mock_datetime.date.today.return_value = datetime.date(21, 1, 1)
+        mock_datetime.date.today.return_value = datetime.date(2021, 1, 1)
         new_tag_array = _github.calculate_next_calver(tag_type=tag_type, bump_type=bump_type, highest_version_array=highest_version_array, short_year=short_year)
     assert new_tag_array == [21, 1, 1, 2]
 
 
-def test_calculate_next_calver_first_release_patch():
+def test_calculate_next_calver_first_release_patch_with_short_year_flag():
     _github = GitHub(verify_repo=False)
     tag_type = "release"
     bump_type = "patch"
     highest_version_array = None
     short_year = True
     with patch('flow.coderepo.github.github.datetime') as mock_datetime:
-        mock_datetime.date.today.return_value = datetime.date(21, 1, 1)
+        mock_datetime.date.today.return_value = datetime.date(2021, 1, 1)
         new_tag_array = _github.calculate_next_calver(tag_type=tag_type, bump_type=bump_type, highest_version_array=highest_version_array, short_year=short_year)
     assert new_tag_array == [21, 0, 1, 0]
 
 
-def test_calculate_next_calver_first_release_major():
+def test_calculate_next_calver_first_release_major_with_short_year_flag():
     _github = GitHub(verify_repo=False)
     tag_type = "release"
     bump_type = "major"
     highest_version_array = None
     short_year = True
     with patch('flow.coderepo.github.github.datetime') as mock_datetime:
-        mock_datetime.date.today.return_value = datetime.date(21, 1, 1)
+        mock_datetime.date.today.return_value = datetime.date(2021, 1, 1)
         new_tag_array = _github.calculate_next_calver(tag_type=tag_type, bump_type=bump_type, highest_version_array=highest_version_array, short_year=short_year)
     assert new_tag_array == [21, 1, 0, 0]
 
 
-def test_calculate_next_calver_next_release_patch():
+def test_calculate_next_calver_next_release_patch_with_short_year_flag():
     _github = GitHub(verify_repo=False)
     tag_type="release"
     bump_type="patch"
-    highest_version_array=[0, 1, 1, 1]
+    highest_version_array=[21, 1, 1, 1]
     short_year = True
     with patch('flow.coderepo.github.github.datetime') as mock_datetime:
-        mock_datetime.date.today.return_value = datetime.date(21, 1, 1)
+        mock_datetime.date.today.return_value = datetime.date(2021, 1, 1)
         new_tag_array = _github.calculate_next_calver(tag_type=tag_type, bump_type=bump_type, highest_version_array=highest_version_array, short_year=short_year)
     assert new_tag_array == [21, 1, 2, 0]
 
 
-def test_calculate_next_calver_next_release_major():
+def test_calculate_next_calver_next_release_major_with_short_year_flag():
     _github = GitHub(verify_repo=False)
     tag_type="release"
     bump_type="major"
-    highest_version_array=[0, 1, 1, 1]
+    highest_version_array=[21, 1, 1, 1]
     short_year = True
     with patch('flow.coderepo.github.github.datetime') as mock_datetime:
-        mock_datetime.date.today.return_value = datetime.date(21, 1, 1)
+        mock_datetime.date.today.return_value = datetime.date(2021, 1, 1)
         new_tag_array = _github.calculate_next_calver(tag_type=tag_type, bump_type=bump_type, highest_version_array=highest_version_array, short_year=short_year)
     assert new_tag_array == [21, 2, 0, 0]
 
 
-def test_calculate_next_calver_new_year():
+def test_calculate_next_calver_new_year_with_release_patch_bump_config_with_short_year_flag():
     _github = GitHub(verify_repo=False)
     tag_type="release"
     bump_type="patch"
     highest_version_array=[21, 1, 1, 1]
     short_year = True
     with patch('flow.coderepo.github.github.datetime') as mock_datetime:
-        mock_datetime.date.today.return_value = datetime.date(22, 1, 1)
+        mock_datetime.date.today.return_value = datetime.date(2022, 1, 1)
         new_tag_array = _github.calculate_next_calver(tag_type=tag_type, bump_type=bump_type, highest_version_array=highest_version_array, short_year=short_year)
-    assert new_tag_array == [22, 1, 2, 0]
+    assert new_tag_array == [22, 0, 0, 0]
 
 
-def test_calculate_next_calver_major_bump_type_env_var_when_bump_type_is_none(monkeypatch):
+def test_calculate_next_calver_new_year_with_release_major_bump_config_with_short_year_flag():
+    _github = GitHub(verify_repo=False)
+    tag_type="release"
+    bump_type="major"
+    highest_version_array=[21, 1, 1, 1]
+    short_year = True
+    with patch('flow.coderepo.github.github.datetime') as mock_datetime:
+        mock_datetime.date.today.return_value = datetime.date(2022, 1, 1)
+        new_tag_array = _github.calculate_next_calver(tag_type=tag_type, bump_type=bump_type, highest_version_array=highest_version_array, short_year=short_year)
+    assert new_tag_array == [22, 0, 0, 0]
+
+
+def test_calculate_next_calver_new_year_with_snapshot_bump_config_with_short_year_flag():
+    _github = GitHub(verify_repo=False)
+    tag_type="snapshot"
+    bump_type="patch"
+    highest_version_array=[21, 1, 1, 1]
+    short_year = True
+    with patch('flow.coderepo.github.github.datetime') as mock_datetime:
+        mock_datetime.date.today.return_value = datetime.date(2022, 1, 1)
+        new_tag_array = _github.calculate_next_calver(tag_type=tag_type, bump_type=bump_type, highest_version_array=highest_version_array, short_year=short_year)
+    assert new_tag_array == [22, 0, 0, 0]
+
+
+def test_calculate_next_calver_major_bump_type_env_var_when_bump_type_is_none_with_short_year_flag(monkeypatch):
     monkeypatch.setenv('CALVER_BUMP_TYPE', 'major')
     _github = GitHub(verify_repo=False)
     tag_type="release"
@@ -813,12 +861,12 @@ def test_calculate_next_calver_major_bump_type_env_var_when_bump_type_is_none(mo
     highest_version_array=[21, 1, 1, 1]
     short_year = True
     with patch('flow.coderepo.github.github.datetime') as mock_datetime:
-        mock_datetime.date.today.return_value = datetime.date(22, 1, 1)
+        mock_datetime.date.today.return_value = datetime.date(2021, 1, 1)
         new_tag_array = _github.calculate_next_calver(tag_type=tag_type, bump_type=bump_type, highest_version_array=highest_version_array, short_year=short_year)
-    assert new_tag_array == [22, 2, 0, 0]
+    assert new_tag_array == [21, 2, 0, 0]
 
 
-def test_calculate_next_calver_major_bump_type_env_var_when_bump_type_is_patch(monkeypatch):
+def test_calculate_next_calver_major_bump_type_env_var_when_bump_type_is_patch_with_short_year_flag(monkeypatch):
     monkeypatch.setenv('CALVER_BUMP_TYPE', 'major')
     _github = GitHub(verify_repo=False)
     tag_type="release"
@@ -826,12 +874,12 @@ def test_calculate_next_calver_major_bump_type_env_var_when_bump_type_is_patch(m
     highest_version_array=[21, 1, 1, 1]
     short_year = True
     with patch('flow.coderepo.github.github.datetime') as mock_datetime:
-        mock_datetime.date.today.return_value = datetime.date(22, 1, 1)
+        mock_datetime.date.today.return_value = datetime.date(2021, 1, 1)
         new_tag_array = _github.calculate_next_calver(tag_type=tag_type, bump_type=bump_type, highest_version_array=highest_version_array, short_year=short_year)
-    assert new_tag_array == [22, 2, 0, 0]
+    assert new_tag_array == [21, 2, 0, 0]
 
 
-def test_calculate_next_calver_patch_bump_type_env_var_when_bump_type_is_none(monkeypatch):
+def test_calculate_next_calver_patch_bump_type_env_var_when_bump_type_is_none_with_short_year_flag(monkeypatch):
     monkeypatch.setenv('CALVER_BUMP_TYPE', 'patch')
     _github = GitHub(verify_repo=False)
     tag_type="release"
@@ -839,12 +887,12 @@ def test_calculate_next_calver_patch_bump_type_env_var_when_bump_type_is_none(mo
     highest_version_array=[21, 1, 1, 1]
     short_year = True
     with patch('flow.coderepo.github.github.datetime') as mock_datetime:
-        mock_datetime.date.today.return_value = datetime.date(22, 1, 1)
+        mock_datetime.date.today.return_value = datetime.date(2021, 1, 1)
         new_tag_array = _github.calculate_next_calver(tag_type=tag_type, bump_type=bump_type, highest_version_array=highest_version_array, short_year=short_year)
-    assert new_tag_array == [22, 1, 2, 0]
+    assert new_tag_array == [21, 1, 2, 0]
 
 
-def test_calculate_next_calver_patch_bump_type_env_var_when_bump_type_is_major(monkeypatch):
+def test_calculate_next_calver_patch_bump_type_env_var_when_bump_type_is_major_with_short_year_flag(monkeypatch):
     monkeypatch.setenv('CALVER_BUMP_TYPE', 'patch')
     _github = GitHub(verify_repo=False)
     tag_type="release"
@@ -852,9 +900,9 @@ def test_calculate_next_calver_patch_bump_type_env_var_when_bump_type_is_major(m
     highest_version_array=[21, 1, 1, 1]
     short_year = True
     with patch('flow.coderepo.github.github.datetime') as mock_datetime:
-        mock_datetime.date.today.return_value = datetime.date(22, 1, 1)
+        mock_datetime.date.today.return_value = datetime.date(2021, 1, 1)
         new_tag_array = _github.calculate_next_calver(tag_type=tag_type, bump_type=bump_type, highest_version_array=highest_version_array, short_year=short_year)
-    assert new_tag_array == [22, 1, 2, 0]
+    assert new_tag_array == [21, 1, 2, 0]
 
 # noinspection PyUnresolvedReferences
 @responses.activate
