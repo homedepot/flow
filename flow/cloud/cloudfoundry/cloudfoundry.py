@@ -427,8 +427,8 @@ class CloudFoundry(Cloud):
         method = '_determine_push_location'
         commons.print_msg(CloudFoundry.clazz, method, 'begin')
 
-        if self.config.artifact_extension is None or self.config.artifact_extension in ('zip', 'tar', 'tar.gz'):
-            # deployed from github directly or it's a zip, tar, tar.gz file
+        if self.config.artifact_extension is None or self.config.artifact_extension in ('zip', 'tar', 'tar.gz', 'tgz'):
+            # deployed from fordeployment folder directly if it's a zip, tar, tar.gz, tgz file
             return "-p " + self.config.push_location
         elif self.config.artifact_extension == 'docker':
             # -p flag not supported for Docker deployments
