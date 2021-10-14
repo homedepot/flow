@@ -247,7 +247,9 @@ def main():
                     commons.print_msg(clazz, method, "Setting manifest to {}".format(args.manifest))
                     manifest = args.manifest
 
-                cf.deploy(force_deploy=force, manifest=manifest)
+                delete_on_fail = args.delete_on_fail
+
+                cf.deploy(force_deploy=force, manifest=manifest, delete_on_fail=delete_on_fail)
 
             commons.print_msg(clazz, method, 'Checking if we can attach the output to the CR')
 
@@ -399,6 +401,7 @@ def load_task_parsers(subparsers):
     cf_parser.add_argument('-s', '--script', help='(optional) If you choose to use a custom deploy script '
                                                         'instead of the default zero-downtime, pass in the path to '
                                                         'deploy script here.')
+    cf_parser.add_argument('-d', '--delete-on-fail', help='(optional) Whether or not to delete the deployed application if the deployment fails. Default False.')
     cf_parser.add_argument('-metrics', '--manifest', help='(optional) Custom manifest name if you choose not to '
                                                                 ' follow standard pattern of {environment}.manifest.yml')
     cf_parser.add_argument('--no-download', help='(optional) Skips downloading and extraction of artifact.'

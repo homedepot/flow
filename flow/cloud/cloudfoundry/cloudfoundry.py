@@ -437,7 +437,7 @@ class CloudFoundry(Cloud):
             return "-p {dir}/{file}".format(dir=self.config.push_location, file=self.find_deployable(
                 self.config.artifact_extension, self.config.push_location))
 
-    def _cf_push(self, manifest):
+    def _cf_push(self, manifest, delete_on_fail):
         method = '_cf_push'
         commons.print_msg(CloudFoundry.clazz, method, 'begin')
 
@@ -482,8 +482,9 @@ class CloudFoundry(Cloud):
 
         if push_failed:
             os.system('stty sane')
-            commons.print_msg(CloudFoundry.clazz, method, 'Deleting failed deployment {app}'.format(app=new_app_name))
-            self._start_stop_delete_app(new_app_name, 'delete')
+            if delete_on_fail:
+                commons.print_msg(CloudFoundry.clazz, method, 'Deleting failed deployment {app}'.format(app=new_app_name))
+                self._start_stop_delete_app(new_app_name, 'delete')
             self._cf_logout()
             exit(1)
 
@@ -796,7 +797,7 @@ class CloudFoundry(Cloud):
 
         commons.print_msg(CloudFoundry.clazz, method, 'end')
 
-    def deploy(self, force_deploy=False, manifest=None):
+    def deploy(self, force_deploy=False, manifest=None, delete_on_fail=False):
         method = 'deploy'
         commons.print_msg(CloudFoundry.clazz, method, 'begin')
 
@@ -819,7 +820,7 @@ class CloudFoundry(Cloud):
         if manifest is None:
             manifest = self._determine_manifests()
 
-        self._cf_push(manifest)
+        self._cf_push(manifest, delete_on_fail)
 
         if not os.getenv("AUTO_STOP"):
             self._stop_old_app_servers()
