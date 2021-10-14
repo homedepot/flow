@@ -409,7 +409,7 @@ def test_determine_push_location_called_by_cf_push():
                     _b.push_location = 'fake_push_dir'
                     _cf = CloudFoundry(_b)
                 
-                    _cf._cf_push('fake_manifest.yml')
+                    _cf._cf_push('fake_manifest.yml', False)
 
     mock_printmsg_fn.assert_any_call('Cloud', 'find_deployable', 'Looking for a war in fake_push_dir')
 
