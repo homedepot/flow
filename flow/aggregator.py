@@ -247,7 +247,7 @@ def main():
                     commons.print_msg(clazz, method, "Setting manifest to {}".format(args.manifest))
                     manifest = args.manifest
 
-                delete_on_fail = args.delete_on_fail
+                delete_on_fail = args.delete_on_fail in ['y', 'yes', 'true']
 
                 cf.deploy(force_deploy=force, manifest=manifest, delete_on_fail=delete_on_fail)
 
