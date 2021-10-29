@@ -94,7 +94,8 @@ def main():
 
     if task != 'github' and task in tasks_requiring_github:
         github = GitHub()
-
+        if BuildConfig.version_strategy == 'calver_year' and args.short_year:
+            BuildConfig.calver_year_format = 'short'
         if 'version' in args and args.version is not None and len(args.version.strip()) > 0 and args.version.strip(
                                                                                                 ).lower() != 'latest':
             # The only time a user should be targeting a snapshot environment and specifying a version
@@ -591,15 +592,14 @@ def call_github_version(github_instance, project_tracker_instance, config=None, 
         else:
             raise Exception("Invalid artifact_category provided.  Must be 'snapshot' or 'release'")
 
-        short_year = False
         if args.short_year:
-            short_year = True
+            config.calver_year_format = "short"
         # This is a calver scheme, but leaving name as semver for compatibility with shared
         # code that comes after this if/else.
         next_semver_tag_array = github_instance.calculate_next_calver(tag_type=config.artifact_category,
                                                                         bump_type=config.calver_bump_type,
                                                                         highest_version_array=highest_calver_tag_array,
-                                                                        short_year=short_year)
+                                                                        year_format=config.calver_year_format)
 
         # - Dig through the story list to fetch some meta data about each story.
         commits = github_instance.get_all_git_commit_history_between_provided_tags(highest_calver_tag_array_history)

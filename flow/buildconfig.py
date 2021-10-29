@@ -17,6 +17,7 @@ class BuildConfig:
     project_name = None
     artifact_category = None
     calver_bump_type = None
+    calver_year_format = None
     settings = None
     language = None
     version_strategy = None
@@ -120,10 +121,21 @@ class BuildConfig:
                 'artifactCategory'].lower()
             if ('versionStrategy' in BuildConfig.json_config['projectInfo'].keys() and
                 BuildConfig.json_config['projectInfo']['versionStrategy'] == 'calver_year'):
-                commons.print_msg(BuildConfig.clazz, method, "The calver bump type is {}".format(BuildConfig.json_config['environments'][BuildConfig.build_env][
-                    'calverBumpType'].lower()))
-                BuildConfig.calver_bump_type = BuildConfig.json_config['environments'][BuildConfig.build_env][
-                    'calverBumpType'].lower()
+                bump_type = BuildConfig.json_config['environments'][BuildConfig.build_env]['calverBumpType'].lower()
+                commons.print_msg(BuildConfig.clazz, method, "The calver bump type is {}".format(bump_type))
+                BuildConfig.calver_bump_type = bump_type
+                #check if year format is defined
+                if 'calverYearFormat' in BuildConfig.json_config['environments'][BuildConfig.build_env].keys():
+                    calver_year_format = BuildConfig.json_config['environments'][BuildConfig.build_env]['calverYearFormat'].lower()
+                    if calver_year_format != 'short' and calver_year_format != 'long':
+                        commons.print_msg(BuildConfig.clazz, method, "The calverYearFormat in build config json must be either 'short' "
+                                                                     "or 'long'.", 'ERROR')
+                        exit(1)
+                    commons.print_msg(BuildConfig.clazz, method, "The calver year format is {}".format(calver_year_format))
+                    BuildConfig.calver_year_format = calver_year_format
+                #else:
+                    # Not Implemented here. It's possible that the short_year flag was passed instead of
+                    # the build config, should that flag be removed in favor of the build config?
         except KeyError as e:
             commons.print_msg(BuildConfig.clazz, method, "The buildConfig.json is missing a key. {}".format(e),
                              'ERROR')
