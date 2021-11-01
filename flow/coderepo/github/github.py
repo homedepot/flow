@@ -662,6 +662,7 @@ class GitHub(Code_Repo):
 
         all_tags = all_tags_output#.splitlines()
         tag_data = []
+        print(all_tags)
 
         for tag, _ in all_tags:
             try:
@@ -671,8 +672,10 @@ class GitHub(Code_Repo):
                     if len(str(tag_array[0])) == 2:
                         tag_data.append(tag_array)
                 else:
+                    print('else')
                     tag_data.append(self.convert_semver_string_to_semver_tag_array(tag))
-            except Exception:
+            except Exception as ex:
+                print(ex)
                 commons.print_msg(GitHub.clazz, method, "This tag didn't parse right skipping: {} ".format(tag))
 
         tag_data.sort(reverse=True)
