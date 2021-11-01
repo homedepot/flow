@@ -227,6 +227,38 @@ def test_call_get_all_semver_tags_sorted_from_random():
     assert all_tags[0] == [1, 67, 0, 0]
     assert all_tags[-1] == [0, 0, 0, 56]
 
+def test_call_get_all_semver_tags_calver_short_year_removes_4_digit_year_tags():
+    _b = MagicMock(BuildConfig)
+    _b.version_strategy = 'calver_year'
+    _b.calver_year_format = 'short'
+    _github = GitHub(config_override=_b, verify_repo=False)
+    current_test_directory = os.path.dirname(os.path.realpath(__file__))
+    with open(current_test_directory + "/git_tag_mock_output_calver.txt", 'r') as myfile:
+        captured_tag_data=list(map(lambda tag: (tag, 'sha'), myfile.read().split('\n')))
+    _github.get_all_tags_and_shas_from_github = MagicMock(return_value=captured_tag_data)
+    all_tags = GitHub.get_all_semver_tags(_github)
+    # assert the length, first and last
+    print(all_tags)
+    assert len(all_tags) == 22
+    assert all_tags[0] == [21, 68, 0, 1]
+    assert all_tags[-1] == [21, 66, 0, 0]
+
+def test_call_get_all_semver_tags_calver_long_year_keeps_4_digit_year_tags():
+    _b = MagicMock(BuildConfig)
+    _b.version_strategy = 'calver_year'
+    _b.calver_year_format = 'long'
+    _github = GitHub(config_override=_b, verify_repo=False)
+    current_test_directory = os.path.dirname(os.path.realpath(__file__))
+    with open(current_test_directory + "/git_tag_mock_output_calver.txt", 'r') as myfile:
+        captured_tag_data=list(map(lambda tag: (tag, 'sha'), myfile.read().split('\n')))
+    _github.get_all_tags_and_shas_from_github = MagicMock(return_value=captured_tag_data)
+    all_tags = GitHub.get_all_semver_tags(_github)
+    print(all_tags)
+    # assert the length, first and last
+    assert len(all_tags) == 30
+    assert all_tags[0] == [2021, 65, 2, 1]
+    assert all_tags[-1] == [21, 66, 0, 0]
+
 
 def test_get_highest_semver_tag():
     _github = GitHub(verify_repo=False)
