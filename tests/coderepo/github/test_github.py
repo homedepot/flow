@@ -238,10 +238,12 @@ def test_call_get_all_semver_tags_calver_short_year_removes_4_digit_year_tags():
     _github.get_all_tags_and_shas_from_github = MagicMock(return_value=captured_tag_data)
     all_tags = GitHub.get_all_semver_tags(_github)
     # assert the length, first and last
-    print(all_tags)
     assert len(all_tags) == 22
     assert all_tags[0] == [21, 68, 0, 1]
     assert all_tags[-1] == [21, 66, 0, 0]
+    #assert all tags start with a 2 digit year
+    for tag in all_tags:
+        assert len(str(tag[0])) == 2
 
 def test_call_get_all_semver_tags_calver_long_year_keeps_4_digit_year_tags():
     _b = MagicMock(BuildConfig)
@@ -253,7 +255,6 @@ def test_call_get_all_semver_tags_calver_long_year_keeps_4_digit_year_tags():
         captured_tag_data=list(map(lambda tag: (tag, 'sha'), myfile.read().split('\n')))
     _github.get_all_tags_and_shas_from_github = MagicMock(return_value=captured_tag_data)
     all_tags = GitHub.get_all_semver_tags(_github)
-    print(all_tags)
     # assert the length, first and last
     assert len(all_tags) == 30
     assert all_tags[0] == [2021, 65, 2, 1]

@@ -662,21 +662,17 @@ class GitHub(Code_Repo):
 
         all_tags = all_tags_output#.splitlines()
         tag_data = []
-        print(all_tags)
 
         for tag, _ in all_tags:
             try:
                 if self.config.version_strategy == 'calver_year' and self.config.calver_year_format == 'short':
                     tag_array = self.convert_semver_string_to_semver_tag_array(tag)
-                    print(tag_array)
                     # assume short (2 digit) year will always be exactly 2 digits.
                     if len(str(tag_array[0])) == 2:
                         tag_data.append(tag_array)
                 else:
-                    print('else')
                     tag_data.append(self.convert_semver_string_to_semver_tag_array(tag))
-            except Exception as ex:
-                print(ex)
+            except Exception:
                 commons.print_msg(GitHub.clazz, method, "This tag didn't parse right skipping: {} ".format(tag))
 
         tag_data.sort(reverse=True)
