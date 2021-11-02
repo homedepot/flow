@@ -55,7 +55,7 @@ Please configure [buildConfig.json](buildConfig.json).
 
 ### Github
 
-Generates version numbers (using semantic versioning), attaches release notes and retrieves the latest version number.
+Generates version numbers (using either semantic or calver versioning), attaches release notes and retrieves the latest version number.
 
 **Actions:**
 
@@ -86,6 +86,70 @@ Generates version numbers (using semantic versioning), attaches release notes an
 |JIRA_TOKEN        | Required          | to access Jira story information when building release notes (don't use if you have a TRACKER_TOKEN instead) |
 |GITHUB_TOKEN      | Required          | for access to your project API _NOTE: Requires repo access only._      |
 |SLACK_WEBHOOK_URL | Optional          | for sending error messages from Flow to your slack channel             |
+
+**calver_year version strategy:**
+
+The versionStrategy under projectInfo in buildConfig.json must be set to 'calver_year'
+
+The format of the version string under this strategy looks like: year.major.patch+snapshot
+
+Each component of the version will be incremented based upon the configuration for the specified build environment from buildConfig.json.
+
+  - snapshot increments when the build environment from buildConfig.json specifies artifactCategory as 'snapshot'.
+  - patch increments when the build environment from buildConfig.json specifies artifactCategory as 'release' and calverBumpStrategy as 'patch'.
+  - major increments when the build environment from buildConfig.json specifies artifactCategory as 'release' and calverBumpStrategy as 'major'.
+  - year increments after the 00:00 on Jan 01 of a new year. The default year format is 4 digit long year.
+
+If the build environment from buildConfig.json specifies calverYearFormat as 'short' or the short_year flag is passed to the version command then the year will be displayed as 2 digits.
+
+**Build Config Setup:**
+
+```
+  "projectInfo": {
+    "name": "flow",
+    "language": "python",
+    "versionStrategy": "calver_year"
+  },
+
+  "environments" : {
+      "build_env_calver_long_snapshot" : {
+          "artifactCategory": "snapshot",
+          "associatedBranchName": "develop",
+          "calverBumpStrategy": "patch",
+          "calverYearFormat": "long"
+      },
+      "build_env_calver_long_release_patch" : {
+          "artifactCategory": "release",
+          "associatedBranchName": "master",
+          "calverBumpStrategy": "patch",
+          "calverYearFormat": "long"
+      },
+      "build_env_calver_long_release_major" : {
+          "artifactCategory": "release",
+          "associatedBranchName": "master",
+          "calverBumpStrategy": "major",
+          "calverYearFormat": "long"
+      },
+      "build_env_calver_short_snapshot" : {
+          "artifactCategory": "snapshot",
+          "associatedBranchName": "develop",
+          "calverBumpStrategy": "patch",
+          "calverYearFormat": "short"
+      },
+      "build_env_calver_short_release_patch" : {
+          "artifactCategory": "release",
+          "associatedBranchName": "master",
+          "calverBumpStrategy": "patch",
+          "calverYearFormat": "short"
+      },
+      "build_env_calver_short_release_major" : {
+          "artifactCategory": "release",
+          "associatedBranchName": "master",
+          "calverBumpStrategy": "major",
+          "calverYearFormat": "short"
+      }
+  }
+```
 
 For the help documentation, please check `flow github -h`
 

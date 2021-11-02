@@ -340,7 +340,7 @@ class GitHub(Code_Repo):
         commons.print_msg(GitHub.clazz, method, 'end')
         return new_version_array
 
-    def calculate_next_calver(self, tag_type, bump_type, highest_version_array, short_year):
+    def calculate_next_calver(self, tag_type, bump_type, highest_version_array, year_format):
         #This version strategy is using a calver variant that looks like: year.major.patch+snapshot
         method = 'calculate_next_calver'
         commons.print_msg(GitHub.clazz, method, 'begin')
@@ -397,7 +397,7 @@ class GitHub(Code_Repo):
                 # if minor rolls then set bug to zero.
                 new_version_array[2] = new_version_array[2]+1
 
-        if short_year:
+        if year_format == 'short':
             #set year in version to be current 2 digit year
             new_version_array[0] = int(datetime.date.today().strftime("%y"))
         else:
@@ -665,7 +665,13 @@ class GitHub(Code_Repo):
 
         for tag, _ in all_tags:
             try:
-                tag_data.append(self.convert_semver_string_to_semver_tag_array(tag))
+                if self.config.version_strategy == 'calver_year' and self.config.calver_year_format == 'short':
+                    tag_array = self.convert_semver_string_to_semver_tag_array(tag)
+                    # assume short (2 digit) year will always be exactly 2 digits.
+                    if len(str(tag_array[0])) == 2:
+                        tag_data.append(tag_array)
+                else:
+                    tag_data.append(self.convert_semver_string_to_semver_tag_array(tag))
             except Exception:
                 commons.print_msg(GitHub.clazz, method, "This tag didn't parse right skipping: {} ".format(tag))
 
