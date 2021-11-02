@@ -94,8 +94,6 @@ def main():
 
     if task != 'github' and task in tasks_requiring_github:
         github = GitHub()
-        if BuildConfig.version_strategy == 'calver_year' and args.short_year:
-            BuildConfig.calver_year_format = 'short'
         if 'version' in args and args.version is not None and len(args.version.strip()) > 0 and args.version.strip(
                                                                                                 ).lower() != 'latest':
             # The only time a user should be targeting a snapshot environment and specifying a version

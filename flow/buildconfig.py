@@ -133,9 +133,10 @@ class BuildConfig:
                         exit(1)
                     commons.print_msg(BuildConfig.clazz, method, "The calver year format is {}".format(calver_year_format))
                     BuildConfig.calver_year_format = calver_year_format
-                #else:
-                    # Not Implemented here. It's possible that the short_year flag was passed instead of
-                    # the build config, should that flag be removed in favor of the build config?
+                else:
+                    # default to long (4 digit) calver year format to match github module
+                    commons.print_msg(BuildConfig.clazz, method, "The calver year format is long (4 digit years).")
+                    BuildConfig.calver_year_format = "long"
         except KeyError as e:
             commons.print_msg(BuildConfig.clazz, method, "The buildConfig.json is missing a key. {}".format(e),
                              'ERROR')
