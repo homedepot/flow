@@ -142,6 +142,13 @@ class GitHub(Code_Repo):
 
         commons.print_msg(GitHub.clazz, method, 'end')
 
+    def _filter_out_calver_long_year_tags(self, unfiltered_tag_list):
+            method = '_filter_out_calver_long_year_tags'
+            commons.print_msg(GitHub.clazz, method, 'begin')
+            tag_list = [tag for tag in unfiltered_tag_list if len(str(self.convert_semver_string_to_semver_tag_array(tag[0])[0])) == 2]
+            commons.print_msg(GitHub.clazz, method, 'end')
+            return tag_list
+
     def add_tag_and_release_notes_to_github(self, new_version_tag_array, release_notes=None):
         # TODO this needs to be split out and better unit testing added.
         # testing is hard because json attributes are not ordered.
@@ -649,6 +656,9 @@ class GitHub(Code_Repo):
                     finished = True
 
         #commons.print_msg(GitHub.clazz, method, output)
+        # if using cal_ver and short_year format filter output to remove long_year format
+        if self.config.version_strategy == 'calver_year' and self.config.calver_year_format == 'short':
+            output = self._filter_out_calver_long_year_tags(output)
 
         commons.print_msg(GitHub.clazz, method, '{} total tags'.format(len(output)))
         commons.print_msg(GitHub.clazz, method, 'end')

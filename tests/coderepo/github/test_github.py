@@ -1103,3 +1103,21 @@ def test_get_all_git_commit_history_between_provided_tags_beginning_tag_not_foun
     mock_printmsg_fn.assert_any_call('GitHub', 'get_all_git_commit_history_between_provided_tags', "Version tag not "
                                                                                                    "found v1.99.98",
                                      'ERROR')
+
+
+def test_filter_out_calver_long_year_tags(monkeypatch):
+    _b = MagicMock(BuildConfig)
+    _b.version_strategy = 'calver_year'
+    _b.calver_year_format = 'short'
+    _github = GitHub(config_override=_b, verify_repo=False)
+    current_test_directory = os.path.dirname(os.path.realpath(__file__))
+    with open(current_test_directory + "/git_tag_mock_output_calver.txt", 'r') as myfile:
+        captured_tag_data=list(map(lambda tag: (tag, 'sha'), myfile.read().split('\n')))
+    print(captured_tag_data)
+    filtered_tags = _github._filter_out_calver_long_year_tags(captured_tag_data)
+    assert len(filtered_tags) == 22
+    assert filtered_tags[0][0] == 'v21.68.0+1'
+    assert filtered_tags[-1][0] == 'v21.66.0'
+    #assert all tags start with a 2 digit year
+    for tag in filtered_tags:
+        assert len(str(_github.convert_semver_string_to_semver_tag_array(tag[0])[0])) == 2
