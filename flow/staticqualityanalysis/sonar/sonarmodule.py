@@ -114,7 +114,7 @@ class SonarQube(Static_Quality_Analysis):
 
             commons.print_msg(SonarQube.clazz, method, line)
 
-            if 'ERROR:' in line:
+            if 'EXECUTION FAILURE' in line:
                 commons.print_msg(SonarQube.clazz, method, "Failed to execute Sonar: {}".format(line), 'ERROR')
                 process_failed = True
 
