@@ -666,7 +666,7 @@ class CloudFoundry(Cloud):
         method = 'cf_login'
         commons.print_msg(CloudFoundry.clazz, method, 'begin')
 
-        cmd = "{path}cf login -a {cf_api_endpoint} -u {cf_user} -p {cf_pwd} -o \"{cf_org}\" -s \"{cf_space}\" --skip-ssl-validation".format(
+        cmd = "{path}cf login -a {cf_api_endpoint} -u {cf_user} -p '{cf_pwd}' -o \"{cf_org}\" -s \"{cf_space}\" --skip-ssl-validation".format(
             path=CloudFoundry.path_to_cf,
             cf_api_endpoint=CloudFoundry.cf_api_endpoint,
             cf_user=CloudFoundry.cf_user,
@@ -675,7 +675,7 @@ class CloudFoundry(Cloud):
             cf_space=CloudFoundry.cf_space
         )
 
-        cmd_array = "{path}cf login -a {cf_api_endpoint} -u {cf_user} -p {cf_pwd} -o".format(
+        cmd_array = "{path}cf login -a {cf_api_endpoint} -u {cf_user} -p '{cf_pwd}' -o".format(
             path=CloudFoundry.path_to_cf,
             cf_api_endpoint=CloudFoundry.cf_api_endpoint,
             cf_user=CloudFoundry.cf_user,
